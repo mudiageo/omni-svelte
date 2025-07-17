@@ -1,13 +1,12 @@
-// See https://svelte.dev/docs/kit/types#app.d.ts
-// for information about these interfaces
+import type { OmniSvelteLocals } from './package/database/hooks.js'
+
 declare global {
 	namespace App {
-		// interface Error {}
-		// interface Locals {}
-		// interface PageData {}
-		// interface PageState {}
-		// interface Platform {}
+		interface Locals extends OmniSvelteLocals {}
+		interface PageData {}
+		interface Error {}
+		interface Platform {}
 	}
 }
 
-export {};
+export {}

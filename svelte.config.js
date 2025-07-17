@@ -7,9 +7,14 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		alias: {
-			$pkg: 'src/package'
-
-			
+			$pkg: 'src/package'			
+		}
+	},
+	omni: {
+		database: {
+			enabled: true,
+			connection: { url: process.env.DATABASE_URL },
+			schema: null
 		}
 	}
 };
