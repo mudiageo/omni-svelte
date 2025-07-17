@@ -4,7 +4,7 @@ import { omniSvelte } from './src/package/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	plugins: [tailwindcss(), ...omniSvelte()],
+	plugins: [tailwindcss(), omniSvelte()],
 	test: {
 		projects: [
 			{
