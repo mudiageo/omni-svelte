@@ -13,7 +13,6 @@ export abstract class Model {
 	static fillable: string[] = [];
 	static hidden: string[] = [];
 	static casts: Record<string, 'string' | 'number' | 'boolean' | 'date' | 'json'> = {};
-	static drizzleTable: any;
 	static validation: { create: z.ZodSchema; update: z.ZodSchema };
 	static hooks: Record<string, Function[]>;
 	static realtime: any;
@@ -28,9 +27,6 @@ export abstract class Model {
 	public exists = false;
 	public isDirty = false;
 	
-	private dirty: Set<string> = new Set();
-
-
 
 	constructor(attributes: Record<string, any> = {}) {
 		this.fill(attributes);
@@ -474,4 +470,46 @@ export function RegisterModel(name?: string) {
 		target.register(name)
 		return target
 	}
+}
+
+export interface ModelConfig {
+	table: PgTable;
+	primaryKey?: string;
+	fillable?: string[];
+	hidden?: string[];
+	validation: {
+		create: z.ZodSchema;
+		update: z.ZodSchema;
+	};
+	timestamps?: boolean;
+	hooks?: Record<string, Function[]>;
+	realtime?: any;
+	relationships?: Record<string, any>;
+	casts?: Record<string, 'string' | 'number' | 'boolean' | 'date' | 'json'>;
+}
+
+//Helper function to create a model instance
+export function createModel(name: string, config: ModelConfig): typeof Model {
+
+	class NewModel extends Model {
+		static table = config.table
+		static primaryKey = config.primaryKey || 'id';
+		static fillable = config.fillable || []
+		static hidden = config.hidden || []
+		static validation = {
+			create: config.validation.create,
+			update: config.validation.update
+		};
+		static timestamps = true;
+		static hooks = config.hooks || {};
+		static realtime = config.realtime || {};
+		static relationships = config.relationships || {};
+
+		static casts = config.casts || {}
+	}
+
+	//Auto reister the model
+	NewModel.register(name);
+
+	return NewModel;
 }
