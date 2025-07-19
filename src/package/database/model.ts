@@ -7,31 +7,29 @@ import { QueryBuilder } from './query-builder.js';
 
 export abstract class Model {
 	static table: PgTable;
-
 	static primaryKey = 'id';
-
 	static timestamps = true;
-
 	static fillable: string[] = [];
-
 	static hidden: string[] = [];
-
 	static casts: Record<string, 'string' | 'number' | 'boolean' | 'date' | 'json'> = {};
+	static drizzleTable: any;
+	static validation: { create: z.ZodSchema; update: z.ZodSchema };
+	static hooks: Record<string, Function[]>;
+	static realtime: any;
 
 	// Relationship definitions
 	static relationships: Record<string, any> = {};
 
 	// Instance properties
-
 	public attributes: Record<string, any> = {};
-
 	public original: Record<string, any> = {};
-
 	public relations: Record<string, any> = {};
-
 	public exists = false;
-
 	public isDirty = false;
+	
+	private dirty: Set<string> = new Set();
+
+
 
 	constructor(attributes: Record<string, any> = {}) {
 		this.fill(attributes);
