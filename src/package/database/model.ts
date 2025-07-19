@@ -4,34 +4,29 @@ import { RelationshipLoader } from './relationships.js'
 import { registerModel } from './hooks.js'
 import type { PgTable, PgSelectQueryBuilder } from 'drizzle-orm/pg-core';
 import { QueryBuilder } from './query-builder.js';
+import { z } from 'zod';
 
 export abstract class Model {
 	static table: PgTable;
-
 	static primaryKey = 'id';
-
 	static timestamps = true;
-
 	static fillable: string[] = [];
-
 	static hidden: string[] = [];
-
 	static casts: Record<string, 'string' | 'number' | 'boolean' | 'date' | 'json'> = {};
+	static validation: { create: z.ZodSchema; update: z.ZodSchema };
+	static hooks: Record<string, Function[]>;
+	static realtime: any;
 
 	// Relationship definitions
 	static relationships: Record<string, any> = {};
 
 	// Instance properties
-
 	public attributes: Record<string, any> = {};
-
 	public original: Record<string, any> = {};
-
 	public relations: Record<string, any> = {};
-
 	public exists = false;
-
 	public isDirty = false;
+	
 
 	constructor(attributes: Record<string, any> = {}) {
 		this.fill(attributes);
@@ -72,6 +67,12 @@ export abstract class Model {
 		const instance = new this(attributes);
 
 		return instance.save();
+	}
+
+	update(updatedData: Record<string, any>) {
+		this.fill(updatedData);
+
+		return this.save();
 	}
 
 	// Setup property accessors for attributes
@@ -139,16 +140,30 @@ export abstract class Model {
 	}
 
 	async delete() {
+		const constructor = this.constructor as typeof Model;
+
 		if (!this.exists) return false;
 
 		const db = getDatabase();
 
-		await db
-			.delete(this.constructor.table)
+		// Check for soft deletes
+		if (this.attributes.deleted_at !== undefined) {
+			this.attributes.deleted_at = new Date();
+			await this.save();
+		} else {
+			await db
+				.delete(constructor.table)
+				.where(eq((constructor.table as any)[constructor.primaryKey], this.getKey()));
+		}
 
-			.where(eq(this.constructor.table[this.constructor.primaryKey], this.getKey()));
 
 		this.exists = false;
+
+		// Broadcast realtime event
+		if (constructor.realtime?.enabled && constructor.realtime.events?.includes('deleted')) {
+			constructor.broadcastRealtimeEvent('deleted', this);
+		}
+
 
 		return true;
 	}
@@ -294,9 +309,19 @@ export abstract class Model {
 	async performInsert() {
 		const db = getDatabase();
 		const insertData = this.getAttributesForInsert();
+		const constructor = this.constructor as typeof Model;
+
+		// Run validation
+		const validation = constructor.validation.create.safeParse(insertData);
+		if (!validation.success) {
+			throw new Error(`Validation failed: ${validation.error.message}`);
+		}
+
+		// Run creating hooks
+		await constructor.runHooks('creating', this);
 		
 		const result = await db
-			.insert((this.constructor as typeof Model).table)
+			.insert(constructor.table)
 			.values(insertData)
 			.returning();
 
@@ -308,11 +333,21 @@ export abstract class Model {
 			this.isDirty = false;
 			this.syncOriginal();
 		}
+		// Run created hooks
+		await constructor.runHooks('created', this);
+
+		// Broadcast realtime event
+		if (constructor.realtime?.enabled && constructor.realtime.events?.includes('created')) {
+			constructor.broadcastRealtimeEvent('created', this);
+		}
+
 
 		return this;
 	}
 
 	async performUpdate() {
+		const constructor = this.constructor as typeof Model;
+
 		const db = getDatabase();
 		const updateData = this.getDirtyAttributes();
 		
@@ -320,16 +355,33 @@ export abstract class Model {
 			return this;
 		}
 
+		// Run validation
+		const validation = constructor.validation.update.safeParse(updateData);
+		if (!validation.success) {
+			throw new Error(`Validation failed: ${validation.error.message}`);
+		}
+
+		// Run updating hooks
+		await constructor.runHooks('updating', this);
+
 		await db
-			.update((this.constructor as typeof Model).table)
+			.update(constructor.table)
 			.set(updateData)
 			.where(eq(
-				(this.constructor as typeof Model).table[(this.constructor as typeof Model).primaryKey], 
+				(constructor.table as any)[constructor.primaryKey], 
 				this.getKey()
 			));
 
 		this.isDirty = false;
 		this.syncOriginal();
+
+		// Run updated hooks
+		await constructor.runHooks('updated', this);
+
+		// Broadcast realtime event
+		if (constructor.realtime?.enabled && constructor.realtime.events?.includes('updated')) {
+			constructor.broadcastRealtimeEvent('updated', this);
+		}
 		return this;
 	}
 
@@ -376,6 +428,40 @@ export abstract class Model {
 		registerModel(modelName, this)
 		return this
 	}
+
+	 // Hook system
+	static async runHooks(event: string, model: any): Promise<void> {
+		const hooks = this.hooks[event] || [];
+		for (const hook of hooks) {
+		await hook(model);
+		}
+	}
+
+	// Realtime system
+	static broadcastRealtimeEvent(event: string, model: any): void {
+		if (this.realtime?.channels) {
+		const channels = this.realtime.channels(model);
+		channels.forEach((channel: string) => {
+			// Implementation would depend on our realtime system (e.g. CrossWS, SSE)
+			// broadcast(channel, event, model.toJSON());
+		});
+		}
+	}
+
+	// Extension system
+	static extend(extensions: any): typeof Model {
+		const ExtendedModel = class extends this {};
+
+		Object.entries(extensions).forEach(([key, value]) => {
+		if (typeof value === 'function') {
+			(ExtendedModel.prototype as any)[key] = value;
+		} else {
+			(ExtendedModel as any)[key] = value;
+		}
+		});
+
+		return ExtendedModel;
+	}
 }
 
 // Decorator for auto-registration
@@ -384,4 +470,46 @@ export function RegisterModel(name?: string) {
 		target.register(name)
 		return target
 	}
+}
+
+export interface ModelConfig {
+	table: PgTable;
+	primaryKey?: string;
+	fillable?: string[];
+	hidden?: string[];
+	validation: {
+		create: z.ZodSchema;
+		update: z.ZodSchema;
+	};
+	timestamps?: boolean;
+	hooks?: Record<string, Function[]>;
+	realtime?: any;
+	relationships?: Record<string, any>;
+	casts?: Record<string, 'string' | 'number' | 'boolean' | 'date' | 'json'>;
+}
+
+//Helper function to create a model instance
+export function createModel(name: string, config: ModelConfig): typeof Model {
+
+	class NewModel extends Model {
+		static table = config.table
+		static primaryKey = config.primaryKey || 'id';
+		static fillable = config.fillable || []
+		static hidden = config.hidden || []
+		static validation = {
+			create: config.validation.create,
+			update: config.validation.update
+		};
+		static timestamps = true;
+		static hooks = config.hooks || {};
+		static realtime = config.realtime || {};
+		static relationships = config.relationships || {};
+
+		static casts = config.casts || {}
+	}
+
+	//Auto reister the model
+	NewModel.register(name);
+
+	return NewModel;
 }
