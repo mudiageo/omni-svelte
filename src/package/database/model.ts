@@ -312,9 +312,11 @@ export abstract class Model {
 		const constructor = this.constructor as typeof Model;
 
 		// Run validation
-		const validation = constructor.validation.create.safeParse(insertData);
-		if (!validation.success) {
-			throw new Error(`Validation failed: ${validation.error.message}`);
+		if(constructor.validation) {
+			const validation = constructor.validation.create.safeParse(insertData);
+			if (!validation.success) {
+				throw new Error(`Validation failed: ${validation.error.message}`);
+			}
 		}
 
 		// Run creating hooks
@@ -356,9 +358,11 @@ export abstract class Model {
 		}
 
 		// Run validation
-		const validation = constructor.validation.update.safeParse(updateData);
-		if (!validation.success) {
-			throw new Error(`Validation failed: ${validation.error.message}`);
+		if(constructor.validation) {
+			const validation = constructor.validation.update.safeParse(updateData);
+			if (!validation.success) {
+				throw new Error(`Validation failed: ${validation.error.message}`);
+			}
 		}
 
 		// Run updating hooks
@@ -477,7 +481,7 @@ export interface ModelConfig {
 	primaryKey?: string;
 	fillable?: string[];
 	hidden?: string[];
-	validation: {
+	validation?: {
 		create: z.ZodSchema;
 		update: z.ZodSchema;
 	};
@@ -496,11 +500,11 @@ export function createModel(name: string, config: ModelConfig): typeof Model {
 		static primaryKey = config.primaryKey || 'id';
 		static fillable = config.fillable || []
 		static hidden = config.hidden || []
-		static validation = {
+		static validation = config.validation ? {
 			create: config.validation.create,
 			update: config.validation.update
-		};
-		static timestamps = true;
+		} : null;
+		static timestamps = config.timestamps !== false; // Default to true unless explicitly set to false
 		static hooks = config.hooks || {};
 		static realtime = config.realtime || {};
 		static relationships = config.relationships || {};
