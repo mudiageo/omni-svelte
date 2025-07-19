@@ -13,7 +13,7 @@ export abstract class Model {
 	static fillable: string[] = [];
 	static hidden: string[] = [];
 	static casts: Record<string, 'string' | 'number' | 'boolean' | 'date' | 'json'> = {};
-	static validation: { create: z.ZodSchema; update: z.ZodSchema };
+	static validation?: { create: z.ZodSchema; update: z.ZodSchema };
 	static hooks: Record<string, Function[]>;
 	static realtime: any;
 
@@ -312,7 +312,7 @@ export abstract class Model {
 		const constructor = this.constructor as typeof Model;
 
 		// Run validation
-		if(constructor.validation) {
+		if (constructor.validation) {
 			const validation = constructor.validation.create.safeParse(insertData);
 			if (!validation.success) {
 				throw new Error(`Validation failed: ${validation.error.message}`);
@@ -358,7 +358,7 @@ export abstract class Model {
 		}
 
 		// Run validation
-		if(constructor.validation) {
+		if (constructor.validation) {
 			const validation = constructor.validation.update.safeParse(updateData);
 			if (!validation.success) {
 				throw new Error(`Validation failed: ${validation.error.message}`);
@@ -503,7 +503,7 @@ export function createModel(name: string, config: ModelConfig): typeof Model {
 		static validation = config.validation ? {
 			create: config.validation.create,
 			update: config.validation.update
-		} : null;
+		} : undefined;
 		static timestamps = config.timestamps !== false; // Default to true unless explicitly set to false
 		static hooks = config.hooks || {};
 		static realtime = config.realtime || {};
