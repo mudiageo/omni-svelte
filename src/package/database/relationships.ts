@@ -41,7 +41,7 @@ export class RelationshipLoader {
       case 'hasOne':
         return this.loadHasOne(models, relationship, relationName)
       case 'manyToMany':
-        return this.loadmanyToMany(models, relationship, relationName)
+        return this.loadManyToMany(models, relationship, relationName)
     }
   }
 
@@ -137,7 +137,7 @@ export class RelationshipLoader {
     })
   }
 
-  private static async loadmanyToMany<T extends Model>(
+  private static async loadManyToMany<T extends Model>(
     models: T[], 
     relationship: any, 
     relationName: string
