@@ -2,7 +2,7 @@ import { eq, and, or, desc, asc, sql } from 'drizzle-orm';
 import { getDatabase } from './database.js'
 import { RelationshipLoader } from './relationships.js'
 import { registerModel } from './hooks.js'
-import type { PgTable, PgSelectQueryBuilder } from 'drizzle-orm/pg-core';
+import type { PgTable } from 'drizzle-orm/pg-core';
 import { QueryBuilder } from './query-builder.js';
 import { z } from 'zod';
 
