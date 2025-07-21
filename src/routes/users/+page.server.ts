@@ -10,8 +10,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   perPage = perPage || 10
 
   try {
-    let query = locals.query.Users
-
+    let query = locals.query.users
     if (search) {
       query = query.search(search, ['name', 'email'])
     }
