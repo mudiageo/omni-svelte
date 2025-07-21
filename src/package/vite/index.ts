@@ -110,6 +110,10 @@ export function omni(options = {}): Plugin {
             server.reloadModule(clientModule);
           }
         }
+        if(file.endsWith('svelte.config.js')){
+          
+
+        }
       });
     }
   };
