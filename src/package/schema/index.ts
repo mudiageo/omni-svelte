@@ -1,12 +1,12 @@
 import { generateDrizzleSchema } from './generators/drizzle';
 import { generateZodSchemas } from './generators/zod';
 import { generateModel } from './generators/model';
-import type { Schema, FieldDefinition, SchemaConfig, GeneratedSchema } from './types';
+import type { Schema, FieldDefinition, SchemaDefinitionConfig, GeneratedSchema } from './types';
 
 export function defineSchema(
   name: string,
   fields: Record<string, FieldDefinition>,
-  config: SchemaConfig = {}
+  config: SchemaDefinitionConfig = {}
 ): GeneratedSchema {
   const schema: Schema = {
     name,
@@ -30,7 +30,7 @@ export function defineSchema(
   };
 }
 
-function processFields(fields: Record<string, FieldDefinition>, config: SchemaConfig): Record<string, FieldDefinition> {
+function processFields(fields: Record<string, FieldDefinition>, config: SchemaDefinitionConfig): Record<string, FieldDefinition> {
   const processedFields = { ...fields };
 
   // Add timestamps if enabled
@@ -58,7 +58,7 @@ function processFields(fields: Record<string, FieldDefinition>, config: SchemaCo
   return processedFields;
 }
 
-function processConfig(config: SchemaConfig): SchemaConfig {
+function processConfig(config: SchemaDefinitionConfig): SchemaDefinitionConfig {
   return {
     timestamps: config.timestamps ?? false,
     softDeletes: config.softDeletes ?? false,
