@@ -1,5 +1,5 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import type { Config } from '@sveltejs/kit';
+import type { SvelteConfig, OmniConfig } from '$pkg';
 import type { Plugin } from 'vite';
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
@@ -7,7 +7,7 @@ import  { pathToFileURL } from 'url';
 
 export function omni(options = {}): Plugin {
   let config;
-  let svelteConfig: Config;
+  let svelteConfig: SvelteConfig;
   let userHooksServer: string | null = null;
   let userHooksClient: string | null = null;
   
@@ -118,7 +118,7 @@ export function omni(options = {}): Plugin {
     //In development use $pkg as import. During build replace with omni-svelte
     const pkg = '$pkg';
 
-  function generateServerHooks(omniConfig: Config, userHooksServer: string | null) {
+  function generateServerHooks(omniConfig: OmniConfig, userHooksServer: string | null) {
     const hooks = [];
     const imports = [];
 
@@ -175,7 +175,7 @@ await initDb(${JSON.stringify(omniConfig.database, null, 2)})
     return `${imports.join('\n')}\n${userHooksImport}\n\n${handleFunction}\n\n${initFunction}`;
   }
   
-  function generateClientHooks(omniConfig: Config, userHooksClient: string | null) {
+  function generateClientHooks(omniConfig: OmniConfig, userHooksClient: string | null) {
     const hooks = [];
     const imports = [];
     
