@@ -78,7 +78,9 @@
 		"svelte"
 	],
 	"dependencies": {
+		"chokidar": "^4.0.3",
 		"drizzle-orm": "^0.40.0",
+		"glob": "^11.0.3",
 		"postgres": "^3.4.5"
 	},
 	"pnpm": {

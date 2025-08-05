@@ -15,7 +15,36 @@ const config = {
 			enabled: true,
 			connection: { url: process.env.DATABASE_URL },
 			schema: null
-		}
+		},
+		schema: {
+			mode: 'files', // Generate files only
+			input: {
+				patterns: ['src/**/*.schema.ts', 'src/lib/schema.ts'],
+				exclude: ['**/node_modules/**', '**/*.test.ts']
+			},
+			output: {
+				directory: './src/lib/generated',
+				drizzle: { 
+					path: './src/lib/db/server/schema.ts', 
+					format: 'single-file' 
+				},
+				zod: { 
+					path: './src/lib/validation', 
+					format: 'per-schema' 
+				},
+				model: { 
+					path: './src/lib/models', 
+					format: 'per-schema',
+					includeTypes: true,
+					includeCrud: true
+				},
+			},
+			dev: {
+				watch: true,
+				hotReload: true,
+				generateOnStart: true,
+				logLevel: 'info'
+			}		}
 	}
 };
 

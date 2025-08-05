@@ -68,6 +68,7 @@ export interface Schema {
   name: string;
   fields: Record<string, FieldDefinition>;
   config: SchemaDefinitionConfig;
+  filePath?: string; // Added for file-based schema discovery
 }
 export interface GeneratedSchema {
   name: string;

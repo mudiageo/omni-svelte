@@ -3,6 +3,11 @@ import { generateZodSchemas } from './generators/zod';
 import { generateModel } from './generators/model';
 import type { Schema, FieldDefinition, SchemaDefinitionConfig, GeneratedSchema } from './types';
 
+export { SchemaParser } from './parser';
+export { DrizzleGenerator } from './generators/drizzle';
+export { ZodGenerator } from './generators/zod';
+export { ModelGenerator } from './generators/model';
+
 export function defineSchema(
   name: string,
   fields: Record<string, FieldDefinition>,

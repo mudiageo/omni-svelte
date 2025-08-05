@@ -73,6 +73,7 @@ export const userSchema = defineSchema('users', {
   hidden: 'auto',
   validation: {
     onCreate: ['name', 'email', 'password'],
+    onUpdate: ['name', 'email'],
   },
   realtime: {
     enabled: true,

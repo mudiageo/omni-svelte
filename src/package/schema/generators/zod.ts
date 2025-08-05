@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Schema, FieldDefinition } from '../types';
+import type { Schema, FieldDefinition, GeneratedOutput } from '../types';
 
 export function generateZodSchemas(schema: Schema) {
   const createSchema = generateCreateSchema(schema);
@@ -66,7 +66,7 @@ function generateZodField(field: FieldDefinition): z.ZodTypeAny | null {
       zodField = z.string();
       break;
     case 'email':
-      zodField = z.string().email();
+      zodField = z.email();
       break;
     case 'password':
       zodField = z.string();
@@ -160,8 +160,8 @@ function generateNestedValidation(validation: any): z.ZodTypeAny {
       } else {
         shape[key] = getZodTypeFromString(value);
       }
-    } else if (typeof value === 'object' && value.enum) {
-      shape[key] = z.enum(value.enum);
+    } else if (typeof value === 'object' && value !== null && 'enum' in value) {
+      shape[key] = z.enum((value as any).enum);
     }
   });
 
@@ -175,5 +175,186 @@ function getZodTypeFromString(type: string): z.ZodTypeAny {
     case 'boolean': return z.boolean();
     case 'date': return z.date();
     default: return z.string();
+  }
+}
+
+
+export class ZodGenerator {
+  constructor(private schema: Schema) {}
+
+  generate(): string {
+    const imports = this.generateImports();
+    const createSchema = this.generateCreateSchema();
+    const updateSchema = this.generateUpdateSchema();
+
+    return `${imports}\n\n${createSchema}\n\n${updateSchema}`;
+  }
+
+  // New method for multiple schemas with output config
+  async generateFiles(schemas: Schema[], outputConfig: any): Promise<GeneratedOutput[]> {
+    const outputs: GeneratedOutput[] = [];
+    
+    if (outputConfig.format === 'single-file') {
+      // Generate single file with all schemas
+      const allSchemas = schemas.map(schema => {
+        const generator = new ZodGenerator(schema);
+        const content = generator.generate();
+        // Remove the import line since we'll add it once at the top
+        return content.replace(/^import { z } from 'zod';\s*\n/m, '');
+      }).join('\n\n');
+      
+      outputs.push({
+        type: 'zod',
+        path: outputConfig.path,
+        content: `// Auto-generated Zod schemas\nimport { z } from 'zod';\n\n${allSchemas}`
+      });
+    } else {
+      // Generate per-schema files
+      for (const schema of schemas) {
+        const generator = new ZodGenerator(schema);
+        const content = generator.generate();
+        const fileName = `${schema.name}.validation.ts`;
+        let filePath;
+        
+        if (outputConfig.path.endsWith('.ts')) {
+          // Replace filename
+          filePath = outputConfig.path.replace(/[^\/\\]+\.ts$/, fileName);
+        } else {
+          // Treat as directory
+          filePath = `${outputConfig.path}/${fileName}`;
+        }
+        
+        outputs.push({
+          type: 'zod',
+          path: filePath,
+          content
+        });
+      }
+    }
+    
+    return outputs;
+  }
+
+  private generateImports(): string {
+    return `import { z } from 'zod';`;
+  }
+
+  private generateCreateSchema(): string {
+    const tableName = this.schema.name;
+    const fields = Object.entries(this.schema.fields)
+      .filter(([_, field]) => !field.get && !field.primary) // Exclude computed fields and primary keys
+      .map(([name, field]) => this.generateFieldValidation(name, field))
+      .join(',\n  ');
+
+    return `export const ${tableName}CreateSchema = z.object({
+  ${fields}
+});
+
+export type ${this.capitalize(tableName)}Create = z.infer<typeof ${tableName}CreateSchema>;`;
+  }
+
+  private generateUpdateSchema(): string {
+    const tableName = this.schema.name;
+    const requiredFields = this.schema.config.validation?.onUpdate || [];
+    
+    const fields = Object.entries(this.schema.fields)
+      .filter(([_, field]) => !field.get && !field.primary) // Exclude computed fields and primary keys
+      .map(([name, field]) => {
+        const isRequired = requiredFields.includes(name);
+        const validation = this.generateFieldValidation(name, field, !isRequired);
+        return validation;
+      })
+      .join(',\n  ');
+
+    return `export const ${tableName}UpdateSchema = z.object({
+  ${fields}
+});
+
+export type ${this.capitalize(tableName)}Update = z.infer<typeof ${tableName}UpdateSchema>;`;
+  }
+
+  private generateFieldValidation(name: string, field: FieldDefinition, optional: boolean = false): string {
+    let validation = '';
+
+    switch (field.type) {
+      case 'string':
+      case 'slug':
+        validation = 'z.string()';
+        if (field.length) validation += `.max(${field.length})`;
+        break;
+      case 'email':
+        validation = 'z.string().email()';
+        break;
+      case 'password':
+        validation = 'z.string()';
+        if (field.validation?.min) validation += `.min(${field.validation.min})`;
+        if (field.validation?.requireUppercase) {
+          validation += '.regex(/[A-Z]/, "Password must contain at least one uppercase letter")';
+        }
+        if (field.validation?.requireNumbers) {
+          validation += '.regex(/[0-9]/, "Password must contain at least one number")';
+        }
+        break;
+      case 'url':
+        validation = 'z.string().url()';
+        break;
+      case 'integer':
+      case 'serial':
+        validation = 'z.number().int()';
+        if (field.unsigned) validation += '.positive()';
+        break;
+      case 'boolean':
+        validation = 'z.boolean()';
+        break;
+      case 'date':
+      case 'timestamp':
+      case 'datetime':
+        validation = 'z.date()';
+        break;
+      case 'json':
+        validation = 'z.record(z.any())';
+        if (field.validation?.schema) {
+          validation = field.validation.schema;
+        }
+        break;
+      case 'money':
+        validation = 'z.number().positive()';
+        break;
+      case 'richtext':
+        validation = 'z.string()';
+        break;
+      case 'array':
+        validation = 'z.array(z.any())';
+        break;
+      default:
+        if (field.type.startsWith('enum:')) {
+          const enumValues = field.type.split(':')[1].split(',');
+          validation = `z.enum([${enumValues.map(v => `'${v}'`).join(', ')}])`;
+        } else {
+          validation = 'z.string()';
+        }
+    }
+
+    // Add validation rules
+    if (field.validation?.min && ['string', 'email', 'password'].includes(field.type)) {
+      validation += `.min(${field.validation.min})`;
+    }
+    if (field.validation?.max && ['string', 'email', 'password'].includes(field.type)) {
+      validation += `.max(${field.validation.max})`;
+    }
+    if (field.validation?.message) {
+      validation += `.describe('${field.validation.message}')`;
+    }
+
+    // Handle optional fields
+    if (optional || field.optional || field.default !== undefined) {
+      validation += '.optional()';
+    }
+
+    return `${name}: ${validation}`;
+  }
+
+  private capitalize(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 }

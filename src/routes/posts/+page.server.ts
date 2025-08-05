@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   const status = url.searchParams.get('status') || ''
 
   try {
-    let query = locals.query.Posts.with(['author'])
+    let query = locals.query.post.with(['author'])
 
     if (search) {
       query = query.where('title', 'ilike', `%${search}%`)
