@@ -149,7 +149,6 @@ function isSchemaFile(id: string, config: SchemaConfig): boolean {
     );
 }
 
-// Utility functions (these would be implemented in separate modules)
 function mergeWithDefaults(userConfig: UserSchemaConfig): SchemaConfig {
     // Implementation for merging user config with defaults
     return {
@@ -159,6 +158,28 @@ function mergeWithDefaults(userConfig: UserSchemaConfig): SchemaConfig {
             exclude: ['**/node_modules/**', '**/*.test.ts'],
             ...userConfig.input
         },
+        output: {
+            directory: 'generated',
+            drizzle: {
+                path: 'schema/drizzle.ts',
+                ...userConfig.output?.drizzle
+            },
+            zod: {
+                path: 'schema/zod.ts',
+                ...userConfig.output?.zod
+            },
+            model: {
+                path: 'models/index.ts',
+                includeTypes: true,
+                includeCrud: true,
+                ...userConfig.output?.model
+            },
+            types: {
+                path: 'types/index.ts',
+                ...userConfig.output?.types
+            },
+            ...userConfig.output
+        },
         dev: {
             watch: true,
             hotReload: true,
@@ -166,7 +187,54 @@ function mergeWithDefaults(userConfig: UserSchemaConfig): SchemaConfig {
             logLevel: 'info',
             ...userConfig.dev
         },
-        // ... other defaults
+        build: {
+            useRuntime: false,
+            treeShake: true,
+            minify: false,
+            bundle: false,
+            ...userConfig.build
+        },
+        generation: {
+            typescript: {
+                strict: true,
+                declaration: true,
+                target: 'ES2020',
+                ...userConfig.generation?.typescript
+            },
+            drizzle: {
+                dialect: 'postgresql',
+                relations: true,
+                indexes: true,
+                ...userConfig.generation?.drizzle
+            },
+            zod: {
+                errorMap: false,
+                transforms: true,
+                refinements: true,
+                ...userConfig.generation?.zod
+            },
+            model: {
+                crud: {
+                    create: true,
+                    read: true,
+                    update: true,
+                    delete: true,
+                    list: true,
+                    ...userConfig.generation?.model?.crud
+                },
+                validation: 'auto',
+                serialization: 'json',
+                ...userConfig.generation?.model
+            },
+            ...userConfig.generation
+        },
+        plugins: userConfig.plugins || [],
+        runtime: {
+            lazy: false,
+            cache: true,
+            devTools: false,
+            ...userConfig.runtime
+        }
     } as SchemaConfig;
 }
 
@@ -177,7 +245,7 @@ function applySvelteKitDefaults(config: SchemaConfig) {
             directory: './src/lib/generated',
             drizzle: { path: './src/lib/db/server/schema.ts', format: 'single-file' },
             zod: { path: './src/lib/validation', format: 'per-schema' },
-            model: { path: './src/lib/servermodels', format: 'per-schema' },
+            model: { path: './src/lib/db/server/models', format: 'per-schema' },
             types: { path: './src/lib/types/schemas.d.ts', format: 'single-file' }
         };
     }

@@ -29,11 +29,11 @@ const config = {
 					format: 'single-file' 
 				},
 				zod: { 
-					path: './src/lib/validation', 
+					path: './src/lib/db/validation', 
 					format: 'per-schema' 
 				},
 				model: { 
-					path: './src/lib/models', 
+					path: './src/lib/db/models', 
 					format: 'per-schema',
 					includeTypes: true,
 					includeCrud: true
@@ -44,7 +44,8 @@ const config = {
 				hotReload: true,
 				generateOnStart: true,
 				logLevel: 'info'
-			}		}
+			}		
+		}
 	}
 };
 
