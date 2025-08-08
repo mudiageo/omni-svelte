@@ -23,10 +23,7 @@ export async function initializeSchemaConfig(omniConfig: OmniConfig, root: strin
 
     schemaConfig = mergeWithDefaults(userSchemaConfig);
     let schemas: Schema[] = [];
-    
-    // Apply SvelteKit-specific defaults
-    applySvelteKitDefaults(schemaConfig);
-    
+        
     // Discover schemas
     if (schemaConfig.input?.patterns?.length) {
         schemas = await discoverSchemas(schemaConfig);
@@ -159,23 +156,27 @@ function mergeWithDefaults(userConfig: UserSchemaConfig): SchemaConfig {
             ...userConfig.input
         },
         output: {
-            directory: 'generated',
+            directory: './src/lib/generated',
             drizzle: {
-                path: 'schema/drizzle.ts',
+                path: './src/lib/server/db/drizzleSchema.ts',
+                format: 'single-file',
                 ...userConfig.output?.drizzle
             },
             zod: {
-                path: 'schema/zod.ts',
+                path: './src/lib/validation.ts',
+				format: 'single-file',
                 ...userConfig.output?.zod
             },
             model: {
-                path: 'models/index.ts',
+                path: './src/lib/server/models/index.ts',
+				format: 'single-file',
                 includeTypes: true,
                 includeCrud: true,
                 ...userConfig.output?.model
             },
             types: {
-                path: 'types/index.ts',
+                path: './src/lib/types/index.ts',
+				format: 'single-file',
                 ...userConfig.output?.types
             },
             ...userConfig.output
@@ -236,19 +237,6 @@ function mergeWithDefaults(userConfig: UserSchemaConfig): SchemaConfig {
             ...userConfig.runtime
         }
     } as SchemaConfig;
-}
-
-function applySvelteKitDefaults(config: SchemaConfig) {
-    // Apply SvelteKit-specific defaults
-    if (!config.output) {
-        config.output = {
-            directory: './src/lib/generated',
-            drizzle: { path: './src/lib/db/server/schema.ts', format: 'single-file' },
-            zod: { path: './src/lib/validation', format: 'per-schema' },
-            model: { path: './src/lib/db/server/models', format: 'per-schema' },
-            types: { path: './src/lib/types/schemas.d.ts', format: 'single-file' }
-        };
-    }
 }
 
 export async function discoverSchemas(config: SchemaConfig): Promise<Schema[]> {
