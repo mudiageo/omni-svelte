@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Schema, FieldDefinition, GeneratedOutput } from '../types';
+import { PathResolver } from '../utils/path-resolver';
 
 export function generateZodSchemas(schema: Schema) {
   const createSchema = generateCreateSchema(schema);
@@ -194,8 +195,14 @@ export class ZodGenerator {
   async generateFiles(schemas: Schema[], outputConfig: any): Promise<GeneratedOutput[]> {
     const outputs: GeneratedOutput[] = [];
     
+    const pathResolver = new PathResolver({
+      drizzle: outputConfig.drizzle || { path: './src/lib/db/server/schema.ts', format: 'single-file' },
+      zod: outputConfig,
+      model: outputConfig.model || { path: './src/lib/models', format: 'per-schema' }
+    });
+    
     if (outputConfig.format === 'single-file') {
-      // Generate single file with all schemas
+      // Generate single file with all validation schemas
       const allSchemas = schemas.map(schema => {
         const generator = new ZodGenerator(schema);
         const content = generator.generate();
@@ -206,23 +213,14 @@ export class ZodGenerator {
       outputs.push({
         type: 'zod',
         path: outputConfig.path,
-        content: `// Auto-generated Zod schemas\nimport { z } from 'zod';\n\n${allSchemas}`
+        content: `// Auto-generated Zod validation schemas\nimport { z } from 'zod';\n\n${allSchemas}`
       });
     } else {
       // Generate per-schema files
       for (const schema of schemas) {
         const generator = new ZodGenerator(schema);
         const content = generator.generate();
-        const fileName = `${schema.name}.validation.ts`;
-        let filePath;
-        
-        if (outputConfig.path.endsWith('.ts')) {
-          // Replace filename
-          filePath = outputConfig.path.replace(/[^\/\\]+\.ts$/, fileName);
-        } else {
-          // Treat as directory
-          filePath = `${outputConfig.path}/${fileName}`;
-        }
+        const filePath = pathResolver.getOutputPath('zod', schema.name);
         
         outputs.push({
           type: 'zod',

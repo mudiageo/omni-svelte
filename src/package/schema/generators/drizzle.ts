@@ -1,5 +1,6 @@
 import { pgTable, serial, text, varchar, decimal, integer, boolean, timestamp, json, pgEnum, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import type { Schema, FieldDefinition, GeneratedOutput } from '../types';
+import { PathResolver } from '../utils/path-resolver';
 
 export function generateDrizzleSchema(schema: Schema) {
   const columns: Record<string, any> = {};
@@ -130,6 +131,12 @@ export class DrizzleGenerator {
   async generateFiles(schemas: Schema[], outputConfig: any): Promise<GeneratedOutput[]> {
     const outputs: GeneratedOutput[] = [];
     
+    const pathResolver = new PathResolver({
+      drizzle: outputConfig,
+      zod: outputConfig.zod || { path: './src/lib/validation', format: 'single-file' },
+      model: outputConfig.model || { path: './src/lib/models', format: 'per-schema' }
+    });
+    
     if (outputConfig.format === 'single-file') {
       // Generate single file with all schemas
       const allImports = new Set<string>();
@@ -181,14 +188,7 @@ ${allTypes.join('\n\n')}`;
       for (const schema of schemas) {
         const generator = new DrizzleGenerator(schema);
         const content = generator.generate();
-        const fileName = `${schema.name}.schema.ts`;
-        let filePath;
-        
-        if (outputConfig.path.endsWith('.ts')) {
-          filePath = outputConfig.path.replace(/[^\/\\]+\.ts$/, fileName);
-        } else {
-          filePath = `${outputConfig.path}/${fileName}`;
-        }
+        const filePath = pathResolver.getOutputPath('drizzle', schema.name);
         
         outputs.push({
           type: 'drizzle',

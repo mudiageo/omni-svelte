@@ -1,7 +1,7 @@
-import { Model } from '../package/database/model';
-import { users } from './db/server/schema';
-import { usersCreateSchema, usersUpdateSchema } from './users.validation';
-import type { Users as UsersType, NewUsers as NewUsersType } from './db/server/schema';
+import { Model } from '$pkg/database/model';
+import { users } from '../server/schema';
+import { usersCreateSchema, usersUpdateSchema } from '../validation/users.validation';
+import type { Users as UsersType, NewUsers as NewUsersType } from '../server/schema';
 
 export class UsersModel extends Model {
   static tableName = 'users';
@@ -15,10 +15,15 @@ export class UsersModel extends Model {
   
   static realtimeConfig = {
     enabled: true,
-    events: ["created", "updated"],
+    events: [],
     channels: () => [`users`]
   };
 }
+
+
+
+
+
 
 export class Users extends UsersModel {
   // Additional model methods and overrides can be added here

@@ -3,6 +3,7 @@ import { hashPassword, generateSlug } from '../../utils'
 import type { Schema, GeneratedOutput } from '../types';
 import type { generateDrizzleSchema } from './drizzle';
 import type { generateZodSchemas } from './zod';
+import { PathResolver } from '../utils/path-resolver';
 
 export function generateModel(schema: Schema, drizzleSchema: ReturnType<typeof generateDrizzleSchema>, zodSchemas: ReturnType<typeof generateZodSchemas>) {
   class GeneratedModel extends Model {
@@ -158,7 +159,19 @@ function generateHooks(schema: Schema): Record<string, Function[]> {
 
 
 export class ModelGenerator {
-  constructor(private schema: Schema, private outputConfig?: any) {}
+  public pathResolver?: PathResolver;
+  public outputConfig?: any;
+  
+  constructor(private schema: Schema, outputConfig?: any) {
+    this.outputConfig = outputConfig;
+    if (outputConfig) {
+      this.pathResolver = new PathResolver({
+        drizzle: outputConfig.drizzle || { path: './src/lib/db/server/schema.ts', format: 'single-file' },
+        zod: outputConfig.zod || { path: './src/lib/validation', format: 'per-schema' },
+        model: outputConfig.model || outputConfig
+      });
+    }
+  }
 
   generate(): string {
     const imports = this.generateImports();
@@ -174,10 +187,24 @@ export class ModelGenerator {
   async generateFiles(schemas: Schema[], outputConfig: any): Promise<GeneratedOutput[]> {
     const outputs: GeneratedOutput[] = [];
     
+    // Create path resolver with full output configuration - need to pass the full config structure
+    const pathResolver = new PathResolver({
+      drizzle: outputConfig.drizzle || { path: './src/lib/db/server/schema.ts', format: 'single-file' },
+      zod: outputConfig.zod || { path: './src/lib/validation', format: 'per-schema' },
+      model: outputConfig
+    });
+    
     if (outputConfig.format === 'single-file') {
       // Generate single file with all models
       const allModels = schemas.map(schema => {
-        const generator = new ModelGenerator(schema, outputConfig);
+        const generator = new ModelGenerator(schema, { 
+          ...outputConfig, 
+          drizzle: outputConfig.drizzle, 
+          zod: outputConfig.zod 
+        });
+        // Use pathResolver for import generation
+        generator.pathResolver = pathResolver;
+        generator.outputConfig = outputConfig;
         return generator.generate();
       }).join('\n\n');
       
@@ -189,16 +216,16 @@ export class ModelGenerator {
     } else {
       // Generate per-schema files
       for (const schema of schemas) {
-        const generator = new ModelGenerator(schema, outputConfig);
+        const generator = new ModelGenerator(schema, { 
+          ...outputConfig, 
+          drizzle: outputConfig.drizzle, 
+          zod: outputConfig.zod 
+        });
+        // Use pathResolver for import generation
+        generator.pathResolver = pathResolver;
+        generator.outputConfig = outputConfig;
         const content = generator.generate();
-        const fileName = `${schema.name}.model.ts`;
-        let filePath;
-        
-        if (outputConfig.path.endsWith('.ts')) {
-          filePath = outputConfig.path.replace(/[^\/\\]+\.ts$/, fileName);
-        } else {
-          filePath = `${outputConfig.path}/${fileName}`;
-        }
+        const filePath = pathResolver.getOutputPath('model', schema.name);
         
         outputs.push({
           type: 'model',
@@ -215,39 +242,22 @@ export class ModelGenerator {
     const schemaName = this.schema.name;
     const capitalizedName = this.capitalize(schemaName);
     
-    // Calculate relative paths based on output configuration
-    const modelPath = this.outputConfig?.path || './src/lib/models';
-    const drizzlePath = './db/server/schema'; // Default Drizzle path
-    const zodPath = `../validation/${schemaName}.validation`; // Default Zod path
-    const packagePath = '../package/database/model'; // Default package path
-    
-    // Adjust paths based on where models are being generated
-    let relativeDrizzlePath = drizzlePath;
-    let relativeZodPath = zodPath;
-    let relativePackagePath = packagePath;
-    
-    // If generating in a subdirectory, adjust paths
-    if (modelPath.includes('/models')) {
-      relativeDrizzlePath = '../db/server/schema';
-      relativeZodPath = `../validation/${schemaName}.validation`;
-      relativePackagePath = '../../package/database/model';
-    } else if (modelPath.includes('/servermodels')) {
-      relativeDrizzlePath = '../db/server/schema';
-      relativeZodPath = `../validation/${schemaName}.validation`;
-      relativePackagePath = '../../package/database/model';
+    if (this.pathResolver && this.outputConfig) {
+      // Use path resolver for accurate path calculation
+      const modelPath = this.pathResolver.getOutputPath('model', schemaName);
+      const imports = this.pathResolver.resolveModelImports(modelPath, schemaName);
+      
+      return `import { Model } from '${this.pathResolver.toImportPath(imports.modelBase)}';
+import { ${schemaName} } from '${this.pathResolver.toImportPath(imports.drizzle)}';
+import { ${schemaName}CreateSchema, ${schemaName}UpdateSchema } from '${this.pathResolver.toImportPath(imports.zod)}';
+import type { ${capitalizedName} as ${capitalizedName}Type, New${capitalizedName} as New${capitalizedName}Type } from '${this.pathResolver.toImportPath(imports.drizzle)}';`;
     }
     
-    // Import the base Model from the package
-    const modelImport = `import { Model } from '${relativePackagePath}';`;
-    
-    // Import the table schema from drizzle
-    const tableImport = `import { ${schemaName} } from '${relativeDrizzlePath}';`;
-    
-    // Import validation schemas
-    const validationImport = `import { ${schemaName}CreateSchema, ${schemaName}UpdateSchema } from '${relativeZodPath}';`;
-    
-    // Import types with different names to avoid conflicts
-    const typeImport = `import type { ${capitalizedName} as ${capitalizedName}Type, New${capitalizedName} as New${capitalizedName}Type } from '${relativeDrizzlePath}';`;
+    // Fallback to default paths if no path resolver
+    const modelImport = `import { Model } from '$pkg';`;
+    const tableImport = `import { ${schemaName} } from './db/server/schema';`;
+    const validationImport = `import { ${schemaName}CreateSchema, ${schemaName}UpdateSchema } from './validation/${schemaName}.validation';`;
+    const typeImport = `import type { ${capitalizedName} as ${capitalizedName}Type, New${capitalizedName} as New${capitalizedName}Type } from './db/server/schema';`;
 
     return `${modelImport}
 ${tableImport}

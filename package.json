@@ -6,7 +6,7 @@
 		"build": "vite build && npm run prepack",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
-		"prepack": "svelte-kit sync && svelte-package -i ./src/package && sed -i \"s/'\\$pkg'/'omni-svelte'/g\" ./dist/vite/index.js && publint ",
+		"prepack": "svelte-kit sync && svelte-package -i ./src/package && find ./dist -name \"*.js\" -exec sed -i \"s/'\\$pkg'/'omni-svelte'/g; s/\\\"\\$pkg\\\"/\\\"omni-svelte\\\"/g; s/\\$pkg/omni-svelte/g\" {} + && publint ",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",

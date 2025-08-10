@@ -158,18 +158,18 @@ function mergeWithDefaults(userConfig: UserSchemaConfig): SchemaConfig {
         output: {
             directory: './src/lib/generated',
             drizzle: {
-                path: './src/lib/server/db/drizzleSchema.ts',
+                path: './src/lib/db/server/schema.ts',
                 format: 'single-file',
                 ...userConfig.output?.drizzle
             },
             zod: {
                 path: './src/lib/validation.ts',
-				format: 'single-file',
+                format: 'single-file',
                 ...userConfig.output?.zod
             },
             model: {
-                path: './src/lib/server/models/index.ts',
-				format: 'single-file',
+                path: './src/lib/models/index.ts',
+                format: 'single-file',
                 includeTypes: true,
                 includeCrud: true,
                 ...userConfig.output?.model
@@ -319,21 +319,36 @@ async function generateAllSchemas(
     // Generate Drizzle schemas
     if (config.output?.drizzle) {
         const drizzleGenerator = new DrizzleGenerator(schemasToProcess[0]); // Initialize with first schema
-        const drizzleOutputs = await drizzleGenerator.generateFiles(schemasToProcess, config.output.drizzle);
+        const drizzleOutputs = await drizzleGenerator.generateFiles(schemasToProcess, {
+            ...config.output.drizzle,
+            drizzle: config.output.drizzle,
+            zod: config.output.zod,
+            model: config.output.model
+        });
         outputs.push(...drizzleOutputs);
     }
 
     // Generate Zod schemas
     if (config.output?.zod) {
         const zodGenerator = new ZodGenerator(schemasToProcess[0]); // Initialize with first schema
-        const zodOutputs = await zodGenerator.generateFiles(schemasToProcess, config.output.zod);
+        const zodOutputs = await zodGenerator.generateFiles(schemasToProcess, {
+            ...config.output.zod,
+            drizzle: config.output.drizzle,
+            zod: config.output.zod,
+            model: config.output.model
+        });
         outputs.push(...zodOutputs);
     }
 
     // Generate model types
     if (config.output?.model) {
         const modelGenerator = new ModelGenerator(schemasToProcess[0]); // Initialize with first schema
-        const modelOutputs = await modelGenerator.generateFiles(schemasToProcess, config.output.model);
+        const modelOutputs = await modelGenerator.generateFiles(schemasToProcess, {
+            ...config.output.model,
+            drizzle: config.output.drizzle,
+            zod: config.output.zod,
+            model: config.output.model
+        });
         outputs.push(...modelOutputs);
     }
 
