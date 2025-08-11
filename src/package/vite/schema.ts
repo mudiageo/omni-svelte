@@ -9,6 +9,7 @@ import { glob } from "glob";
 import { DrizzleGenerator } from "../schema/generators/drizzle";
 import { ZodGenerator } from "../schema/generators/zod";
 import { ModelGenerator } from "../schema/generators/model";
+import { ParserFactory } from "../schema/parser";
 import { writeFile, mkdir } from "fs/promises";
 import { dirname } from "path";
 
@@ -155,6 +156,12 @@ function mergeWithDefaults(userConfig: UserSchemaConfig): SchemaConfig {
             exclude: ['**/node_modules/**', '**/*.test.ts'],
             ...userConfig.input
         },
+        parsing: {
+            strategy: 'regex', // Default to regex for stability
+            fallbackToRegex: true,
+            strict: false,
+            ...userConfig.parsing
+        },
         output: {
             directory: './src/lib/generated',
             drizzle: {
@@ -247,48 +254,36 @@ export async function discoverSchemas(config: SchemaConfig): Promise<Schema[]> {
     });
     
     const schemas: Schema[] = [];
+    const parser = ParserFactory.createParser(config);
+    
+    if (config.dev?.logLevel === 'debug') {
+        console.log(`🔍 Using ${config.parsing?.strategy || 'regex'} parsing strategy`);
+        console.log(`📁 Discovered ${files.length} schema files`);
+    }
     
     for (const file of files) {
         try {
-            // Parse the file as text instead of importing to avoid alias issues
-            const fileContent = readFileSync(file, 'utf-8');
+            const fileSchemas = await parser.parseSchemas(file);
             
-            // Extract schema definitions using regex parsing
-            const schemaMatches = fileContent.matchAll(/export\s+const\s+(\w+)\s*=\s*defineSchema\s*\(\s*['"`](\w+)['"`]\s*,\s*(\{[\s\S]*?\})\s*,\s*(\{[\s\S]*?\})\s*\);?/g);
-            
-            for (const match of schemaMatches) {
-                const [, exportName, tableName, fieldsStr, configStr] = match;
+            for (const schema of fileSchemas) {
+                // Check for duplicate schema names
+                const existingSchema = schemas.find(s => s.name === schema.name);
+                if (existingSchema) {
+                    if (config.dev?.logLevel !== 'silent') {
+                        console.warn(`⚠️  Duplicate schema name "${schema.name}" found in ${file}. Skipping...`);
+                    }
+                    continue;
+                }
                 
-                try {
-                    if (config.dev?.logLevel === 'debug') {
-                        console.log(`Parsing schema: ${exportName} -> ${tableName}`);
-                        console.log('Fields string:', fieldsStr.substring(0, 100) + '...');
-                        console.log('Config string:', configStr.substring(0, 100) + '...');
-                    }
-                    
-                    // Parse the field definitions and config
-                    const fields = parseFieldsObject(fieldsStr);
-                    const configObj = parseConfigObject(configStr);
-                    
-                    schemas.push({
-                        name: tableName,
-                        fields: fields,
-                        config: configObj,
-                        filePath: file
-                    });
-                    
-                    if (config.dev?.logLevel !== 'silent') {
-                        console.log(`✅ Found schema: ${exportName} -> ${tableName} (${Object.keys(fields).length} fields)`);
-                    }
-                } catch (parseError) {
-                    if (config.dev?.logLevel !== 'silent') {
-                        console.warn(`Could not parse schema definition ${exportName} in ${file}:`, parseError);
-                    }
+                schemas.push(schema);
+                
+                if (config.dev?.logLevel !== 'silent') {
+                    console.log(`✅ Found schema: ${schema.name} (${Object.keys(schema.fields).length} fields)`);
                 }
             }
         } catch (error) {
             if (config.dev?.logLevel !== 'silent') {
-                console.warn(`Could not read schema file ${file}:`, error);
+                console.warn(`Could not parse schema file ${file}:`, error);
             }
         }
     }

@@ -127,6 +127,18 @@ interface SchemaConfig {
   };
 
   /**
+   * Schema parsing configuration
+   */
+  parsing?: {
+    /** Schema parsing strategy */
+    strategy?: 'regex' | 'ast';
+    /** Fallback to regex if AST parsing fails */
+    fallbackToRegex?: boolean;
+    /** Enable strict parsing validation */
+    strict?: boolean;
+  };
+
+  /**
    * Development experience settings
    */
   dev?: {

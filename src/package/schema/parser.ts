@@ -1,133 +1,103 @@
-import fs from 'fs';
-import path from 'path';
-// import { glob } from 'glob'; // Will need to be installed
-import type { Schema } from './types';
+import * as ts from 'typescript';
+import { readFileSync } from 'fs';
+import type { Schema, FieldDefinition, SchemaConfig } from './types';
 
-export class SchemaParser {
-  private config: any;
+/**
+ * Parser strategy interface
+ */
+export interface ISchemaParser {
+  parseSchemas(filePath: string): Promise<Schema[]>;
+}
 
-  constructor(config?: any) {
-    this.config = config || this.loadConfigFromSvelteConfig();
+/**
+ * Main schema parser that wraps both AST and regex strategies
+ */
+export class SchemaParser implements ISchemaParser {
+  private config: SchemaConfig;
+
+  constructor(config: SchemaConfig) {
+    this.config = config;
   }
 
-  private loadConfigFromSvelteConfig(): any {
+  async parseSchemas(filePath: string): Promise<Schema[]> {
+    const strategy = this.config.parsing?.strategy || 'regex';
+    
+    switch (strategy) {
+      case 'ast':
+        return this.parseWithAST(filePath);
+      case 'regex':
+      default:
+        return this.parseWithRegex(filePath);
+    }
+  }
+
+  private async parseWithAST(filePath: string): Promise<Schema[]> {
     try {
-      // Try to load svelte.config.js
-      const configPath = path.resolve('./svelte.config.js');
-      if (fs.existsSync(configPath)) {
-        // For now, return the embedded config since dynamic import is complex
-        return {
-          input: {
-            patterns: ['src/**/*.schema.ts'],
-            exclude: ['**/node_modules/**']
-          },
-          output: {
-            drizzle: { path: './src/lib/db/server/schema.ts', format: 'single-file' },
-            zod: { path: './src/lib/validation', format: 'per-schema' },
-            model: { path: './src/lib/models', format: 'per-schema' }
-          }
-        };
-      }
+      const astParser = new ASTSchemaParser(this.config);
+      return await astParser.parseSchemas(filePath);
     } catch (error) {
-      console.warn('Could not load svelte.config.js:', error.message);
-    }
-    
-    // Default config
-    return {
-      input: {
-        patterns: ['src/**/*.schema.ts'],
-        exclude: ['**/node_modules/**']
-      },
-      output: {
-        drizzle: { path: './src/lib/db/server/schema.ts', format: 'single-file' },
-        zod: { path: './src/lib/validation', format: 'per-schema' },
-        model: { path: './src/lib/models', format: 'per-schema' }
+      if (this.config.dev?.logLevel !== 'silent') {
+        console.error(`AST parsing failed for ${filePath}:`, error);
       }
-    };
-  }
-
-  async discoverAndParseSchemas(basePath?: string): Promise<Schema[]> {
-    const patterns = this.config.input?.patterns || ['src/**/*.schema.ts'];
-    
-    console.log('🔍 Discovering schemas with patterns:', patterns);
-    
-    const schemaFiles: string[] = [];
-    
-    // Simple file discovery for now (replace with glob later)
-    for (const pattern of patterns) {
-      const files = this.findSchemaFiles(basePath || process.cwd(), pattern);
-      schemaFiles.push(...files);
-    }
-    
-    console.log(`📄 Found ${schemaFiles.length} schema files:`, schemaFiles);
-    
-    const schemas: Schema[] = [];
-    const schemaNames = new Set<string>();
-    
-    for (const file of schemaFiles) {
-      try {
-        const fullPath = path.resolve(basePath || process.cwd(), file);
-        const schema = await this.parseSchemaFile(fullPath);
-        
-        if (schema) {
-          // Handle duplicate schema names
-          if (schemaNames.has(schema.name)) {
-            console.warn(`⚠️  Duplicate schema name "${schema.name}" found in ${file}. Skipping...`);
-            continue;
-          }
-          
-          schemaNames.add(schema.name);
-          schemas.push(schema);
-          console.log(`✅ Parsed schema: ${schema.name} from ${file}`);
-        }
-      } catch (error) {
-        console.error(`❌ Error parsing ${file}:`, error.message);
-      }
-    }
-    
-    return schemas;
-  }
-
-  private findSchemaFiles(basePath: string, pattern: string): string[] {
-    const files: string[] = [];
-    
-    // Simple recursive search for .schema.ts files
-    const searchDir = (dir: string) => {
-      if (!fs.existsSync(dir)) return;
       
-      const items = fs.readdirSync(dir);
-      for (const item of items) {
-        const fullPath = path.join(dir, item);
-        const stat = fs.lstatSync(fullPath);
-        
-        if (stat.isDirectory() && !item.includes('node_modules')) {
-          searchDir(fullPath);
-        } else if (item.endsWith('.schema.ts')) {
-          const relativePath = path.relative(basePath, fullPath);
-          files.push(relativePath);
+      // Fallback to regex if enabled
+      if (this.config.parsing?.fallbackToRegex) {
+        if (this.config.dev?.logLevel === 'debug') {
+          console.log(`Falling back to regex parsing for ${filePath}`);
         }
+        return this.parseWithRegex(filePath);
       }
-    };
-    
-    searchDir(basePath);
-    return files;
+      
+      return [];
+    }
   }
 
-  private async parseSchemaFile(filePath: string): Promise<Schema | null> {
+  private async parseWithRegex(filePath: string): Promise<Schema[]> {
+    const regexParser = new RegexSchemaParser(this.config);
+    return await regexParser.parseSchemas(filePath);
+  }
+}
+
+/**
+ * Legacy regex-based parser for backward compatibility
+ */
+export class RegexSchemaParser implements ISchemaParser {
+  constructor(private config: SchemaConfig) {}
+
+  async parseSchemas(filePath: string): Promise<Schema[]> {
     try {
-      // Read the file content
-      const content = fs.readFileSync(filePath, 'utf8');
+      const content = readFileSync(filePath, 'utf8');
       
       // Look for defineSchema calls
       const schemaMatches = content.match(/export\s+const\s+(\w+Schema)\s*=\s*defineSchema\s*\(\s*['"`](\w+)['"`]\s*,\s*\{([\s\S]*?)\}\s*(?:,\s*\{([\s\S]*?)\})?\s*\)/g);
       
       if (!schemaMatches) {
-        console.warn(`No schema definitions found in ${filePath}`);
-        return null;
+        if (this.config.dev?.logLevel === 'debug') {
+          console.warn(`No schema definitions found in ${filePath}`);
+        }
+        return [];
       }
       
-      // Parse the first schema found (handle multiple later)
-      const match = schemaMatches[0];
+      const schemas: Schema[] = [];
+      
+      for (const match of schemaMatches) {
+        const schema = this.parseSchemaFromMatch(match, filePath);
+        if (schema) {
+          schemas.push(schema);
+        }
+      }
+      
+      return schemas;
+    } catch (error) {
+      if (this.config.dev?.logLevel !== 'silent') {
+        console.error(`Error parsing schema file ${filePath}:`, error);
+      }
+      return [];
+    }
+  }
+
+  private parseSchemaFromMatch(match: string, filePath: string): Schema | null {
+    try {
       const nameMatch = match.match(/defineSchema\s*\(\s*['"`](\w+)['"`]/);
       
       if (!nameMatch) {
@@ -137,83 +107,89 @@ export class SchemaParser {
       
       const schemaName = nameMatch[1];
       
-      // For now, create a basic schema structure
-      // In a real implementation, you'd parse the actual field definitions
+      // Extract fields and config using regex
+      const fieldsMatch = match.match(/defineSchema\s*\([^,]+,\s*\{([\s\S]*?)\}(?:\s*,\s*\{([\s\S]*?)\})?\s*\)/);
+      
+      if (!fieldsMatch) {
+        console.warn(`Could not extract fields from schema ${schemaName} in ${filePath}`);
+        return null;
+      }
+      
+      const fieldsContent = fieldsMatch[1];
+      const configContent = fieldsMatch[2] || '';
+      
       const schema: Schema = {
         name: schemaName,
-        fields: this.extractFields(content, schemaName),
-        config: this.extractConfig(content, schemaName)
+        fields: this.extractFields(fieldsContent),
+        config: this.extractConfig(configContent),
+        filePath
       };
       
       return schema;
-      
     } catch (error) {
-      console.error(`Error reading schema file ${filePath}:`, error);
+      console.warn(`Error parsing schema match in ${filePath}:`, error);
       return null;
     }
   }
 
-  private extractFields(content: string, schemaName: string): Record<string, any> {
-    // Enhanced field extraction that handles the actual defineSchema format
+  private extractFields(fieldsContent: string): Record<string, any> {
     const fields: Record<string, any> = {};
     
-    // Look for the schema definition
-    const schemaRegex = new RegExp(`defineSchema\\s*\\(\\s*['"\`]${schemaName}['"\`]\\s*,\\s*\\{([\\s\\S]*?)\\}(?:\\s*,|\\s*\\))`);
-    const schemaMatch = content.match(schemaRegex);
-    
-    if (!schemaMatch) {
-      console.warn(`Could not find schema definition for ${schemaName}`);
-      return this.extractFieldsLegacy(content);
-    }
-    
-    const fieldsContent = schemaMatch[1];
-    
-    // Parse field definitions more carefully
-    // Handle nested objects and complex field definitions
-    let depth = 0;
-    let currentField = '';
-    let currentFieldName = '';
-    let inString = false;
-    let stringChar = '';
-    
-    for (let i = 0; i < fieldsContent.length; i++) {
-      const char = fieldsContent[i];
-      const nextChar = fieldsContent[i + 1];
+    try {
+      // Enhanced field extraction that handles nested objects
+      let depth = 0;
+      let currentField = '';
+      let currentFieldName = '';
+      let inString = false;
+      let stringChar = '';
+      let i = 0;
       
-      if (!inString && (char === '"' || char === "'" || char === '`')) {
-        inString = true;
-        stringChar = char;
-      } else if (inString && char === stringChar && fieldsContent[i - 1] !== '\\') {
-        inString = false;
-        stringChar = '';
-      }
-      
-      if (!inString) {
-        if (char === '{') depth++;
-        if (char === '}') depth--;
+      while (i < fieldsContent.length) {
+        const char = fieldsContent[i];
         
-        if (depth === 0 && char === ',') {
-          // End of field definition
-          if (currentFieldName && currentField) {
-            fields[currentFieldName] = this.parseFieldDefinition(currentField);
-          }
-          currentField = '';
-          currentFieldName = '';
-        } else if (depth === 0 && char === ':' && !currentFieldName) {
-          // Field name
-          currentFieldName = currentField.trim();
-          currentField = '';
-        } else {
-          currentField += char;
+        // Handle string boundaries
+        if (!inString && (char === '"' || char === "'" || char === '`')) {
+          inString = true;
+          stringChar = char;
+        } else if (inString && char === stringChar && fieldsContent[i - 1] !== '\\') {
+          inString = false;
+          stringChar = '';
         }
-      } else {
+        
+        if (!inString) {
+          if (char === '{') depth++;
+          if (char === '}') depth--;
+          
+          // Field separator at root level
+          if (depth === 0 && char === ',') {
+            if (currentFieldName && currentField) {
+              fields[currentFieldName] = this.parseFieldDefinition(currentField);
+            }
+            currentField = '';
+            currentFieldName = '';
+            i++;
+            continue;
+          }
+          
+          // Field name separator
+          if (depth === 0 && char === ':' && !currentFieldName) {
+            currentFieldName = currentField.trim();
+            currentField = '';
+            i++;
+            continue;
+          }
+        }
+        
         currentField += char;
+        i++;
       }
-    }
-    
-    // Handle the last field
-    if (currentFieldName && currentField) {
-      fields[currentFieldName] = this.parseFieldDefinition(currentField);
+      
+      // Handle the last field
+      if (currentFieldName && currentField) {
+        fields[currentFieldName] = this.parseFieldDefinition(currentField);
+      }
+    } catch (error) {
+      console.warn('Error extracting fields:', error);
     }
     
     return fields;
@@ -223,7 +199,7 @@ export class SchemaParser {
     const field: any = {};
     
     try {
-      // Remove extra whitespace and clean up
+      // Clean up the field definition
       fieldDef = fieldDef.trim().replace(/^\s*\{\s*/, '').replace(/\s*\}\s*$/, '');
       
       // Extract type
@@ -231,11 +207,12 @@ export class SchemaParser {
       if (typeMatch) field.type = typeMatch[1];
       
       // Extract boolean properties
-      if (fieldDef.includes('primary: true')) field.primary = true;
-      if (fieldDef.includes('required: true')) field.required = true;
-      if (fieldDef.includes('unique: true')) field.unique = true;
-      if (fieldDef.includes('hidden: true')) field.hidden = true;
-      if (fieldDef.includes('computed: true')) field.computed = true;
+      const booleanProps = ['primary', 'required', 'unique', 'hidden', 'computed', 'optional'];
+      for (const prop of booleanProps) {
+        if (new RegExp(`${prop}:\\s*true`).test(fieldDef)) {
+          field[prop] = true;
+        }
+      }
       
       // Extract numeric properties
       const lengthMatch = fieldDef.match(/length:\s*(\d+)/);
@@ -250,7 +227,16 @@ export class SchemaParser {
         else if (/^\d+$/.test(defaultValue)) field.default = parseInt(defaultValue);
         else if (/^['"`](.*)['"`]$/.test(defaultValue)) {
           field.default = defaultValue.slice(1, -1);
+        } else {
+          field.default = defaultValue;
         }
+      }
+      
+      // Extract arrays (like values for enums)
+      const valuesMatch = fieldDef.match(/values:\s*\[([\s\S]*?)\]/);
+      if (valuesMatch) {
+        const valuesStr = valuesMatch[1];
+        field.values = valuesStr.split(',').map(v => v.trim().replace(/['"`]/g, ''));
       }
       
       // Extract validation object
@@ -258,6 +244,10 @@ export class SchemaParser {
       if (validationMatch) {
         field.validation = this.parseValidationObject(validationMatch[1]);
       }
+      
+      // Extract hash property
+      const hashMatch = fieldDef.match(/hash:\s*['"`](\w+)['"`]/);
+      if (hashMatch) field.hash = hashMatch[1];
       
     } catch (error) {
       console.warn(`Error parsing field definition: ${fieldDef}`, error);
@@ -269,67 +259,427 @@ export class SchemaParser {
   private parseValidationObject(validationStr: string): any {
     const validation: any = {};
     
-    // Parse min/max
-    const minMatch = validationStr.match(/min:\s*(\d+)/);
-    if (minMatch) validation.min = parseInt(minMatch[1]);
-    
-    const maxMatch = validationStr.match(/max:\s*(\d+)/);
-    if (maxMatch) validation.max = parseInt(maxMatch[1]);
-    
-    // Parse message
-    const messageMatch = validationStr.match(/message:\s*['"`]([^'"`]+)['"`]/);
-    if (messageMatch) validation.message = messageMatch[1];
-    
-    // Parse boolean flags
-    if (validationStr.includes('requireUppercase: true')) validation.requireUppercase = true;
-    if (validationStr.includes('requireNumbers: true')) validation.requireNumbers = true;
+    try {
+      // Parse min/max
+      const minMatch = validationStr.match(/min:\s*(\d+)/);
+      if (minMatch) validation.min = parseInt(minMatch[1]);
+      
+      const maxMatch = validationStr.match(/max:\s*(\d+)/);
+      if (maxMatch) validation.max = parseInt(maxMatch[1]);
+      
+      // Parse message
+      const messageMatch = validationStr.match(/message:\s*['"`]([^'"`]+)['"`]/);
+      if (messageMatch) validation.message = messageMatch[1];
+      
+      // Parse boolean flags
+      if (validationStr.includes('requireUppercase: true')) validation.requireUppercase = true;
+      if (validationStr.includes('requireNumbers: true')) validation.requireNumbers = true;
+    } catch (error) {
+      console.warn('Error parsing validation object:', error);
+    }
     
     return validation;
   }
 
-  private extractFieldsLegacy(content: string): Record<string, any> {
-    // Fallback to simple field extraction
-    const fields: Record<string, any> = {};
-    
-    // Look for field patterns like: fieldName: { type: 'string', ... }
-    const fieldMatches = content.match(/(\w+):\s*\{([^}]+)\}/g);
-    
-    if (fieldMatches) {
-      for (const fieldMatch of fieldMatches) {
-        const [, fieldName, fieldDef] = fieldMatch.match(/(\w+):\s*\{([^}]+)\}/) || [];
-        if (fieldName && fieldDef) {
-          fields[fieldName] = this.parseFieldDefinition(`{${fieldDef}}`);
-        }
-      }
-    }
-    
-    return fields;
-  }
-
-  private extractConfig(content: string, schemaName: string): any {
-    // Extract configuration from the third parameter of defineSchema
-    const configMatch = content.match(/defineSchema\s*\([^,]+,[^,]+,\s*\{([^}]+)\}/);
-    
+  private extractConfig(configContent: string): any {
     const config: any = {
       timestamps: true, // default
       fillable: 'auto',
       hidden: 'auto'
     };
     
-    if (configMatch) {
-      const configStr = configMatch[1];
-      
+    if (!configContent.trim()) {
+      return config;
+    }
+    
+    try {
       // Parse basic config properties
-      if (configStr.includes('timestamps: false')) config.timestamps = false;
-      if (configStr.includes('realtime:')) {
+      if (configContent.includes('timestamps: false')) config.timestamps = false;
+      if (configContent.includes('softDeletes: true')) config.softDeletes = true;
+      
+      // Parse realtime config
+      if (configContent.includes('realtime:')) {
         config.realtime = { enabled: true, events: [], channels: [] };
       }
+      
+      // Parse indexes
+      const indexMatch = configContent.match(/indexes:\s*\[([\s\S]*?)\]/);
+      if (indexMatch) {
+        config.indexes = [];
+        // Simple parsing for now - could be enhanced
+      }
+    } catch (error) {
+      console.warn('Error parsing config:', error);
     }
     
     return config;
   }
+}
 
-  getOutputConfig(): any {
-    return this.config.output || {};
+/**
+ * AST-based parser implementation
+ */
+export class ASTSchemaParser implements ISchemaParser {
+  private sourceFile: ts.SourceFile | null = null;
+  private checker: ts.TypeChecker | null = null;
+  private filePath: string = '';
+
+  constructor(private config: SchemaConfig) {}
+
+  async parseSchemas(filePath: string): Promise<Schema[]> {
+    this.filePath = filePath;
+    
+    try {
+      const fileContent = readFileSync(filePath, 'utf-8');
+      
+      // Create a simple source file without a full program to avoid module resolution issues
+      this.sourceFile = ts.createSourceFile(
+        filePath,
+        fileContent,
+        ts.ScriptTarget.ES2020,
+        true,
+        ts.ScriptKind.TS
+      );
+
+      if (!this.sourceFile) {
+        throw new Error(`Could not parse file: ${filePath}`);
+      }
+
+      return this.extractSchemas();
+    } catch (error) {
+      console.warn(`Failed to parse schema file ${filePath}:`, error);
+      
+      // Fallback to regex if enabled
+      if (this.config.parsing?.fallbackToRegex) {
+        if (this.config.dev?.logLevel === 'debug') {
+          console.log(`Falling back to regex parsing for ${filePath}`);
+        }
+        const regexParser = new RegexSchemaParser(this.config);
+        return await regexParser.parseSchemas(filePath);
+      }
+      
+      return [];
+    }
+  }
+
+  /**
+   * Extract schema definitions from the AST
+   */
+  private extractSchemas(): Schema[] {
+    if (!this.sourceFile) return [];
+
+    const schemas: Schema[] = [];
+
+    const visit = (node: ts.Node) => {
+      // Look for variable declarations with defineSchema calls
+      if (ts.isVariableDeclaration(node) && node.initializer) {
+        const schema = this.parseSchemaDeclaration(node);
+        if (schema) {
+          schemas.push(schema);
+        }
+      }
+
+      ts.forEachChild(node, visit);
+    };
+
+    ts.forEachChild(this.sourceFile, visit);
+    return schemas;
+  }
+
+  /**
+   * Parse a schema declaration node
+   */
+  private parseSchemaDeclaration(node: ts.VariableDeclaration): Schema | null {
+    if (!node.initializer || !ts.isCallExpression(node.initializer)) {
+      return null;
+    }
+
+    const callExpr = node.initializer;
+    
+    // Check if it's a defineSchema call
+    if (!this.isDefineSchemaCall(callExpr)) {
+      return null;
+    }
+
+    const args = callExpr.arguments;
+    if (args.length < 2) {
+      return null;
+    }
+
+    try {
+      // Extract schema name from first argument
+      const nameArg = args[0];
+      const schemaName = this.extractStringLiteral(nameArg);
+      if (!schemaName) {
+        return null;
+      }
+
+      // Extract fields from second argument
+      const fieldsArg = args[1];
+      const fields = this.parseFieldsObject(fieldsArg);
+
+      // Extract config from third argument (optional)
+      const configArg = args[2];
+      const config = configArg ? this.parseConfigObject(configArg) : {};
+
+      return {
+        name: schemaName,
+        fields,
+        config,
+        filePath: this.filePath
+      };
+    } catch (error) {
+      console.warn(`Error parsing schema declaration in ${this.filePath}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Check if a call expression is a defineSchema call
+   */
+  private isDefineSchemaCall(callExpr: ts.CallExpression): boolean {
+    const expression = callExpr.expression;
+    
+    if (ts.isIdentifier(expression)) {
+      return expression.text === 'defineSchema';
+    }
+    
+    if (ts.isPropertyAccessExpression(expression)) {
+      return ts.isIdentifier(expression.name) && expression.name.text === 'defineSchema';
+    }
+    
+    return false;
+  }
+
+  /**
+   * Extract string literal value
+   */
+  private extractStringLiteral(node: ts.Node): string | null {
+    if (ts.isStringLiteral(node)) {
+      return node.text;
+    }
+    return null;
+  }
+
+  /**
+   * Parse fields object literal
+   */
+  private parseFieldsObject(node: ts.Node): Record<string, FieldDefinition> {
+    const fields: Record<string, FieldDefinition> = {};
+
+    if (!ts.isObjectLiteralExpression(node)) {
+      return fields;
+    }
+
+    for (const property of node.properties) {
+      if (ts.isPropertyAssignment(property) && ts.isIdentifier(property.name)) {
+        const fieldName = property.name.text;
+        const fieldDef = this.parseFieldDefinition(property.initializer);
+        if (fieldDef) {
+          fields[fieldName] = fieldDef;
+        }
+      }
+    }
+
+    return fields;
+  }
+
+  /**
+   * Parse a field definition object
+   */
+  private parseFieldDefinition(node: ts.Node): FieldDefinition | null {
+    if (!ts.isObjectLiteralExpression(node)) {
+      return null;
+    }
+
+    const fieldDef: Partial<FieldDefinition> = {};
+
+    for (const property of node.properties) {
+      if (ts.isPropertyAssignment(property) && ts.isIdentifier(property.name)) {
+        const propName = property.name.text;
+        const value = this.parsePropertyValue(property.initializer);
+
+        switch (propName) {
+          case 'type':
+            if (typeof value === 'string') {
+              fieldDef.type = value as any;
+            }
+            break;
+          case 'primary':
+          case 'required':
+          case 'unique':
+          case 'hidden':
+          case 'computed':
+          case 'optional':
+            if (typeof value === 'boolean') {
+              (fieldDef as any)[propName] = value;
+            }
+            break;
+          case 'length':
+            if (typeof value === 'number') {
+              fieldDef.length = value;
+            }
+            break;
+          case 'default':
+            fieldDef.default = value;
+            break;
+          case 'values':
+            if (Array.isArray(value)) {
+              fieldDef.values = value as string[];
+            }
+            break;
+          case 'validation':
+            if (typeof value === 'object' && value !== null) {
+              fieldDef.validation = value;
+            }
+            break;
+          case 'hash':
+            if (typeof value === 'string') {
+              fieldDef.hash = value as 'bcrypt' | 'argon2';
+            }
+            break;
+          case 'storage':
+            if (typeof value === 'object' && value !== null) {
+              fieldDef.storage = value as any;
+            }
+            break;
+          case 'get':
+            // For computed properties, we'll store the function as text
+            if (ts.isFunctionExpression(property.initializer) || ts.isArrowFunction(property.initializer)) {
+              fieldDef.get = this.extractFunctionText(property.initializer);
+            }
+            break;
+        }
+      }
+    }
+
+    // Ensure type is present
+    if (!fieldDef.type) {
+      return null;
+    }
+
+    return fieldDef as FieldDefinition;
+  }
+
+  /**
+   * Parse config object literal
+   */
+  private parseConfigObject(node: ts.Node): Partial<SchemaConfig> {
+    const config: Partial<SchemaConfig> = {};
+
+    if (!ts.isObjectLiteralExpression(node)) {
+      return config;
+    }
+
+    for (const property of node.properties) {
+      if (ts.isPropertyAssignment(property) && ts.isIdentifier(property.name)) {
+        const propName = property.name.text;
+        const value = this.parsePropertyValue(property.initializer);
+
+        switch (propName) {
+          case 'timestamps':
+          case 'softDeletes':
+            if (typeof value === 'boolean') {
+              (config as any)[propName] = value;
+            }
+            break;
+          case 'indexes':
+            if (Array.isArray(value)) {
+              config.indexes = value;
+            }
+            break;
+          case 'fillable':
+          case 'hidden':
+            if (typeof value === 'string' || Array.isArray(value)) {
+              (config as any)[propName] = value;
+            }
+            break;
+          case 'validation':
+            if (typeof value === 'object' && value !== null) {
+              config.validation = value;
+            }
+            break;
+          case 'realtime':
+            if (typeof value === 'object' && value !== null) {
+              config.realtime = value;
+            }
+            break;
+        }
+      }
+    }
+
+    return config;
+  }
+
+  /**
+   * Parse property value from AST node
+   */
+  private parsePropertyValue(node: ts.Node): any {
+    if (ts.isStringLiteral(node)) {
+      return node.text;
+    }
+    
+    if (ts.isNumericLiteral(node)) {
+      return Number(node.text);
+    }
+    
+    if (node.kind === ts.SyntaxKind.TrueKeyword) {
+      return true;
+    }
+    
+    if (node.kind === ts.SyntaxKind.FalseKeyword) {
+      return false;
+    }
+    
+    if (node.kind === ts.SyntaxKind.NullKeyword) {
+      return null;
+    }
+    
+    if (ts.isArrayLiteralExpression(node)) {
+      return node.elements.map(element => this.parsePropertyValue(element));
+    }
+    
+    if (ts.isObjectLiteralExpression(node)) {
+      const obj: any = {};
+      for (const property of node.properties) {
+        if (ts.isPropertyAssignment(property) && ts.isIdentifier(property.name)) {
+          obj[property.name.text] = this.parsePropertyValue(property.initializer);
+        }
+      }
+      return obj;
+    }
+    
+    // For template literals, identifiers, etc., return string representation
+    if (ts.isTemplateExpression(node) || ts.isIdentifier(node) || ts.isCallExpression(node)) {
+      return node.getText(this.sourceFile);
+    }
+    
+    return undefined;
+  }
+
+  /**
+   * Extract function text for computed properties
+   */
+  private extractFunctionText(node: ts.FunctionExpression | ts.ArrowFunction): any {
+    // Return a simple representation for now
+    // In a full implementation, we might evaluate or transform the function
+    return node.getText(this.sourceFile);
+  }
+}
+
+/**
+ * Parser factory that creates the appropriate parser based on configuration
+ */
+export class ParserFactory {
+  static createParser(config: SchemaConfig): ISchemaParser {
+    const strategy = config.parsing?.strategy || 'regex'; // Default to regex
+    
+    switch (strategy) {
+      case 'ast':
+        return new ASTSchemaParser(config);
+      case 'regex':
+      default:
+        return new RegexSchemaParser(config);
+    }
   }
 }
