@@ -183,7 +183,6 @@ export class ModelGenerator {
     return `${imports}\n\n${baseModel}\n\n${hooks}\n\n${computedProperties}\n\n${modelClass}`;
   }
 
-  // New method for multiple schemas with output config
   async generateFiles(schemas: Schema[], outputConfig: any): Promise<GeneratedOutput[]> {
     const outputs: GeneratedOutput[] = [];
     
@@ -195,23 +194,13 @@ export class ModelGenerator {
     });
     
     if (outputConfig.format === 'single-file') {
-      // Generate single file with all models
-      const allModels = schemas.map(schema => {
-        const generator = new ModelGenerator(schema, { 
-          ...outputConfig, 
-          drizzle: outputConfig.drizzle, 
-          zod: outputConfig.zod 
-        });
-        // Use pathResolver for import generation
-        generator.pathResolver = pathResolver;
-        generator.outputConfig = outputConfig;
-        return generator.generate();
-      }).join('\n\n');
+      // Generate single file with all models and deduplicated imports
+      const { imports, models } = this.generateCombinedModels(schemas, outputConfig)
       
       outputs.push({
         type: 'model',
         path: outputConfig.path,
-        content: `// Auto-generated Model classes\n\n${allModels}`
+        content: `// Auto-generated Model classes\n\n${imports}\n\n${models}`
       });
     } else {
       // Generate per-schema files
@@ -236,6 +225,90 @@ export class ModelGenerator {
     }
     
     return outputs;
+  }
+  // Generate combined models for single-file output
+  private generateCombinedModels(schemas: Schema[], outputConfig: any): { imports: string, models: string } {
+    const modelParts: string[] = []
+
+    // Create path resolver with full output configuration
+    const pathResolver = new PathResolver({
+      drizzle: outputConfig.drizzle || { path: './src/lib/db/server/schema.ts', format: 'single-file' },
+      zod: outputConfig.zod || { path: './src/lib/validation', format: 'per-schema' },
+      model: outputConfig
+    });
+    
+    // Collect all unique imports
+    const drizzleImports = new Set<string>();
+    const validationImports = new Map<string, Set<string>>(); // schema -> set of imports
+    const typeImports = new Set<string>();
+
+  
+      
+    for (const schema of schemas) {
+      const schemaName = schema.name;
+      const capitalizedName = this.capitalize(schemaName);
+      
+      // Collect drizzle table imports
+      drizzleImports.add(schemaName);
+      
+      // Collect validation imports per schema
+      if (!validationImports.has(schemaName)) {
+        validationImports.set(schemaName, new Set());
+      }
+      validationImports.get(schemaName)!.add(`${schemaName}CreateSchema`);
+      validationImports.get(schemaName)!.add(`${schemaName}UpdateSchema`);
+      
+      // Collect type imports
+      typeImports.add(`${capitalizedName} as ${capitalizedName}Type`);
+      typeImports.add(`New${capitalizedName} as New${capitalizedName}Type`);
+
+      // Generate model parts (without imports)
+      const generator = new ModelGenerator(schema, outputConfig);
+      const baseModel = generator.generateBaseModel();
+      const hooks = generator.generateHooks();
+      const computedProperties = generator.generateComputedProperties();
+      const modelClass = generator.generateModelClass();
+
+      // Only add non-empty parts
+      const parts = [baseModel, hooks, computedProperties, modelClass].filter(part => part.trim());
+      modelParts.push(parts.join('\n\n'));
+    };
+    
+      
+    const consolidatedImports: string[] = [];
+
+    // Base Model import
+    consolidatedImports.push(`import { Model } from '${pathResolver.toImportPath(pathResolver.getModelBaseImportPath('model'))}';`);
+
+
+      const modelPath = pathResolver.getOutputPath('model');
+
+
+    // Drizzle table imports
+    if (drizzleImports.size > 0) {
+    const drizzleImportPath = pathResolver.getDrizzleImportPath(modelPath);
+      consolidatedImports.push(`import { ${Array.from(drizzleImports).sort().join(', ')} } from '${pathResolver.toImportPath(drizzleImportPath)}';`);
+    }
+    
+    // Validation imports (grouped by schema file). Consier adding hi in the schemas for loop above
+    validationImports.forEach((imports, schemaName) => {
+      if (imports.size > 0) {
+          // Resolve Zod import path
+        const zodImportPath = pathResolver.getZodImportPath(modelPath, schemaName);
+        consolidatedImports.push(`import { ${Array.from(imports).sort().join(', ')} } from '${pathResolver.toImportPath(zodImportPath)}';`);
+      }
+    });
+    
+    // Type imports
+    if (typeImports.size > 0) {
+     consolidatedImports.push(`import type { ${Array.from(typeImports).sort().join(', ')} } from '${pathResolver.toImportPath(pathResolver.getDrizzleImportPath(modelPath))}';`);
+    }
+
+
+    return { 
+      imports: consolidatedImports.join('\n'), 
+      models: modelParts.join('\n\n') 
+    };
   }
 
   private generateImports(): string {
@@ -423,12 +496,12 @@ ${computed.join('\n\n')}
     
     const baseClass = hasComputed ? `${className}WithComputed` : `${className}Model`;
     
-    return `
+    const modelClass = `
 export class ${className} extends ${baseClass} {
   // Additional model methods and overrides can be added here
-}
+}`
 
-export default ${className};`;
+return this.outputConfig?.format === 'single-file' ? modelClass : `${modelClass}\n\nexport default ${className};`;
   }
 
   private capitalize(str: string): string {
