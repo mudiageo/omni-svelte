@@ -3,7 +3,7 @@ export async function hashPassword(password: string, method: string): Promise<st
 //     const bcrypt = await import('bcrypt');
 //     return bcrypt.hash(password, 10);
 //   }
-  // TODO: Add other hashing methods as needed
+  // TODO: Add other hashing methods as needed update to use  brtter auth hashPassword from better-auth/crypto
   return password;
 }
 
