@@ -417,6 +417,13 @@ export abstract class Model {
 		return dirty;
 	}
 
+	isDirtyField(fieldName: string): boolean {
+	  //TODO: Consider tracking durty fields instead of checking everytime
+		// return this.dirtyFields.includes(fieldName)
+
+		return this.original[fieldName] !== this.attributes[fieldName] ? true : false;
+	}
+
 	private getKey() {
 		return this.getAttribute((this.constructor as typeof Model).primaryKey);
 	}
