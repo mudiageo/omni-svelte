@@ -176,11 +176,10 @@ export class ModelGenerator {
   generate(): string {
     const imports = this.generateImports();
     const baseModel = this.generateBaseModel();
-    const hooks = this.generateHooks();
     const computedProperties = this.generateComputedProperties();
     const modelClass = this.generateModelClass();
 
-    return `${imports}\n\n${baseModel}\n\n${hooks}\n\n${computedProperties}\n\n${modelClass}`;
+    return `${imports}\n\n${baseModel}\n\n${computedProperties}\n\n${modelClass}`;
   }
 
   async generateFiles(schemas: Schema[], outputConfig: any): Promise<GeneratedOutput[]> {
@@ -265,12 +264,11 @@ export class ModelGenerator {
       // Generate model parts (without imports)
       const generator = new ModelGenerator(schema, outputConfig);
       const baseModel = generator.generateBaseModel();
-      const hooks = generator.generateHooks();
       const computedProperties = generator.generateComputedProperties();
       const modelClass = generator.generateModelClass();
 
       // Only add non-empty parts
-      const parts = [baseModel, hooks, computedProperties, modelClass].filter(part => part.trim());
+      const parts = [baseModel, computedProperties, modelClass].filter(part => part.trim());
       modelParts.push(parts.join('\n\n'));
     };
     
@@ -345,16 +343,22 @@ ${typeImport}`;
     const fillable = this.generateFillableArray();
     const hidden = this.generateHiddenArray();
     const casts = this.generateCastsObject();
+    const hooks = this.generateHooks();
+
 
     return `export class ${className}Model extends Model {
   static tableName = '${tableName}';
   static table = ${tableName};
-  static createSchema = ${tableName}CreateSchema;
-  static updateSchema = ${tableName}UpdateSchema;
+  static validation = {
+     create: ${tableName}CreateSchema,
+     update: ${tableName}UpdateSchema,
+     base: ${tableName}CreateSchema,
+  };
   
   static fillable = ${fillable};
   static hidden = ${hidden};
   static casts = ${casts};${this.generateRealtimeConfig()}
+  ${hooks}
 }`;
   }
 
@@ -433,7 +437,7 @@ ${typeImport}`;
 
     return `
   
-  static realtimeConfig = {
+  static realtime = {
     enabled: true,
     events: ${events},
     channels: () => [\`${this.schema.name}\`]
@@ -450,21 +454,21 @@ ${typeImport}`;
 
     if (passwordFields.length > 0) {
       hooks.push(`
-  protected static hooks = {
-    creating: async (data: any) => {
+  static hooks = {
+    creating: [async (data: any) => {
       ${passwordFields.map(field => `
       if (data.${field}) {
         data.${field} = await this.hashPassword(data.${field});
       }`).join('')}
       return data;
-    },
-    updating: async (data: any) => {
+      }],
+    updating: [async (data: any) => {
       ${passwordFields.map(field => `
       if (data.${field}) {
         data.${field} = await this.hashPassword(data.${field});
       }`).join('')}
       return data;
-    }
+      }]
   };`);
     }
 
