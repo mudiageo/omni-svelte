@@ -49,8 +49,9 @@ function generateColumn(fieldName: string, field: FieldDefinition, enums: Record
       if (field.length) column = varchar(fieldName, { length: field.length });
       break;
     case 'integer':
+    case 'integer':
       column = integer(fieldName);
-    case 'money':
+      break;
       column = decimal(fieldName, { precision: 10, scale: 2 });
       break;
     case 'boolean':
