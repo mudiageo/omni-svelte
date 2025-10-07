@@ -9,9 +9,9 @@ export interface SvelteConfig extends Config {
 export interface OmniConfig {
     database: DatabaseConfig
     schema: SchemaConfig
-    auth: any
-    logging: any
-    cors: any
-    analytics: any
-    errorReporting: any
+    auth: unknown;
+    logging: unknown;
+    cors: unknown;
+    analytics: unknown;
+    errorReporting: unknown;
 }
