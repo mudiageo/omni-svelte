@@ -2,6 +2,13 @@ import { eq, inArray } from 'drizzle-orm'
 import { getDatabase } from './database.js'
 import type { Model } from './model.js'
 
+export interface Relationship {
+  type: 'belongsTo' | 'hasMany' | 'hasOne' | 'manyToMany';
+  model: string;
+  foreignKey?: string; // for belongsTo and hasMany
+  localKey?: string; // for hasMany and hasOne
+}
+
 export class RelationshipLoader {
   static async loadRelations<T extends Model>(
     models: T[], 
@@ -20,7 +27,7 @@ export class RelationshipLoader {
     if (models.length === 0) return
 
     const modelClass = models[0].constructor as typeof Model
-    const relationship = modelClass.relationships[relationName]
+    const relationship: Relationship = modelClass.relationships[relationName]
     
     if (!relationship) {
       throw new Error(`Relationship ${relationName} not found on ${modelClass.name}`)
@@ -33,8 +40,8 @@ export class RelationshipLoader {
         return this.loadBelongsTo(models, relationship, relationName)
       case 'hasOne':
         return this.loadHasOne(models, relationship, relationName)
-      case 'belongsToMany':
-        return this.loadBelongsToMany(models, relationship, relationName)
+      case 'manyToMany':
+        return this.loadManyToMany(models, relationship, relationName)
     }
   }
 
@@ -130,7 +137,7 @@ export class RelationshipLoader {
     })
   }
 
-  private static async loadBelongsToMany<T extends Model>(
+  private static async loadManyToMany<T extends Model>(
     models: T[], 
     relationship: any, 
     relationName: string
@@ -180,7 +187,7 @@ export class RelationshipLoader {
     models.forEach(model => {
       const key = model.getAttribute(relationship.localKey || 'id')
       const relatedKeys = pivotMap[key] || []
-      const relatedInstances = relatedKeys.map(relatedKey => relatedMap[relatedKey]).filter(Boolean)
+      const relatedInstances: Model[] = relatedKeys.map((relatedKey: string | number) => relatedMap[relatedKey]).filter(Boolean)
       model.setRelation(relationName, relatedInstances)
     })
   }

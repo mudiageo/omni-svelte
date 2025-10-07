@@ -15,6 +15,7 @@ export interface DatabaseConnectionConfig {
     ssl?: boolean
 }
 export interface DatabaseConfig {
+    enabled: boolean
     connection: DatabaseConnectionConfig
     schema: any
 

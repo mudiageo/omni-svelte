@@ -1,17 +1,16 @@
 import type { PageServerLoad, Actions } from './$types'
-import { User } from '$lib/models/user.js'
+import { User } from '$lib/schema'
 import { fail } from '@sveltejs/kit'
 import { parsePagination } from '$pkg'
 
 export const load: PageServerLoad = async ({ locals, url }) => {
   let { page, limit: perPage } = parsePagination(url)
-  
+
   const search = url.searchParams.get('search') || ''
   perPage = perPage || 10
 
   try {
-    let query = locals.query.Users
-
+    let query = locals.query.user
     if (search) {
       query = query.search(search, ['name', 'email'])
     }

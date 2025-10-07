@@ -1,15 +1,20 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import type { Config } from '@sveltejs/kit';
-import type { Plugin } from 'vite';
+import type { OmniConfig, SvelteConfig } from '$pkg';
+import type { FSWatcher as ViteFSWatcher, Plugin, ResolvedConfig } from 'vite';
+import type { FSWatcher } from 'chokidar';
+import type { Schema } from '$pkg/schema/types';
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import  { pathToFileURL } from 'url';
+import { generateSchemaFiles, initializeSchemaConfig, setupSchemaWatcher } from './schema';
 
 export function omni(options = {}): Plugin {
-  let config;
-  let svelteConfig: Config;
+  let config: ResolvedConfig;
+  let omniConfig: OmniConfig;
   let userHooksServer: string | null = null;
   let userHooksClient: string | null = null;
+  let schemaWatcher: FSWatcher | null = null;
+  const schemasRef = { current: [] as Schema[] }; // Use reference object for schemas
   
   return {
     name: 'omni-svelte',
@@ -22,28 +27,36 @@ export function omni(options = {}): Plugin {
         const configPath = resolve(config.root, 'svelte.config.js');
         if (existsSync(configPath)) {
           const module = await import(pathToFileURL(configPath) + '?t=' + Date.now());
-          svelteConfig = module.default;
+          let svelteConfig: SvelteConfig = module.default;
+          omniConfig = svelteConfig.omni
         }
       } catch (error) {
-        console.warn('Could not read svelte.config.js:', error.message);
+        console.warn('Could not read svelte.config.js:', (error as Error).message);
+      }
+      
+      // Initialize schema configuration
+      const schemaConfig = await initializeSchemaConfig(omniConfig, config.root);
+      if(schemaConfig) {
+        omniConfig.schema = schemaConfig;
+        // Load initial schemas
+        if (schemaConfig.input?.patterns?.length) {
+          const { discoverSchemas } = await import('./schema');
+          schemasRef.current = await discoverSchemas(schemaConfig);
+          
+          if (schemaConfig.dev?.logLevel !== 'silent') {
+            console.log(`📋 Discovered ${schemasRef.current.length} schemas:`, schemasRef.current.map(s => s.name));
+          }
+        }
       }
       
       // Check if user has existing hooks
-      const serverHooksPath = resolve(config.root, 'src/hooks.server.ts');
-      const serverHooksJsPath = resolve(config.root, 'src/hooks.server.js');
-      const clientHooksPath = resolve(config.root, 'src/hooks.client.ts');
-      const clientHooksJsPath = resolve(config.root, 'src/hooks.client.js');
-      
-      if (existsSync(serverHooksPath)) {
-        userHooksServer = readFileSync(serverHooksPath, 'utf-8');
-      } else if (existsSync(serverHooksJsPath)) {
-        userHooksServer = readFileSync(serverHooksJsPath, 'utf-8');
-      }
-      
-      if (existsSync(clientHooksPath)) {
-        userHooksClient = readFileSync(clientHooksPath, 'utf-8');
-      } else if (existsSync(clientHooksJsPath)) {
-        userHooksClient = readFileSync(clientHooksJsPath, 'utf-8');
+      await loadUserHooks();
+    },
+
+    async buildStart() {
+      // Generate schema files 
+      if (omniConfig.schema && omniConfig.schema.dev?.generateOnStart !== false) {
+        await generateSchemaFiles(schemasRef.current, omniConfig.schema);
       }
     },
     
@@ -63,21 +76,18 @@ export function omni(options = {}): Plugin {
       if (id.endsWith('/hooks.client.js') || id.endsWith('/hooks.client.ts')) {
         return 'virtual:omni-svelte/hooks.client.js';
       }
-      if (id === 'virtual:user-hooks/server') {
-        return id;
-      }
-      if (id === 'virtual:user-hooks/client') {
-        return id;
-      }
-      
+
+      // Virtual module resolvers for user hooks only
+      if (id === 'virtual:user-hooks/server') return id;
+      if (id === 'virtual:user-hooks/client') return id;
     },
     
     load(id) {
-      if (id.endsWith('hooks.server.ts')) {
-        return generateServerHooks(svelteConfig?.omni || options, userHooksServer);
+      if (id.endsWith('hooks.server.ts') || id.endsWith('hooks.server.js')) {
+        return generateServerHooks(omniConfig || options, userHooksServer);
       }
-      if (id.endsWith('hooks.server.ts')) {
-        return generateClientHooks(svelteConfig?.omni || options, userHooksClient);
+      if (id.endsWith('hooks.client.ts') || id.endsWith('hooks.client.js')) {
+        return generateClientHooks(omniConfig || options, userHooksClient);
       }
       if (id === 'virtual:user-hooks/server') {
         return userHooksServer || 'export const handle = null;';
@@ -86,9 +96,7 @@ export function omni(options = {}): Plugin {
         return userHooksClient || 'export const handleError = null; export const handleFetch = null;';
       }
     },
-    
-
-    
+      
     configureServer(server) {
       // Watch for config changes and user hooks changes
       server.watcher.add('svelte.config.js');
@@ -96,29 +104,76 @@ export function omni(options = {}): Plugin {
       server.watcher.add('src/hooks.server.js');
       server.watcher.add('src/hooks.client.ts');
       server.watcher.add('src/hooks.client.js');
-      
-      server.watcher.on('change', (file) => {
+
+      // Set up schema file watching
+      if (omniConfig.schema?.dev?.watch !== false) {
+          schemaWatcher = setupSchemaWatcher(server, omniConfig.schema, schemasRef);
+      }
+
+      server.watcher.on('change', async (file) => {
         if (file.endsWith('svelte.config.js') || file.includes('hooks.')) {
+          
+          // Reload user hooks
+          await loadUserHooks();
+
           // Invalidate virtual modules to trigger regeneration
           const serverModule = server.moduleGraph.getModuleById('virtual:omni-svelte/hooks.server.js');
           const clientModule = server.moduleGraph.getModuleById('virtual:omni-svelte/hooks.client.js');
           
-          if (serverModule) {
-            server.reloadModule(serverModule);
-          }
-          if (clientModule) {
-            server.reloadModule(clientModule);
+          if (serverModule) server.reloadModule(serverModule);
+          if (clientModule) server.reloadModule(clientModule);
+          
+          // Re-initialize schema config if svelte.config.js changed
+          if (file.endsWith('svelte.config.js')) {
+              const schemaConfig = await initializeSchemaConfig(omniConfig, config.root);
+              if(schemaConfig) omniConfig.schema = schemaConfig
+
+              if (omniConfig.schema?.dev?.watch !== false) {
+                  schemaWatcher = setupSchemaWatcher(server, omniConfig.schema, schemasRef);
+              }
           }
         }
       });
-    }
+    },
+
+    closeBundle() {
+          // Clean up watchers
+          if (schemaWatcher) {
+              schemaWatcher.close();
+              schemaWatcher = null;
+          }
+      }
   };
+
+  async function loadUserHooks() {
+      const serverHooksPath = resolve(config.root, 'src/hooks.server.ts');
+      const serverHooksJsPath = resolve(config.root, 'src/hooks.server.js');
+      const clientHooksPath = resolve(config.root, 'src/hooks.client.ts');
+      const clientHooksJsPath = resolve(config.root, 'src/hooks.client.js');
+
+      userHooksServer = null;
+      userHooksClient = null;
+
+      if (existsSync(serverHooksPath)) {
+          userHooksServer = readFileSync(serverHooksPath, 'utf-8');
+      } else if (existsSync(serverHooksJsPath)) {
+          userHooksServer = readFileSync(serverHooksJsPath, 'utf-8');
+      }
+
+      if (existsSync(clientHooksPath)) {
+          userHooksClient = readFileSync(clientHooksPath, 'utf-8');
+      } else if (existsSync(clientHooksJsPath)) {
+          userHooksClient = readFileSync(clientHooksJsPath, 'utf-8');
+      }
+  }
+
 }
 
+   
     //In development use $pkg as import. During build replace with omni-svelte
     const pkg = '$pkg';
 
-  function generateServerHooks(omniConfig: Config, userHooksServer: string | null) {
+  function generateServerHooks(omniConfig: OmniConfig, userHooksServer: string | null) {
     const hooks = [];
     const imports = [];
 
@@ -175,7 +230,7 @@ await initDb(${JSON.stringify(omniConfig.database, null, 2)})
     return `${imports.join('\n')}\n${userHooksImport}\n\n${handleFunction}\n\n${initFunction}`;
   }
   
-  function generateClientHooks(omniConfig: Config, userHooksClient: string | null) {
+  function generateClientHooks(omniConfig: OmniConfig, userHooksClient: string | null) {
     const hooks = [];
     const imports = [];
     
