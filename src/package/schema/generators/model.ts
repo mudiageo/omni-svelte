@@ -138,8 +138,7 @@ function generateHooks(schema: Schema): Record<string, Function[]> {
         }
       });
       hooks.updating.push(async (model: any) => {
-        // if (model[fieldName] && model.isDirty(fieldName)) {
-        if (model[fieldName] && model.isDirty) { // TODO: Currentlythis would always update the pasword even if its not changed w need to track which fielsds are dirty, i.e fields that have been changed and not yet daved)
+        if (model[fieldName] && model.isDirtyField(fieldName)) {
           model[fieldName] = await hashPassword(model[fieldName], hashMethod);
         }
       });
@@ -464,7 +463,7 @@ ${typeImport}`;
       }],
     updating: [async (data: any) => {
       ${passwordFields.map(field => `
-      if (data.${field}) {
+      if (data.${field} && data.isDirtyField("${field}")) {
         data.${field} = await this.hashPassword(data.${field});
       }`).join('')}
       return data;
