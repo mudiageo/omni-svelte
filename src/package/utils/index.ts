@@ -13,6 +13,10 @@ export function deepEqual(a: any, b: any, visited = new WeakSet()): boolean {
     if (a == null || typeof a != 'object' || b == null || typeof b != 'object') {
         return false;
     }
+     // Check if both are arrays or both are not arrays
+    const aIsArray = Array.isArray(a);
+    const bIsArray = Array.isArray(b);
+    if (aIsArray !== bIsArray) return false;
 
     if (a instanceof Date && b instanceof Date) {
         return a.getTime() === b.getTime();
