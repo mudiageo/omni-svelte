@@ -418,10 +418,10 @@ export abstract class Model {
 	}
 
 	isDirtyField(fieldName: string): boolean {
-	  //TODO: Consider tracking durty fields instead of checking everytime
+	  //TODO: Consider tracking dirty fields instead of checking everytime
 		// return this.dirtyFields.includes(fieldName)
 
-		return this.original[fieldName] !== this.attributes[fieldName] ? true : false;
+		return this.original[fieldName] !== this.attributes[fieldName];
 	}
 
 	private getKey() {
