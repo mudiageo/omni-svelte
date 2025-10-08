@@ -5,6 +5,7 @@ import { registerModel } from './hooks.js'
 import type { PgTable } from 'drizzle-orm/pg-core';
 import { QueryBuilder } from './query-builder.js';
 import { z } from 'zod';
+import { deepEqual } from '../utils';
 
 export abstract class Model {
 	static table: PgTable;
@@ -421,7 +422,7 @@ export abstract class Model {
 	  //TODO: Consider tracking durty fields instead of checking everytime
 		// return this.dirtyFields.includes(fieldName)
 
-		return this.original[fieldName] !== this.attributes[fieldName] ? true : false;
+		return !deepEqual(this.original[fieldName], this.attributes[fieldName]);
 	}
 
 	private getKey() {
