@@ -170,103 +170,103 @@ export function omni(options = {}): Plugin {
 }
 
    
-    //In development use $pkg as import. During build replace with omni-svelte
-    const pkg = '$pkg';
+//In development use $pkg as import. During build replace with omni-svelte
+const pkg = '$pkg';
 
-  function generateServerHooks(omniConfig: OmniConfig, userHooksServer: string | null) {
-    const hooks = [];
-    const imports = [];
+function generateServerHooks(omniConfig: OmniConfig, userHooksServer: string | null) {
+  const hooks = [];
+  const imports = [];
 
-    // Add framework core import
-    imports.push(`import { createFrameworkHandler } from '${pkg}';`);
-    
-    // Generate feature-specific hooks based on config
-    if (omniConfig.auth?.enabled) {
-      imports.push(`import { authHook } from '${pkg}/auth';`);
-      hooks.push('authHook');
-    }
-    
-    if (omniConfig.database?.enabled) {
-      imports.push(`import { databaseHook, initDb } from '${pkg}';`);
-      hooks.push('databaseHook');
-    }
-    
-    if (omniConfig.logging?.enabled) {
-      imports.push(`import { loggingHook } from '${pkg}/logging';`);
-      hooks.push('loggingHook');
-    }
-    
-    if (omniConfig.cors?.enabled) {
-      imports.push(`import { corsHook } from '${pkg}/cors';`);
-      hooks.push('corsHook');
-    }
-    
-    // If user has existing hooks, create a virtual module for them
-    let userHooksImport = '';
-    let userHooksHandler = 'null';
-    
-    if (userHooksServer) {
-      // Create a virtual module for user hooks
-      userHooksImport = `import { handle as userHandle } from 'virtual:user-hooks/server';`;
-      userHooksHandler = 'userHandle';
-    }
-    
-    const handleFunction = `
+  // Add framework core import
+  imports.push(`import { createFrameworkHandler } from '${pkg}';`);
+  
+  // Generate feature-specific hooks based on config
+  if (omniConfig.auth?.enabled) {
+    imports.push(`import { authHook } from '${pkg}/auth';`);
+    hooks.push('authHook');
+  }
+  
+  if (omniConfig.database?.enabled) {
+    imports.push(`import { databaseHook, initDb } from '${pkg}';`);
+    hooks.push('databaseHook');
+  }
+  
+  if (omniConfig.logging?.enabled) {
+    imports.push(`import { loggingHook } from '${pkg}/logging';`);
+    hooks.push('loggingHook');
+  }
+  
+  if (omniConfig.cors?.enabled) {
+    imports.push(`import { corsHook } from '${pkg}/cors';`);
+    hooks.push('corsHook');
+  }
+  
+  // If user has existing hooks, create a virtual module for them
+  let userHooksImport = '';
+  let userHooksHandler = 'null';
+  
+  if (userHooksServer) {
+    // Create a virtual module for user hooks
+    userHooksImport = `import { handle as userHandle } from 'virtual:user-hooks/server';`;
+    userHooksHandler = 'userHandle';
+  }
+  
+  const handleFunction = `
 export async function handle({ event, resolve }) {
 const frameworkHandler = createFrameworkHandler({
-  hooks: [${hooks.join(', ')}],
-  config: ${JSON.stringify(omniConfig, null, 2)},
-  userHandle: ${userHooksHandler}
+hooks: [${hooks.join(', ')}],
+config: ${JSON.stringify(omniConfig, null, 2)},
+userHandle: ${userHooksHandler}
 });
 
 return frameworkHandler({ event, resolve });
 }`;
 
-    const initFunction = omniConfig.database?.enabled ? `
+  const initFunction = omniConfig.database?.enabled ? `
 export async function init() {
 await initDb(${JSON.stringify(omniConfig.database, null, 2)})
 }` : '';
-    
-    return `${imports.join('\n')}\n${userHooksImport}\n\n${handleFunction}\n\n${initFunction}`;
+  
+  return `${imports.join('\n')}\n${userHooksImport}\n\n${handleFunction}\n\n${initFunction}`;
+}
+
+function generateClientHooks(omniConfig: OmniConfig, userHooksClient: string | null) {
+  const hooks = [];
+  const imports = [];
+  
+  imports.push(`import { createClientHandler } from '${pkg}/client';`);
+  
+  // Generate client-side hooks based on config
+  if (omniConfig.auth?.enabled) {
+    imports.push(`import { clientAuthHook } from '${pkg}/auth/client';`);
+    hooks.push('clientAuthHook');
   }
   
-  function generateClientHooks(omniConfig: OmniConfig, userHooksClient: string | null) {
-    const hooks = [];
-    const imports = [];
-    
-    imports.push(`import { createClientHandler } from '${pkg}/client';`);
-    
-    // Generate client-side hooks based on config
-    if (omniConfig.auth?.enabled) {
-      imports.push(`import { clientAuthHook } from '${pkg}/auth/client';`);
-      hooks.push('clientAuthHook');
-    }
-    
-    if (omniConfig.analytics?.enabled) {
-      imports.push(`import { analyticsHook } from '${pkg}/analytics';`);
-      hooks.push('analyticsHook');
-    }
-    
-    if (omniConfig.errorReporting?.enabled) {
-      imports.push(`import { errorReportingHook } from '${pkg}/error-reporting';`);
-      hooks.push('errorReportingHook');
-    }
-    
-    // Handle user client hooks
-    let userHooksImport = '';
-    let userHooksHandler = 'null';
-    
-    if (userHooksClient) {
-      userHooksImport = `import * as userHooks from 'virtual:user-hooks/client';`;
-      userHooksHandler = 'userHooks';
-    }
-    
-    const hookFunctions = `
+  if (omniConfig.analytics?.enabled) {
+    imports.push(`import { analyticsHook } from '${pkg}/analytics';`);
+    hooks.push('analyticsHook');
+  }
+  
+  if (omniConfig.errorReporting?.enabled) {
+    imports.push(`import { errorReportingHook } from '${pkg}/error-reporting';`);
+    hooks.push('errorReportingHook');
+  }
+  
+  // Handle user client hooks
+  let userHooksImport = '';
+  let userHooksHandler = 'null';
+  
+  if (userHooksClient) {
+    userHooksImport = `import * as userHooks from 'virtual:user-hooks/client';`;
+    userHooksHandler = 'userHooks';
+  }
+  
+  const hookFunctions = `
 export async function handleError({ error, event }) {
 const handler = createClientHandler({
-  hooks: [${hooks.join(', ')}],
-  config: ${JSON.stringify(omniConfig, null, 2)},
-  userHooks: ${userHooksHandler}
+hooks: [${hooks.join(', ')}],
+config: ${JSON.stringify(omniConfig, null, 2)},
+userHooks: ${userHooksHandler}
 });
 
 return handler.handleError({ error, event });
@@ -274,16 +274,16 @@ return handler.handleError({ error, event });
 
 export async function handleFetch({ event, request, fetch }) {
 const handler = createClientHandler({
-  hooks: [${hooks.join(', ')}],
-  config: ${JSON.stringify(omniConfig, null, 2)},
-  userHooks: ${userHooksHandler}
+hooks: [${hooks.join(', ')}],
+config: ${JSON.stringify(omniConfig, null, 2)},
+userHooks: ${userHooksHandler}
 });
 
 return handler.handleFetch({ event, request, fetch });
 }`;
-    
-    return `${imports.join('\n')}\n${userHooksImport}\n\n${hookFunctions}`;
-  }
+  
+  return `${imports.join('\n')}\n${userHooksImport}\n\n${hookFunctions}`;
+}
 
 // Wrapper function that includes SvelteKit plugin
 export function omniSvelte(options = {}) {
