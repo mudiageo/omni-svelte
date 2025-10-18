@@ -235,9 +235,17 @@ export class RegexSchemaParser implements ISchemaParser {
       // Extract arrays (like values for enums)
       const valuesMatch = fieldDef.match(/values:\s*\[([\s\S]*?)\]/);
       if (valuesMatch) {
-        const valuesStr = valuesMatch[1];
-        field.values = valuesStr.split(',').map(v => v.trim().replace(/['"`]/g, ''));
-      }
+        const valuesStr = valuesMatch[1].trim();
+
+        // This regex handles quoted strings that may contain commas.
+        const valueRegex = /(?:['"`])([^'"`]+)(?:['"`])/g;
+         let match;
+         const values = [];
+         while ((match = valueRegex.exec(valuesStr)) !== null) {
+           values.push(match[1]);
+         }
+         field.values = values;
+       }
       
       // Extract validation object
       const validationMatch = fieldDef.match(/validation:\s*\{([^}]+)\}/);

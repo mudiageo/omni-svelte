@@ -198,3 +198,26 @@ export function resolve_entry(entry) {
 export function read(file) {
 	return fs.readFileSync(file, 'utf-8');
 }
+
+/** @type {Map<string, string>} */
+const previous_contents = new Map();
+
+/**
+ * @param {string} file
+ * @param {string} code
+ */
+export function write_if_changed(file, code) {
+	if (code !== previous_contents.get(file)) {
+		write(file, code);
+	}
+}
+
+/**
+ * @param {string} file
+ * @param {string} code
+ */
+export function write(file, code) {
+	previous_contents.set(file, code);
+	mkdirp(path.dirname(file));
+	fs.writeFileSync(file, code);
+}

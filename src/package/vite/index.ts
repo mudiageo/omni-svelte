@@ -7,7 +7,22 @@ import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import  { pathToFileURL } from 'url';
 import { generateSchemaFiles, initializeSchemaConfig, setupSchemaWatcher } from './schema';
+import { runtime_directory } from '../utils';
+import { generateAuthConfig } from '../runtime/auth/generator.js';
 
+async function getOmniConfig(config: ResolvedConfig): OmniConfig {
+        // Read svelte.config.js to get omni configuration
+      try {
+        const configPath = resolve(config.root, 'svelte.config.js');
+        if (existsSync(configPath)) {
+          const module = await import(pathToFileURL(configPath) + '?t=' + Date.now());
+          let svelteConfig: SvelteConfig = module.default;
+          return svelteConfig.omni;
+        }
+      } catch (error) {
+        console.warn('Could not read svelte.config.js:', (error as Error).message);
+      }
+}
 export function omni(options = {}): Plugin {
   let config: ResolvedConfig;
   let omniConfig: OmniConfig;
@@ -22,17 +37,7 @@ export function omni(options = {}): Plugin {
     async configResolved(resolvedConfig) {
       config = resolvedConfig;
       
-      // Read svelte.config.js to get omni configuration
-      try {
-        const configPath = resolve(config.root, 'svelte.config.js');
-        if (existsSync(configPath)) {
-          const module = await import(pathToFileURL(configPath) + '?t=' + Date.now());
-          let svelteConfig: SvelteConfig = module.default;
-          omniConfig = svelteConfig.omni
-        }
-      } catch (error) {
-        console.warn('Could not read svelte.config.js:', (error as Error).message);
-      }
+      omniConfig = await getOmniConfig(config)
       
       // Initialize schema configuration
       const schemaConfig = await initializeSchemaConfig(omniConfig, config.root);
@@ -169,6 +174,29 @@ export function omni(options = {}): Plugin {
 
 }
 
+const plugin_auth_resolver: Plugin = {
+  name: 'vite-plugin-omni-auth-resolver',
+  config() {
+          return {
+            resolve: {
+              alias: {
+                '$auth/server': `${runtime_directory}/auth/auth.server.js`,
+                '$auth/client': `${runtime_directory}/auth/client.svelte.js`,
+                '$auth': `${runtime_directory}/auth`,
+              },
+            },
+          };
+        },
+}
+
+const plugin_auth_codegen: Plugin = {
+  name: 'vite-plugin-omni-auth-codegen',
+  async configResolved(resolvedConfig) {
+    // Generate Better Auth config internally
+    const omniConfig = await getOmniConfig(resolvedConfig);
+    await generateAuthConfig(omniConfig?.auth);
+  },
+}
    
 //In development use $pkg as import. During build replace with omni-svelte
 const pkg = '$pkg';
@@ -181,17 +209,18 @@ function generateServerHooks(omniConfig: OmniConfig, userHooksServer: string | n
   imports.push(`import { createFrameworkHandler } from '${pkg}';`);
   
   // Generate feature-specific hooks based on config
-  if (omniConfig.auth?.enabled) {
-    imports.push(`import { authHook } from '${pkg}/auth';`);
-    hooks.push('authHook');
+  if (omniConfig.auth) {
+    imports.push(`import { authHandle } from '${pkg}/runtime/auth/hook';`);
+    hooks.push('authHandle');
   }
+  
   
   if (omniConfig.database?.enabled) {
     imports.push(`import { databaseHook, initDb } from '${pkg}';`);
     hooks.push('databaseHook');
   }
   
-  if (omniConfig.logging?.enabled) {
+    if (omniConfig.logging?.enabled) {
     imports.push(`import { loggingHook } from '${pkg}/logging';`);
     hooks.push('loggingHook');
   }
@@ -237,10 +266,6 @@ function generateClientHooks(omniConfig: OmniConfig, userHooksClient: string | n
   imports.push(`import { createClientHandler } from '${pkg}/client';`);
   
   // Generate client-side hooks based on config
-  if (omniConfig.auth?.enabled) {
-    imports.push(`import { clientAuthHook } from '${pkg}/auth/client';`);
-    hooks.push('clientAuthHook');
-  }
   
   if (omniConfig.analytics?.enabled) {
     imports.push(`import { analyticsHook } from '${pkg}/analytics';`);
@@ -289,6 +314,8 @@ return handler.handleFetch({ event, request, fetch });
 export function omniSvelte(options = {}) {
   return [
     sveltekit(),
-    omni(options)
+    plugin_auth_resolver,
+    omni(options),
+    plugin_auth_codegen,
   ];
 }

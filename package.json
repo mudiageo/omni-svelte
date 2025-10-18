@@ -36,6 +36,10 @@
 		"./database": {
 			"types": "./dist/database/index.d.ts",
 			"svelte": "./dist/database/index.js"
+		},
+		"./auth": {
+			"types": "./dist/runtime/auth/index.d.ts",
+			"svelte": "./dist/runtime/auth/index.js"
 		}
 	},
 	"peerDependencies": {

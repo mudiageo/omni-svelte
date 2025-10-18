@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { posixify, to_fs } from './filesystem.js';
-
+import path from 'node:path';
 /**
  * Resolved path of the `runtime` directory
  */
