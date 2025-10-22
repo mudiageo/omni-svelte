@@ -4,6 +4,7 @@ import { getRequestEvent } from "$app/server";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { getDatabase } from '../..//database'
 import { sveltekitCookies } from "better-auth/svelte-kit";
+import { redirect, type RequestEvent } from '@sveltejs/kit';
 
 const db = getDatabase();
 // Single auth instance
@@ -19,7 +20,6 @@ export const auth = betterAuth({
 export const {
   api: authApi,
   handler: authHandler,
-  $fetch: authFetch,
 } = auth;
 
 // Helper to get session in SvelteKit load functions
@@ -36,7 +36,7 @@ export async function requireAuth(event: RequestEvent) {
   const session = await getSession(event);
   
   if (!session?.user) {
-    throw redirect(302, '/sign-in');
+    redirect(302, '/sign-in');
   }
   
   return session;

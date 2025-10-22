@@ -69,6 +69,12 @@ export interface Schema {
   fields: Record<string, FieldDefinition>;
   config: SchemaDefinitionConfig;
   filePath?: string; // Added for file-based schema discovery
+  metadata?: {
+    generatedBy?: string;
+    plugin?: string;
+    isAuthTable?: boolean;
+    [key: string]: any;
+  };
 }
 export interface GeneratedSchema {
   name: string;

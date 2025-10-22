@@ -1,4 +1,8 @@
 export interface AuthConfig {
+  enabled?: boolean;
+  sync?: boolean;
+  executionMode?: 'import' | 'node' | 'bin' | 'package-manager';
+  
   // Basic Configuration
   appName?: string;
   baseURL?: string;
@@ -88,6 +92,12 @@ export interface AuthConfig {
     defaultCookieAttributes?: Record<string, any>;
   };
   
+  // Migrations
+  migrations?: {
+    autoMigrate?: boolean;
+    strategy?: 'push' | 'migrate';
+  };
+
   // Plugins
   plugins?: {
     username?: boolean;
