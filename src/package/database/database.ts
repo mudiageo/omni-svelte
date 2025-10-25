@@ -3,7 +3,7 @@ import postgres from 'postgres'
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { env } from '$env/dynamic/private';
 
-let database: PostgresJsDatabase | null = null
+export let database: PostgresJsDatabase = drizzle(postgres(env.DATABASE_URL))
 
 export interface DatabaseConnectionConfig {
     url?: string // Connection string takes priority

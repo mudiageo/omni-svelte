@@ -1,19 +1,18 @@
-import { spawn } from 'child_process';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
 import type { Schema, FieldDefinition } from '../../schema/types';
 import * as ts from 'typescript';
-import { read, rimraf } from '../../utils/filesystem.js';
+import { read, rimraf, mkdirp } from '../../utils/filesystem.js';
+import { runtime_directory } from '../../utils';
+import { generateAuthSchema } from './schema-generator';
 
 type FieldType = 'string' | 'integer' | 'boolean' | 'timestamp' | 'date' | 'json';
-type ExecutionMode = 'import' | 'node' | 'bin' | 'package-manager';
 
 export interface AuthSyncOptions {
   autoMigrate?: boolean;
   migrationStrategy?: 'push' | 'migrate';
   verbose?: boolean;
-  executionMode?: ExecutionMode;
 }
 
 export interface AuthSyncResult {
@@ -48,112 +47,24 @@ interface SchemaChanges {
 export class AuthSchemaSync {
   private projectRoot: string;
   private tempSchemaPath: string;
-  private executionMode: ExecutionMode;
+  private tempDir: string;
 
-  constructor(projectRoot: string, executionMode: ExecutionMode = 'import') {
+  constructor(projectRoot: string) {
     this.projectRoot = projectRoot;
     this.tempSchemaPath = resolve(projectRoot, '.omni/temp-auth-schema.ts');
-    this.executionMode = executionMode;
+    this.tempDir = resolve(projectRoot, '.omni');
   }
 
-  private findBetterAuthCli(): { module?: string, bin?: string, node?: string } {
-    const result: { module?: string, bin?: string, node?: string } = {};
-    
-    const modulePath = resolve(this.projectRoot, 'node_modules/@better-auth/cli/dist/index.mjs');
-    if (existsSync(modulePath)) {
-      result.module = '@better-auth/cli';
-      result.node = modulePath;
-    }
 
-    const binPaths = [
-      'node_modules/.bin/cli',
-      'node_modules/.bin/cli.cmd',
-      'node_modules/.bin/cli.ps1'
-    ];
-    
-    for (const binPath of binPaths) {
-      const fullPath = resolve(this.projectRoot, binPath);
-      if (existsSync(fullPath)) {
-        result.bin = fullPath;
-        break;
-      }
-    }
-
-    return result;
-  }
-
-  private findDrizzleKit(): { module?: string, bin?: string, node?: string } {
-    const result: { module?: string, bin?: string, node?: string } = {};
-    
-    const nodePath = resolve(this.projectRoot, 'node_modules/drizzle-kit/bin.cjs');
-    if (existsSync(nodePath)) {
-      result.node = nodePath;
-    }
-
-    const binPaths = [
-      'node_modules/.bin/drizzle-kit',
-      'node_modules/.bin/drizzle-kit.cmd',
-      'node_modules/.bin/drizzle-kit.ps1'
-    ];
-    
-    for (const binPath of binPaths) {
-      const fullPath = resolve(this.projectRoot, binPath);
-      if (existsSync(fullPath)) {
-        result.bin = fullPath;
-        break;
-      }
-    }
-
-    return result;
-  }
-
-  private async runCommand(command: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
-    return new Promise((resolve, reject) => {
-      const child = spawn(command, args, {
-        cwd: this.projectRoot,
-        stdio: ['ignore', 'pipe', 'pipe'],
-        shell: process.platform === 'win32'
-      });
-
-      let stdout = '';
-      let stderr = '';
-
-      child.stdout?.on('data', (data) => { stdout += data.toString(); });
-      child.stderr?.on('data', (data) => { stderr += data.toString(); });
-
-      child.on('close', (code) => {
-        if (code === 0) {
-          resolve({ stdout, stderr });
-        } else {
-          reject(new Error(`Command failed with code ${code}: ${stderr || stdout}`));
-        }
-      });
-
-      child.on('error', reject);
-
-      setTimeout(() => {
-        child.kill();
-        reject(new Error('Command timed out after 30 seconds'));
-      }, 30000);
-    });
-  }
-
-  private detectPackageManager(): string {
-    if (existsSync(resolve(this.projectRoot, 'pnpm-lock.yaml'))) return 'pnpm';
-    if (existsSync(resolve(this.projectRoot, 'yarn.lock'))) return 'yarn';
-    if (existsSync(resolve(this.projectRoot, 'bun.lockb'))) return 'bun';
-    return 'npm';
-  }
 
   async sync(existingSchemas: Schema[], options: AuthSyncOptions = {}): Promise<AuthSyncResult> {
     const verbose = options.verbose !== false;
-    if (options.executionMode) this.executionMode = options.executionMode;
 
     if (verbose) console.log('\n🔐 Syncing auth schemas...');
 
     try {
       if (verbose) console.log('   📋 Generating auth schema...');
-      await this.generateAuthSchema(verbose);
+      await generateAuthSchema(this.projectRoot, this.tempSchemaPath, verbose);
 
       if (verbose) console.log('   🔍 Parsing schema...');
       const authTables = await this.parseSchema();
@@ -189,95 +100,6 @@ export class AuthSchemaSync {
       console.error('   ❌ Sync failed:', errorMsg);
       return { success: false, hasChanges: false, error: errorMsg };
     }
-  }
-
-  private async generateAuthSchema(verbose: boolean = false): Promise<void> {
-    try {
-      const cli = this.findBetterAuthCli();
-      
-      switch (this.executionMode) {
-        case 'import':
-          if (cli.module) {
-            if (verbose) console.log(`   [import mode] Importing from ${cli.module}`);
-            await this.generateViaImport(cli.module);
-          } else {
-            if (verbose) console.log('   [import mode] Module not found, falling back to node mode');
-            await this.generateViaNode(cli, verbose);
-          }
-          break;
-
-        case 'node':
-          await this.generateViaNode(cli, verbose);
-          break;
-
-        case 'bin':
-          await this.generateViaBin(cli, verbose);
-          break;
-
-        case 'package-manager':
-          await this.generateViaPackageManager(verbose);
-          break;
-      }
-
-      if (!existsSync(this.tempSchemaPath)) {
-        throw new Error('Better Auth CLI did not generate schema file');
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes('timed out')) {
-          throw new Error('Better Auth CLI timed out. Is it installed?');
-        }
-        if (error.message.includes('ENOENT') || error.message.includes('not found')) {
-          throw new Error('Better Auth CLI not found. Run: npm install -D @better-auth/cli');
-        }
-      }
-      throw new Error(`Failed to run Better Auth CLI: ${error}`);
-    }
-  }
-
-  private async generateViaImport(moduleName: string): Promise<void> {
-    const modulePath = resolve(this.projectRoot, 'node_modules', moduleName, 'dist/index.mjs');
-    const module = await import(pathToFileURL(modulePath).href);
-    
-    await module.generateSchema({
-      output: this.tempSchemaPath,
-      cwd: this.projectRoot
-    });
-  }
-
-  private async generateViaNode(cli: { node?: string, bin?: string }, verbose: boolean): Promise<void> {
-    if (!cli.node) {
-      if (verbose) console.log('   [node mode] Node path not found, falling back to bin mode');
-      return this.generateViaBin(cli, verbose);
-    }
-    
-    if (verbose) console.log(`   [node mode] Running: node ${cli.node}`);
-    await this.runCommand(process.execPath, [cli.node, 'generate', '--output', this.tempSchemaPath]);
-  }
-
-  private async generateViaBin(cli: { bin?: string }, verbose: boolean): Promise<void> {
-    if (!cli.bin) {
-      if (verbose) console.log('   [bin mode] Bin not found, falling back to package manager');
-      return this.generateViaPackageManager(verbose);
-    }
-    
-    if (verbose) console.log(`   [bin mode] Running: ${cli.bin}`);
-    await this.runCommand(cli.bin, ['generate', '--output', this.tempSchemaPath]);
-  }
-
-  private async generateViaPackageManager(verbose: boolean): Promise<void> {
-    const pm = this.detectPackageManager();
-    if (verbose) console.log(`   [package-manager mode] Using ${pm}`);
-    
-    const pmCommands = {
-      npm: ['npx', '@better-auth/cli@latest'],
-      pnpm: ['pnpm', 'exec', '@better-auth/cli'],
-      yarn: ['yarn', '@better-auth/cli'],
-      bun: ['bunx', '@better-auth/cli']
-    };
-
-    const [cmd, ...baseArgs] = pmCommands[pm as keyof typeof pmCommands];
-    await this.runCommand(cmd, [...baseArgs, 'generate', '--output', this.tempSchemaPath]);
   }
 
   private async parseSchema(): Promise<Map<string, ParsedTable>> {
@@ -437,80 +259,24 @@ export class AuthSchemaSync {
 
   private async runMigration(strategy: 'push' | 'migrate', verbose: boolean): Promise<void> {
     try {
-      const drizzle = this.findDrizzleKit();
+      const modulePath = resolve(this.projectRoot, 'node_modules/drizzle-kit/api.mjs');
       
-      const commands = strategy === 'push' ? ['push'] : ['generate', 'migrate'];
+      if (!existsSync(modulePath)) {
+        if (verbose) console.log('   ⚠️  Drizzle Kit not found, skipping migration');
+        return;
+      }
+
+      const drizzleKit = await import(pathToFileURL(modulePath).href);
       
-      for (const cmd of commands) {
-        switch (this.executionMode) {
-          case 'import':
-            if (verbose) console.log(`   [import mode] Running drizzle-kit ${cmd}`);
-            await this.runDrizzleViaImport(cmd);
-            break;
-
-          case 'node':
-            if (drizzle.node) {
-              if (verbose) console.log(`   [node mode] Running: node ${drizzle.node} ${cmd}`);
-              await this.runCommand(process.execPath, [drizzle.node, cmd]);
-            } else {
-              await this.runDrizzleViaBin(drizzle, cmd, verbose);
-            }
-            break;
-
-          case 'bin':
-            await this.runDrizzleViaBin(drizzle, cmd, verbose);
-            break;
-
-          case 'package-manager':
-            await this.runDrizzleViaPackageManager(cmd, verbose);
-            break;
-        }
+      if (strategy === 'push') {
+        await drizzleKit.push({ cwd: this.projectRoot });
+      } else {
+        await drizzleKit.generate({ cwd: this.projectRoot });
+        await drizzleKit.migrate({ cwd: this.projectRoot });
       }
     } catch (error) {
       console.warn('   ⚠️  Could not auto-run migration. Run manually with drizzle-kit');
     }
-  }
-
-  private async runDrizzleViaImport(command: string): Promise<void> {
-    const modulePath = resolve(this.projectRoot, 'node_modules/drizzle-kit/api.mjs');
-    if (existsSync(modulePath)) {
-      const drizzleKit = await import(pathToFileURL(modulePath).href);
-      
-      if (command === 'push') {
-        await drizzleKit.push({ cwd: this.projectRoot });
-      } else if (command === 'generate') {
-        await drizzleKit.generate({ cwd: this.projectRoot });
-      } else if (command === 'migrate') {
-        await drizzleKit.migrate({ cwd: this.projectRoot });
-      }
-    } else {
-      throw new Error('Drizzle Kit API not found');
-    }
-  }
-
-  private async runDrizzleViaBin(drizzle: { bin?: string }, command: string, verbose: boolean): Promise<void> {
-    if (!drizzle.bin) {
-      if (verbose) console.log('   [bin mode] Drizzle bin not found, falling back to package manager');
-      return this.runDrizzleViaPackageManager(command, verbose);
-    }
-    
-    if (verbose) console.log(`   [bin mode] Running: ${drizzle.bin} ${command}`);
-    await this.runCommand(drizzle.bin, [command]);
-  }
-
-  private async runDrizzleViaPackageManager(command: string, verbose: boolean): Promise<void> {
-    const pm = this.detectPackageManager();
-    if (verbose) console.log(`   [package-manager mode] Using ${pm} for drizzle-kit ${command}`);
-    
-    const pmCommands = {
-      npm: ['npx', 'drizzle-kit'],
-      pnpm: ['pnpm', 'exec', 'drizzle-kit'],
-      yarn: ['yarn', 'drizzle-kit'],
-      bun: ['bunx', 'drizzle-kit']
-    };
-
-    const [cmd, ...baseArgs] = pmCommands[pm as keyof typeof pmCommands];
-    await this.runCommand(cmd, [...baseArgs, command]);
   }
 
   private convertToSchema(table: ParsedTable): Schema {
@@ -563,6 +329,6 @@ export async function syncAuthSchemas(
   projectRoot: string,
   options?: AuthSyncOptions
 ): Promise<AuthSyncResult> {
-  const sync = new AuthSchemaSync(projectRoot, options?.executionMode);
+  const sync = new AuthSchemaSync(projectRoot);
   return sync.sync(schemas, options);
 }

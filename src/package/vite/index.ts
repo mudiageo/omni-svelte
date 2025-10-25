@@ -10,7 +10,7 @@ import { generateSchemaFiles, initializeSchemaConfig, setupSchemaWatcher } from 
 import { runtime_directory } from '../utils';
 import { generateAuthConfig } from '../runtime/auth/generator.js';
 
-async function getOmniConfig(config: ResolvedConfig): OmniConfig {
+async function getOmniConfig(config: ResolvedConfig): Promise<OmniConfig | undefined>  {
         // Read svelte.config.js to get omni configuration
       try {
         const configPath = resolve(config.root, 'svelte.config.js');
@@ -130,6 +130,8 @@ export function omni(options = {}): Plugin {
           
           // Re-initialize schema config if svelte.config.js changed
           if (file.endsWith('svelte.config.js')) {
+        
+              omniConfig = await getOmniConfig(config)
               const schemaConfig = await initializeSchemaConfig(omniConfig, config.root);
               if(schemaConfig) omniConfig.schema = schemaConfig
 
@@ -196,6 +198,16 @@ const plugin_auth_codegen: Plugin = {
     const omniConfig = await getOmniConfig(resolvedConfig);
     await generateAuthConfig(omniConfig?.auth);
   },
+}
+
+const plugin_auth_schema_sync: Plugin = {
+  name: 'vite-plugin-omni-auth-schema-sync',
+  async configResolved(resolvedConfig) {
+    const omniConfig = await getOmniConfig(resolvedConfig);
+    
+
+  }
+
 }
    
 //In development use $pkg as import. During build replace with omni-svelte

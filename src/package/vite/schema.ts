@@ -33,7 +33,6 @@ export async function initializeSchemaConfig(omniConfig: OmniConfig, root: strin
             const result = await syncAuthSchemas(schemas, root, {
                 autoMigrate: omniConfig.auth?.migrations?.autoMigrate,
                 migrationStrategy: omniConfig.auth?.migrations?.strategy,
-                executionMode: omniConfig.auth?.executionMode || 'import',
                 verbose: schemaConfig.dev?.logLevel !== 'silent'
             });
 

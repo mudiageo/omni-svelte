@@ -1,7 +1,6 @@
 export interface AuthConfig {
   enabled?: boolean;
   sync?: boolean;
-  executionMode?: 'import' | 'node' | 'bin' | 'package-manager';
   
   // Basic Configuration
   appName?: string;
