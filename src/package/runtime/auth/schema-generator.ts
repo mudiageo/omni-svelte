@@ -1,67 +1,178 @@
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
-import { mkdirp, write_if_changed } from '../../utils/filesystem.js';
+import { mkdirp, write_if_changed, read } from '../../utils/filesystem.js';
 import { runtime_directory } from '../../utils';
 import { getAuthTables } from 'better-auth/db';
+import crypto from 'crypto';
+
+interface SchemaMetadata {
+  configHash: string;
+  generatedAt: number;
+  version: string;
+}
+
+/**
+ * Hash auth configuration for change detection using SHA-256
+ * @param config - Better Auth configuration object
+ * @returns SHA-256 hash of relevant config
+ */
+export function hashAuthConfig(config: any): string {
+  const relevantConfig = {
+    database: config.database?.type,
+    plugins: config.plugins?.map((p: any) => ({
+      id: p.id || p.name || p.$id,
+      // Include plugin config that affects schema
+      tables: p.schema?.tables,
+    })),
+  };
+  
+  return crypto
+    .createHash('sha256')
+    .update(JSON.stringify(relevantConfig))
+    .digest('hex');
+}
+
+/**
+ * Check if schema needs regeneration based on config changes
+ */
+export function shouldRegenerateSchema(
+  projectRoot: string,
+  config: any
+): boolean {
+  const metadataPath = resolve(projectRoot, '.omni/auth-schema.meta.json');
+  
+  if (!existsSync(metadataPath)) {
+    return true;
+  }
+
+  try {
+    const metadata: SchemaMetadata = JSON.parse(read(metadataPath));
+    const currentHash = hashAuthConfig(config);
+    
+    return metadata.configHash !== currentHash;
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Save metadata about generated schema
+ */
+export function saveMetadata(projectRoot: string, config: any): void {
+  const metadata: SchemaMetadata = {
+    configHash: hashAuthConfig(config),
+    generatedAt: Date.now(),
+    version: '1.0',
+  };
+  
+  const metadataPath = resolve(projectRoot, '.omni/auth-schema.meta.json');
+  write_if_changed(metadataPath, JSON.stringify(metadata, null, 2));
+}
+
+/**
+ * Get auth schema with hybrid approach:
+ * - Development: Generate files for IDE autocomplete and inspection
+ * - Production: Use direct getAuthTables for performance
+ * 
+ * @param projectRoot - Project root directory
+ * @param config - Better Auth configuration
+ * @param isDev - Whether in development mode
+ * @returns Schema object for Drizzle adapter
+ */
+export async function getAuthSchema(
+  projectRoot: string,
+  config: any,
+  isDev: boolean
+): Promise<any> {
+  const configHash = hashAuthConfig(config);
+
+  // Production: use direct generation (no caching needed - recreated on each start)
+  if (!isDev) {
+    return getAuthTables(config);
+  }
+
+  // Development: generate files for IDE
+  const authSchemaPath = resolve(projectRoot, '.omni/auth-schema.ts');
+  
+  const shouldRegenerate = shouldRegenerateSchema(projectRoot, config);
+  
+  if (shouldRegenerate) {
+    console.log('🔧 Regenerating auth schema (config changed)...');
+    await generateAuthSchema(projectRoot, authSchemaPath, true);
+    saveMetadata(projectRoot, config);
+  }
+  
+  try {
+    const authModule = await import(pathToFileURL(authSchemaPath).href);
+    return authModule;
+  } catch (error) {
+    console.warn('⚠️  Failed to load auth schema file, falling back to direct generation:', error);
+    // Fallback to direct generation if file load fails
+    return getAuthTables(config);
+  }
+}
 
 /**
  * Generate Drizzle schema from Better Auth configuration
  * Extracted from Better Auth CLI for direct in-process schema generation
+ * 
+ * @param projectRoot - Project root directory
+ * @param outputPath - Where to write schema file
+ * @param verbose - Log progress messages
+ * @param forceRegenerate - Skip change detection and always regenerate
  */
 export async function generateAuthSchema(
   projectRoot: string,
   outputPath: string,
-  verbose: boolean = false
+  verbose: boolean = false,
+  forceRegenerate: boolean = false
 ): Promise<void> {
   try {
     // Create temp folder if needed
     const tempDir = resolve(projectRoot, '.omni');
     if (!existsSync(tempDir)) mkdirp(tempDir);
 
-    // Try to load auth config from generated config first
-    const generatedConfigPath = resolve(projectRoot, runtime_directory, 'auth/__generated__/config.js');
-    let authOptions: any;
+    // Load Better Auth config
+    const authConfigPath = resolve(projectRoot, runtime_directory, 'auth/__generated__/config.js');
     
-    if (existsSync(generatedConfigPath)) {
-      try {
-        const configModule = await import(pathToFileURL(generatedConfigPath).href);
-        authOptions = configModule.default;
-        if (verbose) console.log('   📄 Using generated auth config');
-      } catch (error) {
-        if (verbose) console.log('   ⚠️  Failed to load generated config, using defaults');
-        authOptions = getDefaultAuthOptions();
-      }
-    } else {
-      if (verbose) console.log('   📄 Using default auth config');
-      authOptions = getDefaultAuthOptions();
+    if (!existsSync(authConfigPath)) {
+      throw new Error(`Auth config not found at ${runtime_directory}/auth/__generated__/config.js`);
+    }
+    
+    // Dynamically import the auth config
+    const configModule = await import(pathToFileURL(authConfigPath).href);
+    const authOptions = configModule.default;
+    
+    if (!authOptions) {
+      throw new Error('Invalid auth config - no default export');
     }
 
+    // Check if regeneration needed
+    if (!forceRegenerate && !shouldRegenerateSchema(projectRoot, authOptions)) {
+      if (verbose) console.log('   ✅ Schema up to date (no config changes)');
+      return;
+    }
+    
     // Generate Drizzle schema from Better Auth config
+    if (verbose) console.log('   🔨 Generating schema from config...');
     const schemaCode = await generateDrizzleSchemaCode(authOptions);
     
     // Write to output file
-    write_if_changed(outputPath, schemaCode);
+    const actualPath = resolve(projectRoot, '.omni/auth-schema.ts');
+    write_if_changed(actualPath, schemaCode);
 
-    if (!existsSync(outputPath)) {
+    if (!existsSync(actualPath)) {
       throw new Error('Failed to generate schema file');
     }
+
+    // Save metadata for change detection
+    saveMetadata(projectRoot, authOptions);
 
     if (verbose) console.log('   ✅ Schema generated successfully');
   } catch (error) {
     throw new Error(`Failed to generate auth schema: ${error}`);
   }
-}
-
-/**
- * Get default auth options when config is not available
- */
-function getDefaultAuthOptions() {
-  return {
-    database: {
-      type: 'pg'
-    }
-  };
 }
 
 /**

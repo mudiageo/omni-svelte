@@ -97,6 +97,18 @@ export interface AuthConfig {
     strategy?: 'push' | 'migrate';
   };
 
+  // Schema Sync Configuration
+  schemaSync?: {
+    /**
+     * How to handle auth schema generation:
+     * - 'none': Use default schema, don't modify user files (safest, default)
+     * - 'separate': Generate all auth tables in .omni/auth-schema.ts (clean separation)
+     * - 'integrated': Add ALL auth tables to user schema (all-in-one)
+     * - 'hybrid': User table updates in user schema, other tables in .omni/ (recommended)
+     */
+    strategy?: 'none' | 'separate' | 'integrated' | 'hybrid';
+  };
+
   // Plugins
   plugins?: {
     username?: boolean;

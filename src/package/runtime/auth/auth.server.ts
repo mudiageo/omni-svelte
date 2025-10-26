@@ -5,42 +5,35 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { getDatabase } from '../../database'
 import { sveltekitCookies } from "better-auth/svelte-kit";
 import { redirect, type RequestEvent } from '@sveltejs/kit';
-import { existsSync } from 'fs';
-import { resolve } from 'path';
-import { pathToFileURL } from 'url';
-import * as defaultSchema from './default-schema';
+import { getAuthSchema } from './schema-generator';
+import { validateAuthSchema, logValidationResults } from './schema-validator';
 
 const db = getDatabase();
+const isDev = process.env.NODE_ENV !== 'production';
 
-// Dynamically load auth schema
-async function getAuthSchema() {
-  console.log(process.cwd())
-  const authSchemaPath = resolve(process.cwd(), '__generated__/temp-auth-schema.ts');
+// Get auth schema (hybrid approach: files in dev, direct in prod)
+const schema = await getAuthSchema(process.cwd(), generatedConfig, isDev);
+
+// Validate schema in development
+if (isDev) {
+  const validation = validateAuthSchema(schema, generatedConfig);
+  logValidationResults(validation, true);
   
-  if (existsSync(authSchemaPath)) {
-    try {
-      const authModule = await import(pathToFileURL(authSchemaPath).href);
-      return authModule;
-    } catch (error) {
-      console.warn('Failed to load auth schema, using default:', error);
-    }
+  if (!validation.valid) {
+    console.error('\n⚠️  Auth schema validation failed. Authentication may not work correctly.');
+    console.error('Run the build process to regenerate the auth schema.\n');
   }
-  
-  // Return default schema - provides minimum required tables for Better Auth
-  return defaultSchema;
 }
-
-const schema = await getAuthSchema();
 
 // Single auth instance
 export const auth = betterAuth({
-  ... generatedConfig,
+  ...generatedConfig,
   database: drizzleAdapter(db, {
-    provider: "pg", // or "pg" or "mysql"
+    provider: "pg",
     schema,
-  }), 
-  plugins: [...generatedConfig.plugins, sveltekitCookies(getRequestEvent)]
-});
+  }),
+  plugins: [...(generatedConfig.plugins || []), sveltekitCookies(getRequestEvent)]
+} as any);
 
 // Re-export common server utilities
 export const {
