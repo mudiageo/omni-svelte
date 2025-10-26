@@ -95,7 +95,9 @@ export async function getAuthSchema(
   // Development: generate files for IDE
   const authSchemaPath = resolve(projectRoot, '.omni/auth-schema.ts');
   
-  const shouldRegenerate = shouldRegenerateSchema(projectRoot, config);
+  // Check if file exists or if regeneration is needed
+  const schemaExists = existsSync(authSchemaPath);
+  const shouldRegenerate = !schemaExists || shouldRegenerateSchema(projectRoot, config);
   
   if (shouldRegenerate) {
     console.log('🔧 Regenerating auth schema (config changed)...');
@@ -148,8 +150,12 @@ export async function generateAuthSchema(
       throw new Error('Invalid auth config - no default export');
     }
 
-    // Check if regeneration needed
-    if (!forceRegenerate && !shouldRegenerateSchema(projectRoot, authOptions)) {
+    // Check if schema file exists
+    const actualPath = resolve(projectRoot, '.omni/auth-schema.ts');
+    const schemaExists = existsSync(actualPath);
+    
+    // Check if regeneration needed (always regenerate if file doesn't exist)
+    if (!forceRegenerate && schemaExists && !shouldRegenerateSchema(projectRoot, authOptions)) {
       if (verbose) console.log('   ✅ Schema up to date (no config changes)');
       return;
     }
@@ -159,7 +165,6 @@ export async function generateAuthSchema(
     const schemaCode = await generateDrizzleSchemaCode(authOptions);
     
     // Write to output file
-    const actualPath = resolve(projectRoot, '.omni/auth-schema.ts');
     write_if_changed(actualPath, schemaCode);
 
     if (!existsSync(actualPath)) {
