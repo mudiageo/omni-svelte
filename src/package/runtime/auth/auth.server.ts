@@ -10,10 +10,10 @@ import { validateAuthSchema, logValidationResults } from './schema-validator';
 
 const db = getDatabase();
 const isDev = process.env.NODE_ENV !== 'production';
+const projectRoot = process.cwd();
 
 // Get auth schema (hybrid approach: files in dev, direct in prod)
-const schema = await getAuthSchema(process.cwd(), generatedConfig, isDev);
-
+const schema = await getAuthSchema(projectRoot, generatedConfig, isDev);
 // Validate schema in development
 if (isDev) {
   const validation = validateAuthSchema(schema, generatedConfig);

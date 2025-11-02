@@ -113,7 +113,7 @@ export interface AuthConfig {
   plugins?: {
     username?: boolean;
     anonymous?: boolean;
-    phoneNumber?: boolean | object;
+    phoneNumber?: boolean | PluginOptions;
     magicLink?: boolean | {
       sendMagicLink?: boolean;
     };
@@ -123,16 +123,20 @@ export interface AuthConfig {
     genericOAuth?: {
       config: any[];
     };
-    oneTap?: boolean | object;
-    passkey?: boolean | object;
+    oneTap?: boolean | PluginOptions;
+    passkey?: boolean | PluginOptions;
     apiKey?: boolean;
-    admin?: boolean | object;
-    organization?: boolean | object;
+    admin?: boolean | PluginOptions;
+    organization?: boolean | PluginOptions;
     bearer?: boolean;
-    multiSession?: boolean | object;
-    openAPI?: boolean | object;
-    jwt?: boolean | object;
-    twoFactor?: boolean | object;
-    sso?: boolean | object;
+    multiSession?: boolean | PluginOptions;
+    openAPI?: boolean | PluginOptions;
+    jwt?: boolean | PluginOptions;
+    twoFactor?: boolean | PluginOptions;
+    sso?: boolean | PluginOptions;
   };
+}
+
+export interface PluginOptions {
+  enabled?: boolean;
 }
