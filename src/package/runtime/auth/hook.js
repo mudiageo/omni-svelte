@@ -1,13 +1,10 @@
 // import { auth } from "./auth.server";
 import { svelteKitHandler } from "better-auth/svelte-kit";
 import { building } from "$app/environment";
+import { auth } from './auth.server'
 
-let auth;
-
+/** @type {import('@sveltejs/kit').Handle} */
 export async function authHandle({ event, resolve }) {
-  
-  //dynamically import to emsure database is initialised first
-  if(!auth) auth = (await import('./auth.server')).auth
   
   // Fetch current session from Better Auth
   const session = await auth.api.getSession({
