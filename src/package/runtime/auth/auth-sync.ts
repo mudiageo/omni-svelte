@@ -524,7 +524,7 @@ export class AuthSchemaSync {
 
   private async cleanup(): Promise<void> {
     try {
-      if (existsSync(this.tempSchemaPath)) rimraf(this.tempSchemaPath);
+      // if (existsSync(this.tempSchemaPath)) rimraf(this.tempSchemaPath);
     } catch {}
   }
 }

@@ -10,10 +10,10 @@ import { generateSchemaFiles, initializeSchemaConfig, setupSchemaWatcher } from 
 import { runtime_directory } from '../utils';
 import { generateAuthConfig } from '../runtime/auth/generator.js';
 
-async function getOmniConfig(config: ResolvedConfig): Promise<OmniConfig | undefined>  {
+async function getOmniConfig(): Promise<OmniConfig | undefined>  {
         // Read svelte.config.js to get omni configuration
       try {
-        const configPath = resolve(config.root, 'svelte.config.js');
+        const configPath = resolve(process.cwd(), 'svelte.config.js');
         if (existsSync(configPath)) {
           const module = await import(pathToFileURL(configPath) + '?t=' + Date.now());
           let svelteConfig: SvelteConfig = module.default;
@@ -36,9 +36,9 @@ export function omni(options = {}): Plugin {
     
     async configResolved(resolvedConfig) {
       config = resolvedConfig;
-      
-      omniConfig = await getOmniConfig(config)
-      
+
+      omniConfig = await getOmniConfig();
+
       // Initialize schema configuration
       const schemaConfig = await initializeSchemaConfig(omniConfig, config.root);
       if(schemaConfig) {
@@ -130,8 +130,8 @@ export function omni(options = {}): Plugin {
           
           // Re-initialize schema config if svelte.config.js changed
           if (file.endsWith('svelte.config.js')) {
-        
-              omniConfig = await getOmniConfig(config)
+
+              omniConfig = await getOmniConfig()
               const schemaConfig = await initializeSchemaConfig(omniConfig, config.root);
               if(schemaConfig) omniConfig.schema = schemaConfig
 
@@ -195,15 +195,26 @@ const plugin_auth_codegen: Plugin = {
   name: 'vite-plugin-omni-auth-codegen',
   async configResolved(resolvedConfig) {
     // Generate Better Auth config internally
-    const omniConfig = await getOmniConfig(resolvedConfig);
-    await generateAuthConfig(omniConfig?.auth);
+    const omniConfig = await getOmniConfig();
+    if (omniConfig?.auth) await generateAuthConfig(omniConfig.auth);
   },
-}
+  configureServer(server){
+    //watch for config changes
+    server.watcher.add('svelte.config.js');
+
+    server.watcher.on('change', async (file) => {
+      if (file.endsWith('svelte.config.js')) {
+        const omniConfig = await getOmniConfig();
+        if (omniConfig?.auth)  await generateAuthConfig(omniConfig.auth);
+      }
+    });
+  },
+};
 
 const plugin_auth_schema_sync: Plugin = {
   name: 'vite-plugin-omni-auth-schema-sync',
   async configResolved(resolvedConfig) {
-    const omniConfig = await getOmniConfig(resolvedConfig);
+    const omniConfig = await getOmniConfig();
     
 
   }

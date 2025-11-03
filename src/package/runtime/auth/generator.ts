@@ -1,4 +1,3 @@
-import type { BetterAuthOptions } from 'better-auth';
 import { write_if_changed} from '../../utils/filesystem.js';
 import { runtime_directory } from '../../utils';
 import type { AuthConfig } from './types'

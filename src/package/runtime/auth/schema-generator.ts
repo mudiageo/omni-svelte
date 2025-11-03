@@ -26,7 +26,7 @@ export function hashAuthConfig(config: any): string {
       tables: p.schema?.tables,
     })),
   };
-  
+
   return crypto
     .createHash('sha256')
     .update(JSON.stringify(relevantConfig))
@@ -38,19 +38,15 @@ export function hashAuthConfig(config: any): string {
  */
 export function shouldRegenerateSchema(
   projectRoot: string,
-  config: any
+  configHash: string
 ): boolean {
   const metadataPath = resolve(projectRoot, '.omni/auth-schema.meta.json');
   
-  if (!existsSync(metadataPath)) {
-    return true;
-  }
+  if (!existsSync(metadataPath)) return true;
 
   try {
     const metadata: SchemaMetadata = JSON.parse(read(metadataPath));
-    const currentHash = hashAuthConfig(config);
-    
-    return metadata.configHash !== currentHash;
+    return metadata.configHash !== configHash;
   } catch {
     return true;
   }
@@ -59,9 +55,9 @@ export function shouldRegenerateSchema(
 /**
  * Save metadata about generated schema
  */
-export function saveMetadata(projectRoot: string, config: any): void {
+export function saveMetadata(projectRoot: string, configHash: string): void {
   const metadata: SchemaMetadata = {
-    configHash: hashAuthConfig(config),
+    configHash,
     generatedAt: Date.now(),
     version: '1.0',
   };
@@ -83,26 +79,23 @@ export function saveMetadata(projectRoot: string, config: any): void {
 export async function getAuthSchema(
   projectRoot: string,
   config: any,
-  isDev: boolean
+  isDev: boolean,
 ): Promise<any> {
-  const configHash = hashAuthConfig(config);
-
+  const hash = hashAuthConfig(config);
   // Production: use direct generation (no caching needed - recreated on each start)
-  if (!isDev) {
-    return getAuthTables(config);
-  }
+  if (!isDev) return getAuthTables(config);
 
   // Development: generate files for IDE
   const authSchemaPath = resolve(projectRoot, '.omni/auth-schema.ts');
   
   // Check if file exists or if regeneration is needed
   const schemaExists = existsSync(authSchemaPath);
-  const shouldRegenerate = !schemaExists || shouldRegenerateSchema(projectRoot, config);
+  const shouldRegenerate = !schemaExists || shouldRegenerateSchema(projectRoot, hash);
   
   if (shouldRegenerate) {
     console.log('🔧 Regenerating auth schema (config changed)...');
-    await generateAuthSchema(projectRoot, authSchemaPath, true);
-    saveMetadata(projectRoot, config);
+    await generateAuthSchema(projectRoot, authSchemaPath, true, false, hash);
+    saveMetadata(projectRoot, hash);
   }
   
   try {
@@ -143,19 +136,19 @@ export async function generateAuthSchema(
     }
     
     // Dynamically import the auth config
-    const configModule = await import(pathToFileURL(authConfigPath).href);
+    const configModule = await import(pathToFileURL(authConfigPath).href+`?t=${Date.now()}`);// Add timestamp query parameter for cache-busting
     const authOptions = configModule.default;
-    
+
     if (!authOptions) {
       throw new Error('Invalid auth config - no default export');
     }
 
     // Check if schema file exists
-    const actualPath = resolve(projectRoot, '.omni/auth-schema.ts');
-    const schemaExists = existsSync(actualPath);
-    
+    const schemaExists = existsSync(outputPath);
+
+    const hash = hashAuthConfig(authOptions);
     // Check if regeneration needed (always regenerate if file doesn't exist)
-    if (!forceRegenerate && schemaExists && !shouldRegenerateSchema(projectRoot, authOptions)) {
+    if (!forceRegenerate && schemaExists && !shouldRegenerateSchema(projectRoot, hash)) {
       if (verbose) console.log('   ✅ Schema up to date (no config changes)');
       return;
     }
@@ -165,14 +158,14 @@ export async function generateAuthSchema(
     const schemaCode = await generateDrizzleSchemaCode(authOptions);
     
     // Write to output file
-    write_if_changed(actualPath, schemaCode);
+    write_if_changed(outputPath, schemaCode);
 
-    if (!existsSync(actualPath)) {
+    if (!existsSync(outputPath)) {
       throw new Error('Failed to generate schema file');
     }
 
     // Save metadata for change detection
-    saveMetadata(projectRoot, authOptions);
+    saveMetadata(projectRoot, hash);
 
     if (verbose) console.log('   ✅ Schema generated successfully');
   } catch (error) {
