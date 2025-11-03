@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
-import type { Schema, FieldDefinition } from '../../schema/types';
+import type { Schema, FieldDefinition, SchemaConfig } from '../../schema/types';
 import * as ts from 'typescript';
 import { read, rimraf, mkdirp, write_if_changed } from '../../utils/filesystem.js';
 import { runtime_directory } from '../../utils';
@@ -14,7 +14,6 @@ export interface AuthSyncOptions {
   migrationStrategy?: 'push' | 'migrate';
   verbose?: boolean;
   syncStrategy?: 'none' | 'separate' | 'integrated' | 'hybrid'; // How to sync auth schema
-  userSchemaPath?: string; // Path from schema config
 }
 
 export interface AuthSyncResult {
@@ -86,26 +85,26 @@ export class AuthSchemaSync {
       // Apply schema sync strategy
       const strategy = options.syncStrategy || 'none';
       
-      if (strategy !== 'none' && options.userSchemaPath) {
+      if (strategy !== 'none') {
         switch (strategy) {
           case 'hybrid':
             // User table in user schema, other tables separate
             if (verbose) console.log('   📄 Updating user table in user schema...');
-            await this.updateUserSchemaFile(authTables, changes, options);
+            await this.updateUserOmniSchema(authTables, existingSchemas);
             if (verbose) console.log('   📦 Generating auth tables file...');
-            await this.generateAuthTablesFile(authTables, options, false); // exclude user
+            await this.generateAuthOmniSchemaFile(authTables, existingSchemas, false); // exclude user
             break;
             
           case 'separate':
             // All auth tables in separate file
             if (verbose) console.log('   📦 Generating auth tables file...');
-            await this.generateAuthTablesFile(authTables, options, true); // include user
+            await this.generateAuthOmniSchemaFile(authTables, existingSchemas, true); // include user
             break;
             
           case 'integrated':
             // All auth tables in user schema
-            if (verbose) console.log('   � Adding all auth tables to user schema...');
-            await this.addAllTablesToUserSchema(authTables, options);
+            if (verbose) console.log('   📝 Adding all auth tables to user schema...');
+            await this.addAllTablesToUserOmniSchema(authTables, existingSchemas);
             break;
         }
       }
@@ -273,6 +272,7 @@ export class AuthSchemaSync {
               primary: column.primary,
               unique: column.unique,
               default: column.default,
+              isAuthField: true, // Mark all auth-managed fields
             };
           }
         }
@@ -318,6 +318,7 @@ export class AuthSchemaSync {
         primary: column.primary,
         unique: column.unique,
         default: column.default,
+        isAuthField: true, // Mark all auth-managed fields
       };
     }
 
@@ -347,87 +348,107 @@ export class AuthSchemaSync {
   }
 
   /**
-   * Update user's schema file with changes to the user table
-   * Always marks auth fields
+   * Update user's Omni schema file with changes to the user table
+   * Always marks auth fields with isAuthField: true
+   * Auto-detects whether user table is singular or plural from existing schemas
    */
-  private async updateUserSchemaFile(
+  private async updateUserOmniSchema(
     authTables: Map<string, ParsedTable>,
-    changes: SchemaChanges,
-    options: AuthSyncOptions
+    existingSchemas: Schema[]
   ): Promise<void> {
     const userTable = authTables.get('user');
-    if (!userTable || !options.userSchemaPath) return;
+    if (!userTable) return;
 
-    const schemaPath = resolve(this.projectRoot, options.userSchemaPath);
-    if (!existsSync(schemaPath)) {
-      console.warn(`   ⚠️  User schema file not found at ${options.userSchemaPath}`);
+    // Find user schema file from discovered schemas
+    const { path: userSchemaPath, tableName: userTableName } = this.findUserSchemaFile(existingSchemas);
+    if (!userSchemaPath || !existsSync(userSchemaPath)) {
+      console.warn(`   ⚠️  User schema file not found`);
       return;
     }
 
-    let schemaContent = read(schemaPath);
+    let schemaContent = read(userSchemaPath);
 
-    // Find user table definition
-    const userTableMatch = schemaContent.match(/export\s+const\s+user[s]?\s*=\s*pgTable\s*\(\s*['"]user[s]?['"]\s*,\s*\{([^}]+)\}/s);
+    // Find the defineSchema call
+    const schemaMatch = schemaContent.match(new RegExp(`defineSchema\\s*\\(\\s*['"]${userTableName}['"]\\s*,\\s*\\{`));
     
-    if (!userTableMatch) {
-      console.warn('   ⚠️  Could not find user table definition in schema');
+    if (!schemaMatch) {
+      console.warn('   ⚠️  Could not find defineSchema call for user table');
       return;
     }
 
-    // Add new auth fields to user table
+    // Find the fields object
+    const fieldsStartIndex = schemaMatch.index! + schemaMatch[0].length;
+    let braceCount = 1;
+    let fieldsEndIndex = fieldsStartIndex;
+    
+    for (let i = fieldsStartIndex; i < schemaContent.length && braceCount > 0; i++) {
+      if (schemaContent[i] === '{') braceCount++;
+      if (schemaContent[i] === '}') braceCount--;
+      fieldsEndIndex = i;
+    }
+
+    // Add new auth fields
     let fieldsToAdd: string[] = [];
     
     for (const [fieldName, column] of userTable.columns) {
       // Skip if field already exists
       if (schemaContent.includes(`${fieldName}:`)) continue;
 
-      const fieldDef = this.generateDrizzleField(fieldName, column, 'pg');
-      // Always mark auth-managed fields
-      const comment = `  // 🔐 Auth-managed field - do not modify manually\n`;
-      fieldsToAdd.push(`${comment}  ${fieldName}: ${fieldDef}`);
+      const fieldDef = this.generateOmniField(fieldName, column);
+      fieldsToAdd.push(fieldDef);
     }
 
     if (fieldsToAdd.length === 0) return;
 
-    // Insert fields before the closing brace of the user table
-    const insertIndex = userTableMatch.index! + userTableMatch[0].length - 1;
+    // Check if we need to add a comma before new fields
+    const contentBeforeClosing = schemaContent.slice(0, fieldsEndIndex).trimEnd();
+    const needsComma = !contentBeforeClosing.endsWith(',');
+    
+    // Insert fields before the closing brace
+    const separator = needsComma ? ',\n' : '\n';
     const updatedContent = 
-      schemaContent.slice(0, insertIndex) +
-      ',\n' + fieldsToAdd.join(',\n') + '\n' +
-      schemaContent.slice(insertIndex);
+      schemaContent.slice(0, fieldsEndIndex) +
+      separator + fieldsToAdd.join(',\n') + '\n' +
+      schemaContent.slice(fieldsEndIndex);
 
-    write_if_changed(schemaPath, updatedContent);
+    write_if_changed(userSchemaPath, updatedContent);
   }
 
   /**
-   * Generate standalone file with auth tables
+   * Generate standalone Omni schema file with auth tables
    * @param includeUser - Whether to include the user table
    */
-  private async generateAuthTablesFile(
+  private async generateAuthOmniSchemaFile(
     authTables: Map<string, ParsedTable>,
-    options: AuthSyncOptions,
+    existingSchemas: Schema[],
     includeUser: boolean = false
   ): Promise<void> {
-    const authSchemaPath = resolve(this.projectRoot, '.omni/auth-schema.ts');
+    const authSchemaPath = this.getAuthSchemaPath();
     
-    let code = `// 🔐 Better Auth Tables - Auto-generated, do not edit manually\n`;
-    code += `// Generated on: ${new Date().toISOString()}\n\n`;
-    code += `import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";\n\n`;
+    let code = `// 🔐 Better Auth Tables - Auto-generated by auth sync\n`;
+    code += `// Generated on: ${new Date().toISOString()}\n`;
+    code += `// DO NOT EDIT MANUALLY - Changes will be overwritten\n\n`;
+    code += `import { defineSchema } from '$pkg/schema';\n\n`;
 
-    // Generate tables
+    // Generate schemas for each table
     for (const [tableName, table] of authTables) {
-      if (tableName === 'user' && !includeUser) continue; // Skip user table if not needed
+      if (tableName === 'user' && !includeUser) continue;
       
-      code += `export const ${table.varName} = pgTable("${tableName}", {\n`;
+      code += `// 🔐 Auth-managed schema\n`;
+      code += `export const ${tableName}Schema = defineSchema('${tableName}', {\n`;
       
       const fields: string[] = [];
       for (const [fieldName, column] of table.columns) {
-        const fieldDef = this.generateDrizzleField(fieldName, column, 'pg');
-        fields.push(`  ${fieldName}: ${fieldDef}`);
+        const fieldDef = this.generateOmniField(fieldName, column);
+        fields.push(fieldDef);
       }
       
       code += fields.join(',\n');
-      code += `\n});\n\n`;
+      code += `\n}, {\n`;
+      code += `  timestamps: false,\n`;
+      code += `  fillable: 'auto',\n`;
+      code += `  hidden: 'auto'\n`;
+      code += `});\n\n`;
     }
 
     mkdirp(this.tempDir);
@@ -435,91 +456,136 @@ export class AuthSchemaSync {
   }
 
   /**
-   * Add all auth tables (including user) to user's schema file
+   * Add all auth tables (including user) to user's Omni schema file
    */
-  private async addAllTablesToUserSchema(
+  private async addAllTablesToUserOmniSchema(
     authTables: Map<string, ParsedTable>,
-    options: AuthSyncOptions
+    existingSchemas: Schema[]
   ): Promise<void> {
-    if (!options.userSchemaPath) return;
-
-    const schemaPath = resolve(this.projectRoot, options.userSchemaPath);
-    if (!existsSync(schemaPath)) {
-      console.warn(`   ⚠️  User schema file not found at ${options.userSchemaPath}`);
+    const { path: userSchemaPath } = this.findUserSchemaFile(existingSchemas);
+    if (!userSchemaPath || !existsSync(userSchemaPath)) {
+      console.warn(`   ⚠️  User schema file not found`);
       return;
     }
 
-    let schemaContent = read(schemaPath);
+    let schemaContent = read(userSchemaPath);
 
     // Add auth tables that don't exist
     let tablesToAdd: string[] = [];
 
     for (const [tableName, table] of authTables) {
-      // Check if table already exists
-      if (schemaContent.includes(`export const ${table.varName}`)) continue;
+      // Check if schema already exists
+      if (schemaContent.includes(`defineSchema('${tableName}'`)) continue;
 
-      let tableCode = `\n// 🔐 Auth-managed table - do not modify manually\n`;
-      tableCode += `export const ${table.varName} = pgTable("${tableName}", {\n`;
+      let tableCode = `\n// 🔐 Auth-managed schema - do not modify manually\n`;
+      tableCode += `export const ${tableName}Schema = defineSchema('${tableName}', {\n`;
       
       const fields: string[] = [];
       for (const [fieldName, column] of table.columns) {
-        const fieldDef = this.generateDrizzleField(fieldName, column, 'pg');
-        fields.push(`  ${fieldName}: ${fieldDef}`);
+        const fieldDef = this.generateOmniField(fieldName, column);
+        fields.push(fieldDef);
       }
       
       tableCode += fields.join(',\n');
-      tableCode += `\n});\n`;
+      tableCode += `\n}, {\n`;
+      tableCode += `  timestamps: false,\n`;
+      tableCode += `  fillable: 'auto',\n`;
+      tableCode += `  hidden: 'auto'\n`;
+      tableCode += `});\n`;
       
       tablesToAdd.push(tableCode);
     }
 
     if (tablesToAdd.length === 0) return;
 
-    // Append tables at the end of the file
+    // Append schemas at the end of the file
     const updatedContent = schemaContent + '\n' + tablesToAdd.join('\n');
-    write_if_changed(schemaPath, updatedContent);
+    write_if_changed(userSchemaPath, updatedContent);
   }
 
   /**
-   * Generate Drizzle field definition from parsed column
+   * Generate Omni field definition from parsed column
+   * Marks all fields with isAuthField: true
    */
-  private generateDrizzleField(name: string, column: ParsedColumn, databaseType: string): string {
-    let def = '';
-
-    switch (column.type) {
-      case 'string':
-        def = `text('${name}')`;
-        break;
-      case 'boolean':
-        def = `boolean('${name}')`;
-        break;
-      case 'integer':
-        def = `integer('${name}')`;
-        break;
-      case 'timestamp':
-      case 'date':
-        def = `timestamp('${name}')`;
-        break;
-      case 'json':
-        def = databaseType === 'pg' ? `jsonb('${name}')` : `json('${name}')`;
-        break;
-      default:
-        def = `text('${name}')`;
-    }
-
-    if (column.primary) def += '.primaryKey()';
-    if (!column.nullable) def += '.notNull()';
-    if (column.unique) def += '.unique()';
+  private generateOmniField(name: string, column: ParsedColumn): string {
+    let fieldType = this.mapDrizzleTypeToOmni(column.type);
+    
+    let field = `  // 🔐 Auth-managed field\n`;
+    field += `  ${name}: {\n`;
+    field += `    type: '${fieldType}',\n`;
+    field += `    isAuthField: true,\n`;
+    
+    if (column.primary) field += `    primary: true,\n`;
+    if (!column.nullable) field += `    required: true,\n`;
+    if (column.unique) field += `    unique: true,\n`;
     
     if (column.default !== undefined && column.default !== null) {
       if (typeof column.default === 'string') {
-        def += `.default("${column.default}")`;
-      } else if (typeof column.default === 'boolean' || typeof column.default === 'number') {
-        def += `.default(${column.default})`;
+        field += `    default: "${column.default}",\n`;
+      } else {
+        field += `    default: ${column.default},\n`;
       }
     }
 
-    return def;
+    field += `  }`;
+    return field;
+  }
+
+  /**
+   * Map Drizzle/Postgres types to Omni field types
+   */
+  private mapDrizzleTypeToOmni(type: FieldType): string {
+    switch (type) {
+      case 'string': return 'string';
+      case 'integer': return 'integer';
+      case 'boolean': return 'boolean';
+      case 'timestamp': return 'timestamp';
+      case 'date': return 'date';
+      case 'json': return 'json';
+      default: return 'string';
+    }
+  }
+
+  /**
+   * Find the user schema file from discovered schemas
+   * Auto-detects whether user table is singular or plural
+   */
+  private findUserSchemaFile(existingSchemas: Schema[]): { path: string | null; tableName: string } {
+    // Try to find from discovered schemas (checks both 'user' and 'users')
+    const userSchema = existingSchemas.find(schema => 
+      schema.name === 'user' || schema.name === 'users'
+    );
+    
+    if (userSchema && userSchema.filePath) {
+      return {
+        path: resolve(this.projectRoot, userSchema.filePath),
+        tableName: userSchema.name
+      };
+    }
+    
+    // Fallback: check common paths
+    const possiblePaths = [
+      { path: resolve(this.projectRoot, 'src/lib/users.schema.ts'), name: 'users' },
+      { path: resolve(this.projectRoot, 'src/lib/user.schema.ts'), name: 'user' },
+      { path: resolve(this.projectRoot, 'src/lib/schema/users.schema.ts'), name: 'users' },
+      { path: resolve(this.projectRoot, 'src/lib/schema/user.schema.ts'), name: 'user' },
+    ];
+
+    for (const { path, name } of possiblePaths) {
+      if (existsSync(path)) {
+        return { path, tableName: name };
+      }
+    }
+
+    return { path: null, tableName: 'user' }; // Default to 'user' if not found
+  }
+
+  /**
+   * Get path for auth schema file
+   * Always saved to .omni directory for now (can be enhanced later)
+   */
+  private getAuthSchemaPath(): string {
+    return resolve(this.projectRoot, '.omni/auth.schema.ts');
   }
 
   private async cleanup(): Promise<void> {

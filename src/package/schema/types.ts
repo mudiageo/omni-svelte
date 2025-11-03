@@ -25,6 +25,7 @@ export interface FieldDefinition {
   computed?: boolean;
   get?: (record: any) => any;
   relationship?: Relationship;
+  isAuthField?: boolean; // Mark fields managed by auth system
 
 }
 export interface StorageConfig {

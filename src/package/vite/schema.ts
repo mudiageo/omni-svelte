@@ -30,18 +30,11 @@ export async function initializeSchemaConfig(omniConfig: OmniConfig, root: strin
 
     if (omniConfig?.auth?.sync !== false) {
         try {
-            // Get user schema path from schema config if available
-            const drizzleOutput = schemaConfig.output?.drizzle;
-            const userSchemaPath = typeof drizzleOutput === 'string' 
-                ? drizzleOutput
-                : drizzleOutput?.path;
-
             const result = await syncAuthSchemas(schemas, root, {
                 autoMigrate: omniConfig.auth?.migrations?.autoMigrate,
                 migrationStrategy: omniConfig.auth?.migrations?.strategy,
                 verbose: schemaConfig.dev?.logLevel !== 'silent',
-                syncStrategy: omniConfig.auth?.schemaSync?.strategy || 'none',
-                userSchemaPath
+                syncStrategy: omniConfig.auth?.schemaSync?.strategy || 'none'
             });
 
             if (result.success && result.hasChanges && schemaConfig.dev?.logLevel !== 'silent') {

@@ -70,7 +70,7 @@ function determineFillable(schema: Schema): string[] {
   // Auto-determine fillable fields
   const fillable: string[] = [];
   Object.entries(schema.fields).forEach(([fieldName, field]) => {
-    if (!field.primary && !field.computed && fieldName !== 'created_at' && fieldName !== 'updated_at') {
+    if (!field.primary && !field.computed && !field.isAuthField && fieldName !== 'created_at' && fieldName !== 'updated_at') {
       fillable.push(fieldName);
     }
   });
@@ -86,7 +86,7 @@ function determineHidden(schema: Schema): string[] {
   // Auto-determine hidden fields
   const hidden: string[] = [];
   Object.entries(schema.fields).forEach(([fieldName, field]) => {
-    if (field.hidden || field.type === 'password') {
+    if (field.hidden || field.type === 'password' || field.isAuthField) {
       hidden.push(fieldName);
     }
   });
@@ -370,11 +370,12 @@ ${typeImport}`;
     if (config === 'auto' || !config) {
       const fillableFields = Object.entries(this.schema.fields)
         .filter(([name, field]) => {
-          // Exclude primary keys, computed fields, timestamps, and hidden fields
+          // Exclude primary keys, computed fields, timestamps, hidden fields, and auth fields
           return !field.primary && 
                  !field.get && 
                  !field.computed && 
                  !field.hidden &&
+                 !field.isAuthField && // Exclude auth-managed fields
                  name !== 'created_at' && 
                  name !== 'updated_at' &&
                  name !== 'createdAt' &&
@@ -395,7 +396,7 @@ ${typeImport}`;
     
     if (config === 'auto' || !config) {
       const hiddenFields = Object.entries(this.schema.fields)
-        .filter(([_, field]) => field.hidden || field.type === 'password')
+        .filter(([_, field]) => field.hidden || field.type === 'password' || field.isAuthField)
         .map(([name, _]) => `'${name}'`);
       return `[${hiddenFields.join(', ')}]`;
     }
