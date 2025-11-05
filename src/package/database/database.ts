@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
-import { env } from '$env/dynamic/private';
+import { env } from '$env/dynamic/private'
 
 export let database: PostgresJsDatabase = drizzle(postgres(env.DATABASE_URL))
 
@@ -50,7 +50,7 @@ export function configureDatabase(config: DatabaseConfig) {
 
 export function getDatabase(): PostgresJsDatabase {
     if (!database) {
-        throw new Error('Database not configured. Call configureDatabase() first.')
+        throw new Error('Database not initialized. Call configureDatabase() first.');
     }
-    return database
+    return database;
 }

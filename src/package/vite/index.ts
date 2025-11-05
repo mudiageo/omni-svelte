@@ -9,6 +9,7 @@ import  { pathToFileURL } from 'url';
 import { generateSchemaFiles, initializeSchemaConfig, setupSchemaWatcher } from './schema';
 import { runtime_directory } from '../utils';
 import { generateAuthConfig } from '../runtime/auth/generator.js';
+import { omniMigrationsPlugin } from './migrations.js';
 
 async function getOmniConfig(): Promise<OmniConfig | undefined>  {
         // Read svelte.config.js to get omni configuration
@@ -340,5 +341,24 @@ export function omniSvelte(options = {}) {
     plugin_auth_resolver,
     omni(options),
     plugin_auth_codegen,
+    // Run migrations after auth config and schema generation
+    {
+      name: 'omni:migrations-wrapper',
+      async configResolved(resolvedConfig) {
+        const omniConfig = await getOmniConfig();
+        if (omniConfig) {
+          // Apply migrations plugin
+          const migrationsPlugin = omniMigrationsPlugin(omniConfig, resolvedConfig.root);
+          if (migrationsPlugin.configResolved) {
+            await migrationsPlugin.configResolved(resolvedConfig, undefined);
+          }
+          if (migrationsPlugin.buildStart) {
+            await migrationsPlugin.buildStart.call(this, {});
+          }
+        }
+      }
+    }
   ];
 }
+// Export migrations functionality for manual use
+export { runMigrations } from './migrations.js';

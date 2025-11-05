@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { pathToFileURL } from 'url';
-import type { Schema, FieldDefinition, SchemaConfig } from '../../schema/types';
+import type { Schema, FieldDefinition } from '../../schema/types';
 import * as ts from 'typescript';
 import { read, rimraf, mkdirp, write_if_changed } from '../../utils/filesystem.js';
 import { runtime_directory } from '../../utils';
@@ -10,8 +10,6 @@ import { generateAuthSchema } from './schema-generator';
 type FieldType = 'string' | 'integer' | 'boolean' | 'timestamp' | 'date' | 'json';
 
 export interface AuthSyncOptions {
-  autoMigrate?: boolean;
-  migrationStrategy?: 'push' | 'migrate';
   verbose?: boolean;
   syncStrategy?: 'none' | 'separate' | 'integrated' | 'hybrid'; // How to sync auth schema
 }
@@ -107,11 +105,6 @@ export class AuthSchemaSync {
             await this.addAllTablesToUserOmniSchema(authTables, existingSchemas);
             break;
         }
-      }
-
-      if (options.autoMigrate !== false) {
-        if (verbose) console.log('   🗄️  Running database migration...');
-        await this.runMigration(options.migrationStrategy || 'push', verbose);
       }
 
       await this.cleanup();
@@ -286,27 +279,7 @@ export class AuthSchemaSync {
     }
   }
 
-  private async runMigration(strategy: 'push' | 'migrate', verbose: boolean): Promise<void> {
-    try {
-      const modulePath = resolve(this.projectRoot, 'node_modules/drizzle-kit/api.mjs');
-      
-      if (!existsSync(modulePath)) {
-        if (verbose) console.log('   ⚠️  Drizzle Kit not found, skipping migration');
-        return;
-      }
 
-      const drizzleKit = await import(pathToFileURL(modulePath).href);
-      
-      if (strategy === 'push') {
-        await drizzleKit.push({ cwd: this.projectRoot });
-      } else {
-        await drizzleKit.generate({ cwd: this.projectRoot });
-        await drizzleKit.migrate({ cwd: this.projectRoot });
-      }
-    } catch (error) {
-      console.warn('   ⚠️  Could not auto-run migration. Run manually with drizzle-kit');
-    }
-  }
 
   private convertToSchema(table: ParsedTable): Schema {
     const fields: Record<string, FieldDefinition> = {};

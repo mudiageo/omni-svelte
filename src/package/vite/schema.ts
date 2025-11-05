@@ -31,8 +31,6 @@ export async function initializeSchemaConfig(omniConfig: OmniConfig, root: strin
     if (omniConfig?.auth?.sync !== false) {
         try {
             const result = await syncAuthSchemas(schemas, root, {
-                autoMigrate: omniConfig.auth?.migrations?.autoMigrate,
-                migrationStrategy: omniConfig.auth?.migrations?.strategy,
                 verbose: schemaConfig.dev?.logLevel !== 'silent',
                 syncStrategy: omniConfig.auth?.schemaSync?.strategy || 'none'
             });
