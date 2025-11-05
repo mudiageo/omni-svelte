@@ -36,6 +36,10 @@
 		"./database": {
 			"types": "./dist/database/index.d.ts",
 			"svelte": "./dist/database/index.js"
+		},
+		"./auth": {
+			"types": "./dist/runtime/auth/index.d.ts",
+			"svelte": "./dist/runtime/auth/index.js"
 		}
 	},
 	"peerDependencies": {
@@ -53,7 +57,7 @@
 		"@tailwindcss/vite": "^4.0.0",
 		"@types/node": "^20",
 		"@vitest/browser": "^3.2.3",
-		"drizzle-kit": "^0.30.2",
+		"drizzle-kit": "^0.31.6",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",
@@ -78,6 +82,8 @@
 		"svelte"
 	],
 	"dependencies": {
+		"@better-auth/cli": "^1.3.27",
+		"better-auth": "^1.3.27",
 		"chokidar": "^4.0.3",
 		"drizzle-orm": "^0.40.0",
 		"glob": "^11.0.3",

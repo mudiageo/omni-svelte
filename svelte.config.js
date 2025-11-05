@@ -45,6 +45,46 @@ const config = {
 				generateOnStart: true,
 				logLevel: 'info'
 			}		
+		},
+		auth: {
+			// Core Settings
+			enabled: true,
+			sync: true,
+			executionMode: 'import', // 'import' | 'node' | 'bin' | 'package-manager'
+			
+			// Basic Configuration
+			appName: 'My App',
+			baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:5173',
+			basePath: '/api/auth',
+			secret: process.env.BETTER_AUTH_SECRET,
+			
+			// Email & Password Authentication
+			emailAndPassword: {
+				enabled: true,
+				requireEmailVerification: false,
+				autoSignIn: true,
+				minPasswordLength: 8,
+			},
+			
+			// Session Configuration
+			session: {
+				expiresIn: 60 * 60 * 24 * 7, // 7 days
+				updateAge: 60 * 60 * 24, // Update every 24 hours
+			},
+			
+			// Database Migrations
+			migrations: {
+				autoMigrate: false,
+				strategy: 'push' // 'push' for dev, 'migrate' for production
+			},
+			
+			// Plugins (enable as needed)
+			plugins: {
+				username: true,
+				magicLink: true,
+				twoFactor: true,
+				passkey: true,
+			}
 		}
 	}
 };

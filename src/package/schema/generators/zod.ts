@@ -18,6 +18,7 @@ function generateCreateSchema(schema: Schema) {
 
   Object.entries(schema.fields).forEach(([fieldName, field]) => {
     if (field.computed) return; // Skip computed fields
+    if (field.isAuthField) return; // Skip auth-managed fields - validation handled by auth system
 
     const zodField = generateZodField(field);
     if (zodField) {
@@ -45,6 +46,7 @@ function generateUpdateSchema(schema: Schema, createSchema: z.ZodObject<any>) {
 
     Object.entries(schema.fields).forEach(([fieldName, field]) => {
       if (excludeFromUpdate.includes(fieldName) || field.computed) return;
+      if (field.isAuthField) return; // Skip auth-managed fields - validation handled by auth system
 
       const zodField = generateZodField(field);
       if (zodField) {
@@ -240,7 +242,7 @@ export class ZodGenerator {
   private generateCreateSchema(): string {
     const tableName = this.schema.name;
     const fields = Object.entries(this.schema.fields)
-      .filter(([_, field]) => !field.get && !field.primary) // Exclude computed fields and primary keys
+      .filter(([_, field]) => !field.get && !field.primary && !field.isAuthField)
       .map(([name, field]) => this.generateFieldValidation(name, field))
       .join(',\n  ');
 
@@ -256,7 +258,7 @@ export type ${this.capitalize(tableName)}Create = z.infer<typeof ${tableName}Cre
     const requiredFields = this.schema.config.validation?.onUpdate || [];
     
     const fields = Object.entries(this.schema.fields)
-      .filter(([_, field]) => !field.get && !field.primary) // Exclude computed fields and primary keys
+      .filter(([_, field]) => !field.get && !field.primary && !field.isAuthField)
       .map(([name, field]) => {
         const isRequired = requiredFields.includes(name);
         const validation = this.generateFieldValidation(name, field, !isRequired);
