@@ -62,18 +62,4 @@ export class AuthState {
     });
   }
 }
-export const authState = new AuthState()
-console.log(authState)
-const auth = new AuthState();
-if(browser){
-  
-
-// These work from AuthState
-console.log(auth.session);
-console.log(auth.isAuthenticated);
-// console.log(await auth.signIn)
-// These are delegated to authClient's dynamic proxy
-await auth.authClient.signIn?.({ email: '...', password: '...' });
-await auth.signOut?.();
-await auth.signUp?.({ email: '...', password: '...' });
-}
+export const authState = new AuthState();
