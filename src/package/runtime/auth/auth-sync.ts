@@ -563,6 +563,8 @@ export class AuthSchemaSync {
 
   private async cleanup(): Promise<void> {
     try {
+      // The temporary schema file is intentionally not removed here because other processes
+      // rely on its persistence during development. Re-enabling this cleanup would cause issues.
       // if (existsSync(this.tempSchemaPath)) rimraf(this.tempSchemaPath);
     } catch {}
   }
