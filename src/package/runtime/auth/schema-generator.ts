@@ -379,7 +379,7 @@ function generateFieldDefinition(name: string, field: any, databaseType: string)
         def += '.defaultNow()';
       }
     } else if (typeof field.defaultValue === 'string') {
-      def += `.default("${field.defaultValue}")`;
+      def += `.default(${JSON.stringify(field.defaultValue)})`;
     } else if (typeof field.defaultValue === 'boolean') {
       def += `.default(${field.defaultValue})`;
     } else if (typeof field.defaultValue === 'number') {
