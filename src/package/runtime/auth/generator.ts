@@ -332,169 +332,74 @@ export default config;
 
   private generatePluginsConfig(plugins?: AuthConfig['plugins']) {
     if (!plugins || Object.keys(plugins).length === 0) return '';
-    
+
+    type PluginValue = unknown;
+
+    const pluginGenerators: Record<string, (config: PluginValue) => string | undefined> = {
+      // plugins with special codegen
+      magicLink: (config) => {
+        if (!config || config === false) return;
+        if (typeof config === 'object' && (config as any).sendMagicLink) {
+          return `magicLink({
+    sendMagicLink: async ({ email, token, url }, request) => {
+      const { sendMagicLink } = await import('$pkg/emails');
+      return sendMagicLink({ email, token, url }, request);
+    },
+  })`;
+        }
+        return 'magicLink()';
+      },
+
+      emailOTP: (config) => {
+        if (!config || config === false) return;
+        if (typeof config === 'object' && (config as any).sendVerificationOTP) {
+          return `emailOTP({
+    sendVerificationOTP: async ({ email, otp, type }, request) => {
+      const { sendVerificationOTP } = await import('$pkg/emails');
+      return sendVerificationOTP({ email, otp, type }, request);
+    },
+  })`;
+        }
+        return 'emailOTP()';
+      },
+
+      genericOAuth: (config) => {
+        if (!config || config === false) return;
+        const cfg = config as any;
+        return `genericOAuth({
+    config: ${JSON.stringify(cfg?.config || [], null, 2)},
+  })`;
+      },
+    };
+
     const pluginCalls: string[] = [];
-    
-    // Username plugin
-    if (plugins.username) {
-      pluginCalls.push('username()');
-    }
-    
-    // Anonymous plugin
-    if (plugins.anonymous) {
-      pluginCalls.push('anonymous()');
-    }
-    
-    // Phone Number plugin
-    if (plugins.phoneNumber) {
-      const config = plugins.phoneNumber;
-      if (typeof config === 'object' && config.enabled !== false) {
-        pluginCalls.push(`phoneNumber(${JSON.stringify(config)})`);
+
+    for (const [pluginName, pluginConfig] of Object.entries(plugins as Record<string, PluginValue>)) {
+      // treat `false` as disabled
+      if (pluginConfig === false) continue;
+
+      const generator = pluginGenerators[pluginName];
+      if (generator) {
+        const call = generator(pluginConfig);
+        if (call) pluginCalls.push(call);
+        continue;
+      }
+
+      // Generic handling for all other plugins (including non-official/custom plugins):
+      // - `true` => pluginName()
+      // - object => pluginName({...})
+      // - anything else truthy => pluginName()
+      if (pluginConfig === true || pluginConfig == null) {
+        pluginCalls.push(`${pluginName}()`);
+      } else if (typeof pluginConfig === 'object') {
+        pluginCalls.push(`${pluginName}(${JSON.stringify(pluginConfig)})`);
       } else {
-        pluginCalls.push('phoneNumber()');
+        pluginCalls.push(`${pluginName}()`);
       }
     }
-    
-    // Magic Link plugin
-    if (plugins.magicLink) {
-      const config = plugins.magicLink;
-      if (typeof config === 'object' && config.sendMagicLink) {
-        pluginCalls.push(`magicLink({
-      sendMagicLink: async ({ email, token, url }, request) => {
-        const { sendMagicLink } = await import('$pkg/emails');
-        return sendMagicLink({ email, token, url }, request);
-      },
-    })`);
-      } else {
-        pluginCalls.push('magicLink()');
-      }
-    }
-    
-    // Email OTP plugin
-    if (plugins.emailOTP) {
-      const config = plugins.emailOTP;
-      if (typeof config === 'object' && config.sendVerificationOTP) {
-        pluginCalls.push(`emailOTP({
-      sendVerificationOTP: async ({ email, otp, type }, request) => {
-        const { sendVerificationOTP } = await import('$pkg/emails');
-        return sendVerificationOTP({ email, otp, type }, request);
-      },
-    })`);
-      } else {
-        pluginCalls.push('emailOTP()');
-      }
-    }
-    
-    // Generic OAuth plugin
-    if (plugins.genericOAuth) {
-      const config = plugins.genericOAuth;
-      pluginCalls.push(`genericOAuth({
-      config: ${JSON.stringify(config.config || [], null, 2)},
-    })`);
-    }
-    
-    // One Tap plugin
-    if (plugins.oneTap) {
-      const config = plugins.oneTap;
-      if (typeof config === 'object') {
-        pluginCalls.push(`oneTap(${JSON.stringify(config)})`);
-      } else {
-        pluginCalls.push('oneTap()');
-      }
-    }
-    
-    // Passkey plugin
-    if (plugins.passkey) {
-      const config = plugins.passkey;
-      if (typeof config === 'object') {
-        pluginCalls.push(`passkey(${JSON.stringify(config)})`);
-      } else {
-        pluginCalls.push('passkey()');
-      }
-    }
-    
-    // API Key plugin
-    if (plugins.apiKey) {
-      pluginCalls.push('apiKey()');
-    }
-    
-    // Admin plugin
-    if (plugins.admin) {
-      const config = plugins.admin;
-      if (typeof config === 'object') {
-        pluginCalls.push(`admin(${JSON.stringify(config)})`);
-      } else {
-        pluginCalls.push('admin()');
-      }
-    }
-    
-    // Organization plugin
-    if (plugins.organization) {
-      const config = plugins.organization;
-      if (typeof config === 'object') {
-        pluginCalls.push(`organization(${JSON.stringify(config)})`);
-      } else {
-        pluginCalls.push('organization()');
-      }
-    }
-    
-    // Bearer plugin
-    if (plugins.bearer) {
-      pluginCalls.push('bearer()');
-    }
-    
-    // Multi Session plugin
-    if (plugins.multiSession) {
-      const config = plugins.multiSession;
-      if (typeof config === 'object') {
-        pluginCalls.push(`multiSession(${JSON.stringify(config)})`);
-      } else {
-        pluginCalls.push('multiSession()');
-      }
-    }
-    
-    // OpenAPI plugin
-    if (plugins.openAPI) {
-      const config = plugins.openAPI;
-      if (typeof config === 'object') {
-        pluginCalls.push(`openAPI(${JSON.stringify(config)})`);
-      } else {
-        pluginCalls.push('openAPI()');
-      }
-    }
-    
-    // JWT plugin
-    if (plugins.jwt) {
-      const config = plugins.jwt;
-      if (typeof config === 'object') {
-        pluginCalls.push(`jwt(${JSON.stringify(config)})`);
-      } else {
-        pluginCalls.push('jwt()');
-      }
-    }
-    
-    // Two Factor plugin
-    if (plugins.twoFactor) {
-      const config = plugins.twoFactor;
-      if (typeof config === 'object') {
-        pluginCalls.push(`twoFactor(${JSON.stringify(config)})`);
-      } else {
-        pluginCalls.push('twoFactor()');
-      }
-    }
-    
-    // SSO plugin
-    if (plugins.sso) {
-      const config = plugins.sso;
-      if (typeof config === 'object') {
-        pluginCalls.push(`sso(${JSON.stringify(config)})`);
-      } else {
-        pluginCalls.push('sso()');
-      }
-    }
-    
+
     if (pluginCalls.length === 0) return '';
-    
+
     return `plugins: [\n    ${pluginCalls.join(',\n    ')}\n  ],`;
   }
 
