@@ -6,21 +6,39 @@ import type { Users as UsersType, NewUsers as NewUsersType } from '../server/sch
 export class UsersModel extends Model {
   static tableName = 'users';
   static table = users;
-  static createSchema = usersCreateSchema;
-  static updateSchema = usersUpdateSchema;
+  static validation = {
+     create: usersCreateSchema,
+     update: usersUpdateSchema,
+     base: usersCreateSchema,
+  };
   
-  static fillable = ['name', 'email', 'active'];
+  static fillable = ['name', 'email', '// avatar', '// settings', '// status', 'active'];
   static hidden = ['password'];
-  static casts = { active: 'boolean' as const };
+  static casts = { // settings: 'json' as const, active: 'boolean' as const };
   
-  static realtimeConfig = {
+  static realtime = {
     enabled: true,
     events: [],
     channels: () => [`users`]
   };
+
+  static hooks = {
+    creating: [async (data: any) => {
+
+      if (data.password) {
+        data.password = await this.hashPassword(data.password);
+      }
+      return data;
+      }],
+    updating: [async (data: any) => {
+
+      if (data.password && data.isDirtyField("password")) {
+        data.password = await this.hashPassword(data.password);
+      }
+      return data;
+      }]
+  };
 }
-
-
 
 
 

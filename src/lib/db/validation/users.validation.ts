@@ -4,6 +4,9 @@ export const usersCreateSchema = z.object({
   name: z.string().max(255).min(2).max(100).describe('Name must be between 2-100 characters'),
   email: z.string().email(),
   password: z.string().min(8).regex(/[A-Z]/, "Password must contain at least one uppercase letter").regex(/[0-9]/, "Password must contain at least one number").min(8),
+  // avatar: z.string().url().optional(),
+  // settings: z.record(z.any()).optional(),
+  // status: z.string().optional(),
   active: z.boolean().optional(),
   fullName: z.string()
 });
@@ -14,6 +17,9 @@ export const usersUpdateSchema = z.object({
   name: z.string().max(255).min(2).max(100).describe('Name must be between 2-100 characters').optional(),
   email: z.string().email().optional(),
   password: z.string().min(8).regex(/[A-Z]/, "Password must contain at least one uppercase letter").regex(/[0-9]/, "Password must contain at least one number").min(8).optional(),
+  // avatar: z.string().url().optional(),
+  // settings: z.record(z.any()).optional(),
+  // status: z.string().optional(),
   active: z.boolean().optional(),
   fullName: z.string().optional()
 });
