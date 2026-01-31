@@ -1,3 +1,22 @@
+import { fileURLToPath } from 'node:url';
+import { posixify, to_fs } from './filesystem.js';
+import path from 'node:path';
+/**
+ * Resolved path of the `runtime` directory
+ */
+export const runtime_directory = posixify(fileURLToPath(new URL('../runtime', import.meta.url)));
+
+/**
+ * This allows us to import SvelteKit internals that aren't exposed via `pkg.exports` in a
+ * way that works whether `@sveltejs/kit` is installed inside the project's `node_modules`
+ * or in a workspace root
+ */
+export const runtime_base = runtime_directory.startsWith(process.cwd())
+	? `/${path.relative('.', runtime_directory)}`
+	: to_fs(runtime_directory);
+
+
+
 export async function hashPassword(password: string, method: string): Promise<string> {
 //   if (method === 'bcrypt') {
 //     const bcrypt = await import('bcrypt');

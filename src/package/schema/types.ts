@@ -25,6 +25,7 @@ export interface FieldDefinition {
   computed?: boolean;
   get?: (record: any) => any;
   relationship?: Relationship;
+  isAuthField?: boolean; // Mark fields managed by auth system
 
 }
 export interface StorageConfig {
@@ -69,6 +70,12 @@ export interface Schema {
   fields: Record<string, FieldDefinition>;
   config: SchemaDefinitionConfig;
   filePath?: string; // Added for file-based schema discovery
+  metadata?: {
+    generatedBy?: string;
+    plugin?: string;
+    isAuthTable?: boolean;
+    [key: string]: any;
+  };
 }
 export interface GeneratedSchema {
   name: string;

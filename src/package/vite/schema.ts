@@ -12,22 +12,35 @@ import { ModelGenerator } from "../schema/generators/model";
 import { ParserFactory } from "../schema/parser";
 import { writeFile, mkdir } from "fs/promises";
 import { dirname } from "path";
+import { syncAuthSchemas } from "../runtime/auth/auth-sync";
 
 let schemaConfig: SchemaConfig;
 let schemas: Schema[] = []
 let schemaWatcher: FSWatcher | null = null
 
-// Helper functions
 export async function initializeSchemaConfig(omniConfig: OmniConfig, root: string) {
-    // Load schema configuration from svelte.config.js or separate config file
     const userSchemaConfig: UserSchemaConfig = omniConfig?.schema || await loadSchemaConfigFile(root);
 
     schemaConfig = mergeWithDefaults(userSchemaConfig);
     let schemas: Schema[] = [];
         
-    // Discover schemas
     if (schemaConfig.input?.patterns?.length) {
         schemas = await discoverSchemas(schemaConfig);
+    }
+
+    if (omniConfig?.auth?.sync !== false) {
+        try {
+            const result = await syncAuthSchemas(schemas, root, {
+                verbose: schemaConfig.dev?.logLevel !== 'silent',
+                syncStrategy: omniConfig.auth?.schemaSync?.strategy || 'none'
+            });
+
+            if (result.success && result.hasChanges && schemaConfig.dev?.logLevel !== 'silent') {
+                console.log('🔐 Auth schemas synced successfully');
+            }
+        } catch (error) {
+            console.warn('⚠️  Auth sync failed:', error instanceof Error ? error.message : error);
+        }
     }
     
     if (schemaConfig.dev?.logLevel !== 'silent') {

@@ -1,5 +1,6 @@
 import type { DatabaseConfig } from '$pkg/database';
 import type { SchemaConfig } from '$pkg/schema/types';
+import type { AuthConfig } from '$pkg/runtime/auth/types';
 import type { Config } from '@sveltejs/kit';
 
 export interface SvelteConfig extends Config {
@@ -9,7 +10,7 @@ export interface SvelteConfig extends Config {
 export interface OmniConfig {
     database: DatabaseConfig
     schema: SchemaConfig
-    auth: unknown;
+    auth: AuthConfig;
     logging: unknown;
     cors: unknown;
     analytics: unknown;
