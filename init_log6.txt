@@ -1,0 +1,12 @@
+┌   OmniSvelte CLI
+Unknown command: init
+[?25l│
+◆  What would you like to do?
+│  ● Generate Code (g)
+│  ○ Manage UI Components
+│  ○ Database Operations
+│  ○ Run Migrations
+│  ○ Realtime & Jobs
+│  ○ Development Tools
+│  ○ Exit
+└

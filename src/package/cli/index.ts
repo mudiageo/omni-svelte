@@ -7,6 +7,7 @@ import { handleGenerateCommand } from './commands/generate.js';
 import { handleDbCommand } from './commands/db.js';
 import { handleMigrateCommand } from './commands/migrate.js';
 import { handleDevCommand } from './commands/dev.js';
+import { handleInitCommand } from './commands/init.js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -38,6 +39,7 @@ async function showMainMenu() {
 	const action = await select({
 		message: 'What would you like to do?',
 		options: [
+			{ value: 'init', label: 'Initialize New Project' },
 			{ value: 'generate', label: 'Generate Code (g)' },
 			{ value: 'ui', label: 'Manage UI Components' },
 			{ value: 'db', label: 'Database Operations' },
@@ -59,6 +61,9 @@ async function showMainMenu() {
 async function routeCommand(command: string, args: mri.Argv) {
 	try {
 		switch (command) {
+			case 'init':
+				await handleInitCommand(args);
+				break;
 			case 'generate':
 			case 'g':
 				await handleGenerateCommand(args);

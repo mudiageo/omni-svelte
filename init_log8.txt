@@ -1,0 +1,19 @@
+┌   OmniSvelte CLI
+┌   Initialize OmniSvelte Project
+[?25l│
+[1D[0K◒  Creating SvelteKit project[1G[J◐  Creating SvelteKit project[1G[J◓  Creating SvelteKit project[1G[J◑  Creating SvelteKit project[1G[J◒  Creating SvelteKit project[1G[J◐  Creating SvelteKit project[1G[J◓  Creating SvelteKit project[1G[J◑  Creating SvelteKit project[1G[J◒  Creating SvelteKit project.[1G[J◐  Creating SvelteKit project.Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +1
++
+[1G[J◓  Creating SvelteKit project.[1G[J◑  Creating SvelteKit project.[1G[J◒  Creating SvelteKit project.[1G[J◐  Creating SvelteKit project.[1G[J◓  Creating SvelteKit project.Progress: resolved 1, reused 0, downloaded 1, added 1, done
+[1G[J◑  Creating SvelteKit project.[1G[J◒  Creating SvelteKit project..[1G[J◐  Creating SvelteKit project..[1G[J◓  Creating SvelteKit project..
+┌  Welcome to the Svelte CLI! (v0.11.4)
+[1G[J◑  Creating SvelteKit project..[?25l│
+◆  Which plugins would you like to add?
+│  ◻ typography (@tailwindcss/typography)
+│  ◻ forms
+└
+[1G[J◇  Failed to create project
+[?25hCommand failed with ENOENT: pnpm install
+The "cwd" option is invalid: /app/test-project8.
+ENOENT: no such file or directory, stat '/app/test-project8'
+spawn pnpm ENOENT
