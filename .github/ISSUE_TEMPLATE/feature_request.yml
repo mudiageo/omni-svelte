@@ -1,0 +1,67 @@
+---
+name: Feature Request
+description: Suggest a new feature for omni-svelte
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea for omni-svelte? We'd love to hear it!
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: What problem does this feature solve? Or what's the motivation behind it?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the feature you'd like to see and how it would work.
+    validations:
+      required: true
+
+  - type: textarea
+    id: api
+    attributes:
+      label: API / usage example
+      description: If applicable, show what the developer experience would look like.
+      render: typescript
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature area
+      options:
+        - Database / ORM
+        - Authentication
+        - Schema / Code generation
+        - Vite plugin
+        - Plugin system
+        - CLI
+        - UI / Components
+        - Realtime
+        - Email
+        - Caching
+        - Jobs / Queues
+        - File storage
+        - Payments
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any alternative approaches you've considered.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any other context, designs, or references.
