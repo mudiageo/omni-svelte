@@ -1,97 +1,22 @@
 {
-	"name": "omni-svelte",
+	"name": "omni-svelte-monorepo",
 	"version": "0.0.1",
+	"description": "Omni Svelte Monorepo",
+	"private": true,
 	"scripts": {
-		"dev": "vite dev",
-		"build": "vite build && npm run prepack",
-		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
-		"prepack": "svelte-kit sync && svelte-package -i ./src/package && find ./dist -name \"*.js\" -exec sed -i \"s/'\\$pkg'/'omni-svelte'/g; s/\\\"\\$pkg\\\"/\\\"omni-svelte\\\"/g; s/\\$pkg/omni-svelte/g\" {} + && publint ",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"format": "prettier --write .",
+		"dev": "pnpm --filter playground dev",
+		"dev:docs": "pnpm --filter docs dev",
+		"build": "pnpm --filter @omni-svelte/shared build && pnpm --filter omni-svelte build",
+		"build:all": "pnpm run build && pnpm --filter docs build && pnpm --filter playground build",
 		"lint": "prettier --check . && eslint .",
-		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run",
-		"db:push": "drizzle-kit push",
-		"db:migrate": "drizzle-kit migrate",
-		"db:studio": "drizzle-kit studio"
-	},
-	"files": [
-		"dist",
-		"!dist/**/*.test.*",
-		"!dist/**/*.spec.*"
-	],
-	"sideEffects": [
-		"**/*.css"
-	],
-	"svelte": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"type": "module",
-	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"svelte": "./dist/index.js"
-		},
-		"./database": {
-			"types": "./dist/database/index.d.ts",
-			"svelte": "./dist/database/index.js"
-		},
-		"./auth": {
-			"types": "./dist/runtime/auth/index.d.ts",
-			"svelte": "./dist/runtime/auth/index.js"
-		}
-	},
-	"peerDependencies": {
-		"svelte": "^5.0.0"
+		"format": "prettier --write .",
+		"test": "pnpm --filter playground test",
+		"changeset": "changeset",
+		"version": "changeset version",
+		"release": "pnpm run build && changeset publish"
 	},
 	"devDependencies": {
-		"@eslint/compat": "^1.2.5",
-		"@eslint/js": "^9.18.0",
-		"@sveltejs/adapter-auto": "^6.0.0",
-		"@sveltejs/kit": "^2.27.0",
-		"@sveltejs/package": "^2.0.0",
-		"@sveltejs/vite-plugin-svelte": "^6.1.0",
-		"@tailwindcss/forms": "^0.5.9",
-		"@tailwindcss/typography": "^0.5.15",
-		"@tailwindcss/vite": "^4.0.0",
-		"@types/node": "^20",
-		"@vitest/browser": "^3.2.3",
-		"drizzle-kit": "^0.31.6",
-		"eslint": "^9.18.0",
-		"eslint-config-prettier": "^10.0.1",
-		"eslint-plugin-svelte": "^3.0.0",
-		"globals": "^16.0.0",
-		"playwright": "^1.53.0",
 		"prettier": "^3.4.2",
-		"prettier-plugin-svelte": "^3.3.3",
-		"prettier-plugin-tailwindcss": "^0.6.11",
-		"publint": "^0.3.2",
-		"svelte": "^5.37.3",
-		"svelte-check": "^4.0.0",
-		"tailwindcss": "^4.0.0",
-		"typescript": "^5.0.0",
-		"typescript-eslint": "^8.20.0",
-		"vite": "^7.0.6",
-		"vite-plugin-inspect": "^11.3.0",
-		"vitest": "^3.2.3",
-		"vitest-browser-svelte": "^0.1.0",
-		"zod": "^4.0.5"
-	},
-	"keywords": [
-		"svelte"
-	],
-	"dependencies": {
-		"@better-auth/cli": "^1.3.27",
-		"better-auth": "^1.3.27",
-		"chokidar": "^4.0.3",
-		"drizzle-orm": "^0.40.0",
-		"glob": "^11.0.3",
-		"postgres": "^3.4.5"
-	},
-	"pnpm": {
-		"onlyBuiltDependencies": [
-			"esbuild"
-		]
+		"typescript": "^5.0.0"
 	}
 }

@@ -1,13 +1,13 @@
 node_modules
 
-# Output
+# Build outputs (all packages)
 .output
 .vercel
 .netlify
 .wrangler
-/.svelte-kit
-/build
-/dist
+dist
+build
+.svelte-kit
 
 # OS
 .DS_Store
@@ -25,3 +25,10 @@ vite.config.ts.timestamp-*
 
 # Generated Files
 **/__generated__/
+**/src/lib/generated/
+**/src/lib/db/server/schema.ts
+**/src/lib/db/validation/
+**/src/lib/db/models/
+
+# Auth codegen
+**/src/lib/auth.ts

@@ -1,0 +1,26 @@
+{
+    "name": "@omni-svelte/shared",
+    "version": "0.0.1",
+    "description": "Shared utilities for omni-svelte.",
+    "type": "module",
+    "main": "./dist/utils.js",
+    "types": "./dist/utils.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/utils.d.ts",
+            "default": "./dist/utils.js"
+        }
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "build": "tsc"
+    },
+    "files": [
+        "dist"
+    ],
+    "devDependencies": {
+        "typescript": "^5.0.0"
+    }
+}

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="fg" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF3E00"/>
+      <stop offset="55%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+    <linearGradient id="fg2" x1="128" y1="0" x2="0" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#FF3E00"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer flame / bracket shape — Svelte-inspired silhouette in omni colors -->
+  <path
+    d="M 96 18
+       C 108 30 110 50 100 65
+       C 92 77 78 83 68 86
+       L 74 90
+       C 86 97 92 112 84 122
+       C 76 132 60 134 46 128
+       C 32 122 24 108 30 94
+       C 34 84 44 78 54 76
+       L 48 72
+       C 36 65 28 50 34 36
+       C 40 22 58 14 74 16
+       C 82 17 90 17 96 18 Z"
+    fill="url(#fg)"
+  />
+
+  <!-- Inner reverse swoosh — white cut-out giving the S/bracket feel -->
+  <path
+    d="M 76 30
+       C 84 36 86 48 78 58
+       C 72 66 62 70 54 72
+       L 64 78
+       C 78 86 82 100 74 110
+       C 68 118 56 120 46 116
+       C 38 112 34 102 40 94
+       C 44 88 52 85 60 84
+       L 50 78
+       C 36 70 32 56 40 44
+       C 46 34 60 28 72 30
+       C 73 30 74.5 30 76 30 Z"
+    fill="white"
+    opacity="0.88"
+  />
+</svg>

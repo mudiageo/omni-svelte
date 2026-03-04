@@ -1,0 +1,51 @@
+{
+    "name": "@omni-svelte/plugins",
+    "version": "0.0.1",
+    "description": "Official plugin stubs for omni-svelte (logging, cors, analytics, error reporting).",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./logging": {
+            "types": "./dist/logging/index.d.ts",
+            "default": "./dist/logging/index.js"
+        },
+        "./cors": {
+            "types": "./dist/cors/index.d.ts",
+            "default": "./dist/cors/index.js"
+        },
+        "./analytics": {
+            "types": "./dist/analytics/index.d.ts",
+            "default": "./dist/analytics/index.js"
+        },
+        "./error-reporting": {
+            "types": "./dist/error-reporting/index.d.ts",
+            "default": "./dist/error-reporting/index.js"
+        }
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "build": "tsc --project tsconfig.build.json",
+        "check": "tsc --noEmit"
+    },
+    "files": [
+        "dist"
+    ],
+    "dependencies": {
+        "@omni-svelte/shared": "workspace:*"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0"
+    },
+    "keywords": [
+        "svelte",
+        "omni-svelte",
+        "plugins"
+    ]
+}
