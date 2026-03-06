@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false   # never cancel a release that is in progress
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # to create GitHub releases and push version commits
+      pull-requests: write  # to open "Version Packages" PRs
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history is needed so changesets can compute the diff
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      # ── Build publishable packages before releasing ──────────────
+      - name: Build shared
+        run: pnpm --filter @omni-svelte/shared build
+
+      - name: Build plugins
+        run: pnpm --filter @omni-svelte/plugins build
+
+      - name: Build core
+        run: pnpm --filter omni-svelte build
+
+      # ── Changesets action ────────────────────────────────────────
+      # When changesets are present  → opens / updates a "Version Packages" PR
+      # When the version PR is merged → publishes changed packages to npm
+      - name: Create release PR or publish
+        uses: changesets/action@v1
+        with:
+          version: pnpm run version
+          publish: pnpm run release
+          title: 'chore: version packages'
+          commit: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

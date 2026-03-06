@@ -8,15 +8,21 @@
 		"dev:docs": "pnpm --filter docs dev",
 		"build": "pnpm --filter @omni-svelte/shared build && pnpm --filter omni-svelte build",
 		"build:all": "pnpm run build && pnpm --filter docs build && pnpm --filter playground build",
+		"check": "pnpm --filter playground check",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
+		"precommit": "pnpm format && pnpm lint",
 		"test": "pnpm --filter playground test",
 		"changeset": "changeset",
 		"version": "changeset version",
 		"release": "pnpm run build && changeset publish"
 	},
 	"devDependencies": {
+		"@changesets/cli": "^2.27.0",
+		"eslint": "^9.0.0",
 		"prettier": "^3.4.2",
+		"prettier-plugin-svelte": "^3.3.0",
+		"prettier-plugin-tailwindcss": "^0.6.0",
 		"typescript": "^5.0.0"
 	}
 }
