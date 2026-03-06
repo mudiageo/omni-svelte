@@ -50,6 +50,53 @@ pnpm lint
 pnpm format
 ```
 
+## Testing your integration
+
+### 1. Unit tests
+
+Run the core package unit test suite (no database required):
+
+```bash
+cd packages/core
+pnpm vitest run --reporter=verbose
+```
+
+Tests live in `packages/core/src/tests/unit/`. The suite covers the schema parser, code generators (`DrizzleGenerator`, `ZodGenerator`, `ModelGenerator`), the `field.*` builder API, and the Vite virtual-module plugin.
+
+### 2. Type-checking
+
+Verify the entire monorepo compiles cleanly:
+
+```bash
+# Core package
+cd packages/core && pnpm tsc --noEmit
+
+# Playground app
+cd apps/playground && pnpm tsc --noEmit
+```
+
+### 3. Playground smoke test
+
+The playground is the manual integration sandbox — it uses the real Vite plugin, schema generation, and (optionally) a live database.
+
+```bash
+# Copy env file and add your DATABASE_URL
+cp apps/playground/.env.example apps/playground/.env
+
+# Start the dev server
+pnpm dev
+# → http://localhost:5173
+```
+
+On first start, omni-svelte:
+- Discovers `*.schema.ts` files
+- Generates `src/lib/db/server/schema.ts`, `src/lib/db/validation/`, `src/lib/db/models/`
+- Writes `src/omni-env.d.ts` (ambient type declarations)
+- Runs pending database migrations (if a `DATABASE_URL` is set)
+
+If you only want to test schema code-generation without a database, skip the `DATABASE_URL` — the generator still runs, migrations are simply skipped.
+
+
 ## Making changes
 
 ### Code changes
