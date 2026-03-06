@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types'
 import { User } from '$lib/schema'
-import { Posts as Post } from '$lib/db/models/posts.model'
+import { Posts as Post } from '$models/posts.model'
 
 export const load: PageServerLoad = async ({ locals }) => {
   try {
