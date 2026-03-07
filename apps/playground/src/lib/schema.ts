@@ -35,27 +35,27 @@ export const userSchema = defineSchema('users', {
     hash: 'bcrypt',
   },
 
-  // avatar: {
-  //   type: 'url',
-  //   optional: true,
-  //   storage: { type: 'local', path: 'avatars' },
-  // },
+  avatar: {
+    type: 'url',
+    optional: true,
+    storage: { type: 'local', path: 'avatars' },
+  },
 
-  // settings: {
-  //   type: 'json',
-  //   default: {},
-  //   validation: {
-  //     theme: 'string?',
-  //     notifications: 'boolean?',
-  //     language: { enum: ['en', 'es', 'fr'] }
-  //   },
-  // },
+  settings: {
+    type: 'json',
+    default: "{}",
+    validation: {
+      theme: 'string?',
+      notifications: 'boolean?',
+      language: { enum: ['en', 'es', 'fr'] }
+    },
+  },
 
-  // status: {
-  //   type: 'enum',
-  //   values: ['active', 'inactive', 'suspended'],
-  //   default: 'active',
-  // },
+  status: {
+    type: 'enum',
+    values: ['active', 'inactive', 'suspended'],
+    default: 'active',
+  },
   active: {
     type: 'boolean',
     default: true

@@ -236,7 +236,7 @@ export class ZodGenerator {
   }
 
   private generateImports(): string {
-    return `import { z } from 'omni-svelte\/validation';`;
+    return `import { z } from 'omni\-svelte\/validation';`;
   }
 
   private generateCreateSchema(): string {

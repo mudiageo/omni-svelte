@@ -1,8 +1,7 @@
 import type { PageServerLoad, Actions } from './$types'
-import { Post } from '$lib/schema'
+import Post from '$models/posts.model'
 import { fail } from '@sveltejs/kit'
 import { parsePagination } from 'omni-svelte'
-
 
 export const load: PageServerLoad = async ({ locals, url }) => {
   let { page, limit: perPage } = parsePagination(url)
@@ -12,7 +11,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   const status = url.searchParams.get('status') || ''
 
   try {
-    let query = locals.query.post.with(['author'])
+    let query = locals.query.posts.with(['author'])
 
     if (search) {
       query = query.where('title', 'ilike', `%${search}%`)

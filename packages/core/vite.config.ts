@@ -1,4 +1,5 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
+import { playwright } from '@vitest/browser-playwright';
 import { omniSvelte } from './src/vite/index.ts';
 
 export default defineConfig({
@@ -20,6 +21,7 @@ export default defineConfig({
                     setupFiles: ['./vitest-setup-client.ts']
                 }
             },
+
             {
                 extends: './vite.config.ts',
                 test: {
@@ -27,6 +29,20 @@ export default defineConfig({
                     environment: 'node',
                     include: ['src/**/*.{test,spec}.{js,ts}'],
                     exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+                }
+            },
+
+            {
+                extends: './vite.config.ts',
+                test: {
+                    name: 'client',
+                    browser: {
+                        enabled: true,
+                        provider: playwright(),
+                        instances: [{ browser: 'chromium', headless: true }]
+                    },
+                    include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+                    exclude: ['src/lib/server/**']
                 }
             }
         ]
