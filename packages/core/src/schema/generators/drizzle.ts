@@ -329,10 +329,26 @@ ${allTypes.join('\n\n')}`;
     if (field.required && !field.primary) columnDef += '.notNull()';
     if (field.unique) columnDef += '.unique()';
     if (field.default !== undefined) {
-      if (typeof field.default === 'string') {
-        columnDef += `.default('${field.default}')`;
+      const d = field.default;
+      if (d === null) {
+        columnDef += `.default(null)`;
+      } else if (typeof d === 'object') {
+        // Object/array default — store serialised JSON as a string
+        columnDef += `.default('${JSON.stringify(d)}')`;
+      } else if (typeof d === 'string') {
+        // If the string already looks like serialised JSON, don't double-wrap it
+        const trimmed = d.trim();
+        const isJsonLiteral =
+          (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+          (trimmed.startsWith('[') && trimmed.endsWith(']'));
+        if (isJsonLiteral) {
+          columnDef += `.default('${trimmed}')`;
+        } else {
+          columnDef += `.default('${d}')`;
+        }
       } else {
-        columnDef += `.default(${field.default})`;
+        // boolean / number — emit the raw value
+        columnDef += `.default(${d})`;
       }
     }
 
