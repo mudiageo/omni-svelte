@@ -4,41 +4,47 @@
  */
 
 :root {
-  /* ── Brand palette (orange → amber/gold) ───────── */
-  --brand-orange:      #FF6B00;
-  --brand-amber:       #F59E0B;
-  --brand-gold:        #D4A017;
-  --brand-gold-light:  #FACC15;
-  --brand-gold-cream:  #FFD580;
-  --brand-burnt:       #CC5500;
+	/* ── Brand palette (orange → amber/gold) ───────── */
+	--brand-orange: #ff6b00;
+	--brand-amber: #f59e0b;
+	--brand-gold: #d4a017;
+	--brand-gold-light: #facc15;
+	--brand-gold-cream: #ffd580;
+	--brand-burnt: #cc5500;
 
-  /* Gradient (primary) */
-  --brand-gradient: linear-gradient(135deg, #FF6B00 0%, #F59E0B 50%, #D4A017 100%);
-  --brand-gradient-text: linear-gradient(90deg, #FF6B00, #F59E0B);
-  --brand-gradient-rich: linear-gradient(135deg, #CC5500 0%, #E07B00 35%, #F59E0B 70%, #FACC15 100%);
+	/* Gradient (primary) */
+	--brand-gradient: linear-gradient(135deg, #ff6b00 0%, #f59e0b 50%, #d4a017 100%);
+	--brand-gradient-text: linear-gradient(90deg, #ff6b00, #f59e0b);
+	--brand-gradient-rich: linear-gradient(
+		135deg,
+		#cc5500 0%,
+		#e07b00 35%,
+		#f59e0b 70%,
+		#facc15 100%
+	);
 
-  /* ── Dark background palette ───────────────────── */
-  --bg-base:    #0F0F1A;
-  --bg-raised:  #16162A;
-  --bg-overlay: #1E1E36;
-  --bg-border:  rgba(255,255,255,0.08);
+	/* ── Dark background palette ───────────────────── */
+	--bg-base: #0f0f1a;
+	--bg-raised: #16162a;
+	--bg-overlay: #1e1e36;
+	--bg-border: rgba(255, 255, 255, 0.08);
 
-  /* ── Text ──────────────────────────────────────── */
-  --text-primary:   #F8F8FF;
-  --text-secondary: #A1A1C7;
-  --text-muted:     #6B6B8A;
+	/* ── Text ──────────────────────────────────────── */
+	--text-primary: #f8f8ff;
+	--text-secondary: #a1a1c7;
+	--text-muted: #6b6b8a;
 
-  /* ── Typography ────────────────────────────────── */
-  --font-sans: 'Inter', 'Geist', system-ui, sans-serif;
-  --font-mono: 'Geist Mono', 'Fira Code', monospace;
+	/* ── Typography ────────────────────────────────── */
+	--font-sans: 'Inter', 'Geist', system-ui, sans-serif;
+	--font-mono: 'Geist Mono', 'Fira Code', monospace;
 
-  /* ── Radius ─────────────────────────────────────── */
-  --radius-sm:  4px;
-  --radius-md:  8px;
-  --radius-lg:  16px;
-  --radius-xl:  24px;
+	/* ── Radius ─────────────────────────────────────── */
+	--radius-sm: 4px;
+	--radius-md: 8px;
+	--radius-lg: 16px;
+	--radius-xl: 24px;
 
-  /* ── Shadow ─────────────────────────────────────── */
-  --shadow-brand: 0 0 40px rgba(245,158,11,0.25);
-  --shadow-glow:  0 0 80px rgba(255,107,0,0.15);
+	/* ── Shadow ─────────────────────────────────────── */
+	--shadow-brand: 0 0 40px rgba(245, 158, 11, 0.25);
+	--shadow-glow: 0 0 80px rgba(255, 107, 0, 0.15);
 }

@@ -1,4 +1,4 @@
-import type { OmniSvelteLocals } from './package/database/hooks.js'
+import type { OmniSvelteLocals } from './package/database/hooks.js';
 
 declare global {
 	namespace App {
@@ -9,4 +9,4 @@ declare global {
 	}
 }
 
-export {}
+export {};

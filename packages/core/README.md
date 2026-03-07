@@ -21,9 +21,9 @@ Transform SvelteKit into a powerhouse with enterprise-grade features out of the 
 
 🔒 **Type-Safe Everything** — End-to-end TypeScript: from a central schema definition to auto-generated Drizzle tables, Zod validators, typed models, and virtual module imports.
 
-🎨 **Beautiful by Default** — shadcn-svelte UI integration, accessible form components, and pre-built layouts. *(in progress)*
+🎨 **Beautiful by Default** — shadcn-svelte UI integration, accessible form components, and pre-built layouts. _(in progress)_
 
-🛠️ **Developer First** — Powerful CLI (`omni`) for scaffolding, migrations, seeding, debugging, and more. *(in progress)*
+🛠️ **Developer First** — Powerful CLI (`omni`) for scaffolding, migrations, seeding, debugging, and more. _(in progress)_
 
 🔌 **Extensible by Design** — A comprehensive plugin API that can add database tables, auth providers, CLI commands, routes, API endpoints, UI components, real-time channels, email templates, and more.
 
@@ -32,34 +32,36 @@ Transform SvelteKit into a powerhouse with enterprise-grade features out of the 
 ## Features
 
 ### ✅ Stable
-| Feature | Description |
-|---|---|
-| 🗄️ Database ORM (Drizzle) | ActiveRecord-style `Model` class and `createModel` helper |
-| 🔐 Authentication (Better-Auth) | Email/password, magic link, 2FA, passkeys, OAuth |
-| 📋 Central schema → code gen | Auto-generates Drizzle tables, Zod validators, and model files |
-| ⚡ Vite plugin | Zero-config server hooks, code generation on dev start |
-| 🔗 Model relationships | `hasMany`, `belongsTo`, `hasOne`, `belongsToMany` |
-| 🪝 Lifecycle hooks | `creating`, `created`, `updating`, `updated`, `deleted` |
-| 🏭 Factory & Faker | Test data generation with state transforms |
-| 🔌 Plugin API types | Full `OmniPlugin` interface with all lifecycle hooks defined |
-| 📦 Virtual modules | `$auth/server`, `$auth/client`, `$db`, `$models/*` aliases |
+
+| Feature                         | Description                                                    |
+| ------------------------------- | -------------------------------------------------------------- |
+| 🗄️ Database ORM (Drizzle)       | ActiveRecord-style `Model` class and `createModel` helper      |
+| 🔐 Authentication (Better-Auth) | Email/password, magic link, 2FA, passkeys, OAuth               |
+| 📋 Central schema → code gen    | Auto-generates Drizzle tables, Zod validators, and model files |
+| ⚡ Vite plugin                  | Zero-config server hooks, code generation on dev start         |
+| 🔗 Model relationships          | `hasMany`, `belongsTo`, `hasOne`, `belongsToMany`              |
+| 🪝 Lifecycle hooks              | `creating`, `created`, `updating`, `updated`, `deleted`        |
+| 🏭 Factory & Faker              | Test data generation with state transforms                     |
+| 🔌 Plugin API types             | Full `OmniPlugin` interface with all lifecycle hooks defined   |
+| 📦 Virtual modules              | `$auth/server`, `$auth/client`, `$db`, `$models/*` aliases     |
 
 ### 🔜 In Progress / Planned
-| Feature | Description |
-|---|---|
-| 🎨 UI layer | shadcn-svelte components, accessible forms, layouts |
-| 📧 Email | Template-based email via Resend/Nodemailer |
-| ⚡ Caching | Redis/in-memory cache with model-level invalidation |
-| 📡 Realtime | WebSocket channels via CrossWS, SSE, model broadcast |
-| 🏗️ Jobs & Queues | Background jobs, scheduled tasks, queue management |
-| 🔍 Observability | Query monitoring, performance tracing, logging |
-| 🐛 Debug CLI | Route inspector, model/relation debugger, config viewer |
-| 💾 File Storage | S3-compatible uploads, local disk, CDN integration |
-| 💳 Payments | Stripe/Lemon Squeezy plugin for subscriptions & one-time |
-| 🏢 Multi-tenancy | Schema-per-tenant and row-level isolation strategies |
-| 🚀 Deployment | Optimized builds, environment management, adapter config |
-| 📄 Docs generation | Auto-generate API docs from schema and types |
-| 🧩 CLI (`omni`) | Full interactive dev CLI (see below) |
+
+| Feature               | Description                                              |
+| --------------------- | -------------------------------------------------------- |
+| 🎨 UI layer           | shadcn-svelte components, accessible forms, layouts      |
+| 📧 Email              | Template-based email via Resend/Nodemailer               |
+| ⚡ Caching            | Redis/in-memory cache with model-level invalidation      |
+| 📡 Realtime           | WebSocket channels via CrossWS, SSE, model broadcast     |
+| 🏗️ Jobs & Queues      | Background jobs, scheduled tasks, queue management       |
+| 🔍 Observability      | Query monitoring, performance tracing, logging           |
+| 🐛 Debug CLI          | Route inspector, model/relation debugger, config viewer  |
+| 💾 File Storage       | S3-compatible uploads, local disk, CDN integration       |
+| 💳 Payments           | Stripe/Lemon Squeezy plugin for subscriptions & one-time |
+| 🏢 Multi-tenancy      | Schema-per-tenant and row-level isolation strategies     |
+| 🚀 Deployment         | Optimized builds, environment management, adapter config |
+| 📄 Docs generation    | Auto-generate API docs from schema and types             |
+| 🧩 CLI (`omni`)       | Full interactive dev CLI (see below)                     |
 | 🔌 Plugin marketplace | Community-contributed plugins with dependency management |
 
 ---
@@ -67,12 +69,14 @@ Transform SvelteKit into a powerhouse with enterprise-grade features out of the 
 ## Installation
 
 ### New project
+
 ```bash
 npx omni init my-app
 cd my-app && pnpm install
 ```
 
 ### Add to existing SvelteKit project
+
 ```bash
 pnpm add omni-svelte
 npx omni add
@@ -83,6 +87,7 @@ npx omni add
 ## Quick start
 
 **`vite.config.ts`**
+
 ```ts
 import { omniSvelte } from 'omni-svelte/vite';
 import { defineConfig } from 'vite';
@@ -91,6 +96,7 @@ export default defineConfig({ plugins: [omniSvelte()] });
 ```
 
 **`svelte.config.js`**
+
 ```js
 import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
@@ -120,15 +126,15 @@ export default config;
 
 omni-svelte injects virtual modules and path aliases for all generated code. No manual imports needed.
 
-| Virtual module / alias | What it provides |
-|---|---|
-| `$auth/server` | Better-Auth server instance (`auth`) |
-| `$auth/client` | Better-Auth browser client (`authClient`) |
-| `$db` | Drizzle database instance |
-| `$models/[name]` | Auto-generated typed model class, e.g. `$models/post` |
-| `$schema` | All generated Drizzle table definitions |
-| `$validation/[name]` | Auto-generated Zod schemas, e.g. `$validation/post` |
-| `$omni/config` | Resolved omni config (read-only, server-only) |
+| Virtual module / alias | What it provides                                      |
+| ---------------------- | ----------------------------------------------------- |
+| `$auth/server`         | Better-Auth server instance (`auth`)                  |
+| `$auth/client`         | Better-Auth browser client (`authClient`)             |
+| `$db`                  | Drizzle database instance                             |
+| `$models/[name]`       | Auto-generated typed model class, e.g. `$models/post` |
+| `$schema`              | All generated Drizzle table definitions               |
+| `$validation/[name]`   | Auto-generated Zod schemas, e.g. `$validation/post`   |
+| `$omni/config`         | Resolved omni config (read-only, server-only)         |
 
 ```ts
 // Before omni-svelte
@@ -165,6 +171,7 @@ export default defineSchema('posts', {
 ```
 
 Generated outputs (on `pnpm dev` start, watching for changes):
+
 - **`src/lib/db/server/schema.ts`** — Drizzle table
 - **`src/lib/db/validation/posts.ts`** — Zod `createPostSchema` / `updatePostSchema`
 - **`src/lib/db/models/posts.ts`** — Typed `Post` model with CRUD
@@ -252,7 +259,7 @@ const session = authClient.useSession();
 
 ---
 
-## CLI (`omni`) *(planned)*
+## CLI (`omni`) _(planned)_
 
 ```bash
 # Project
@@ -357,23 +364,24 @@ const myPlugin: OmniPlugin = {
 
 ## Package exports
 
-| Export | Description |
-|---|---|
-| `omni-svelte` | Top-level types and helpers (`defineSchema`, `field`) |
-| `omni-svelte/vite` | `omniSvelte()` Vite plugin |
-| `omni-svelte/database` | `createModel`, `Model`, `Factory`, `Faker` |
-| `omni-svelte/auth` | Auth types and helpers |
-| `omni-svelte/plugins` | `OmniPlugin` interface and all plugin type definitions |
-| `omni-svelte/plugins/logging` | Logging plugin *(stub)* |
-| `omni-svelte/plugins/cors` | CORS plugin *(stub)* |
-| `omni-svelte/plugins/analytics` | Analytics plugin *(stub)* |
-| `omni-svelte/plugins/error-reporting` | Error reporting plugin *(stub)* |
+| Export                                | Description                                            |
+| ------------------------------------- | ------------------------------------------------------ |
+| `omni-svelte`                         | Top-level types and helpers (`defineSchema`, `field`)  |
+| `omni-svelte/vite`                    | `omniSvelte()` Vite plugin                             |
+| `omni-svelte/database`                | `createModel`, `Model`, `Factory`, `Faker`             |
+| `omni-svelte/auth`                    | Auth types and helpers                                 |
+| `omni-svelte/plugins`                 | `OmniPlugin` interface and all plugin type definitions |
+| `omni-svelte/plugins/logging`         | Logging plugin _(stub)_                                |
+| `omni-svelte/plugins/cors`            | CORS plugin _(stub)_                                   |
+| `omni-svelte/plugins/analytics`       | Analytics plugin _(stub)_                              |
+| `omni-svelte/plugins/error-reporting` | Error reporting plugin _(stub)_                        |
 
 ---
 
 ## Roadmap
 
-### v0.1 — Foundation *(current)*
+### v0.1 — Foundation _(current)_
+
 - [x] Drizzle ORM layer with `createModel` and ActiveRecord API
 - [x] Central schema → auto-generated Drizzle, Zod, and model files
 - [x] `fields()` helper for fluent schema definition
@@ -384,6 +392,7 @@ const myPlugin: OmniPlugin = {
 - [x] Plugin API types (`OmniPlugin` interface with all lifecycle hooks)
 
 ### v0.2 — CLI & Developer Experience
+
 - [ ] `createFactory` helper — functional alternative to class-based `Factory`
 - [ ] Relationship definitions in `defineSchema` (auto-generate `with()` loaders)
 - [ ] `npx omni init` — scaffold new projects interactively
@@ -395,6 +404,7 @@ const myPlugin: OmniPlugin = {
 - [ ] `omni debug:routes|models|config` diagnostic commands
 
 ### v0.3 — UI & Forms
+
 - [ ] shadcn-svelte component integration
 - [ ] Accessible form components with Zod validation binding
 - [ ] Pre-built page layouts (auth, dashboard, docs, marketing)
@@ -402,6 +412,7 @@ const myPlugin: OmniPlugin = {
 - [ ] UI component registration via plugin API
 
 ### v0.4 — Realtime, Email & Caching
+
 - [ ] WebSocket channels via CrossWS
 - [ ] SSE (Server-Sent Events) for lighter real-time use cases
 - [ ] Model-level realtime events (`Post.subscribe('created', handler)`)
@@ -411,6 +422,7 @@ const myPlugin: OmniPlugin = {
 - [ ] `omni cache:clear|stats` cache management commands
 
 ### v0.5 — Jobs, Storage & Monitoring
+
 - [ ] Background job queue (BullMQ / in-process)
 - [ ] Scheduled tasks (cron-style)
 - [ ] S3-compatible file storage with local disk fallback
@@ -420,12 +432,14 @@ const myPlugin: OmniPlugin = {
 - [ ] Observability plugin hooks (tracing, metrics)
 
 ### v0.6 — Payments & Multi-tenancy
+
 - [ ] Stripe plugin (subscriptions, one-time payments, webhooks)
 - [ ] Lemon Squeezy plugin
 - [ ] Schema-per-tenant isolation strategy
 - [ ] Row-level multi-tenancy with tenant resolver middleware
 
 ### v0.7 — Deployment & Docs
+
 - [ ] `omni build:production` optimized build command
 - [ ] `omni deploy --env=<name>` deployment helper
 - [ ] Multi-environment configuration management
@@ -434,6 +448,7 @@ const myPlugin: OmniPlugin = {
 - [ ] Admin panel (opt-in, dev mode): `omni serve --with-admin`
 
 ### v0.8 — Plugin Ecosystem
+
 - [ ] First-party **payments** plugin (Stripe, Lemon Squeezy — subscriptions, one-time, webhooks)
 - [ ] First-party **WebSocket** plugin (CrossWS — channels, rooms, presence, auth)
 - [ ] Official first-party plugins: logging, CORS, analytics, error-reporting
@@ -443,6 +458,7 @@ const myPlugin: OmniPlugin = {
 - [ ] Community plugin contributions
 
 ### v1.0 — Production Ready
+
 - [ ] Stable, semver-committed public API
 - [ ] Comprehensive test coverage (>90%)
 - [ ] Full documentation at omni-svelte.dev
@@ -466,8 +482,8 @@ Built with love on top of these amazing projects:
 - [SvelteKit](https://kit.svelte.dev/) — The foundation
 - [Drizzle ORM](https://orm.drizzle.team/) — Type-safe database access
 - [Better-Auth](https://better-auth.com/) — Modern authentication
-- [CrossWS](https://github.com/unjs/crossws) — Cross-runtime WebSocket *(planned)*
-- [shadcn-svelte](https://www.shadcn-svelte.com/) — Beautiful UI components *(planned)*
+- [CrossWS](https://github.com/unjs/crossws) — Cross-runtime WebSocket _(planned)_
+- [shadcn-svelte](https://www.shadcn-svelte.com/) — Beautiful UI components _(planned)_
 - [Zod](https://zod.dev/) — Schema validation
 
 Built with ❤️ by the OmniSvelte team.
