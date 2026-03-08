@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: 
+    branches:
       - main
 
 concurrency:
@@ -41,7 +41,7 @@ jobs:
 
       - name: Type check
         run: pnpm check
-      
+
       - name: Install playwright browsers
         run: npx playwright install --with-deps chromium
 

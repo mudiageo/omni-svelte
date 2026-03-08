@@ -22,14 +22,14 @@ cp apps/playground/.env.example apps/playground/.env
 
 See [AGENTS.md](./AGENTS.md) for a detailed map of every package, its responsibilities, and how they fit together.
 
-| Location | Package | Purpose |
-|---|---|---|
-| `packages/core` | `omni-svelte` | Core library — the main npm package |
-| `packages/shared` | `@omni-svelte/shared` | Shared types and utilities |
-| `packages/plugins` | `@omni-svelte/plugins` | Standalone plugin package |
-| `apps/playground` | `playground` | Dev sandbox for manual testing |
-| `apps/docs` | `docs` | Documentation site |
-| `content/docs/` | — | Markdown source for the docs site |
+| Location           | Package                | Purpose                             |
+| ------------------ | ---------------------- | ----------------------------------- |
+| `packages/core`    | `omni-svelte`          | Core library — the main npm package |
+| `packages/shared`  | `@omni-svelte/shared`  | Shared types and utilities          |
+| `packages/plugins` | `@omni-svelte/plugins` | Standalone plugin package           |
+| `apps/playground`  | `playground`           | Dev sandbox for manual testing      |
+| `apps/docs`        | `docs`                 | Documentation site                  |
+| `content/docs/`    | —                      | Markdown source for the docs site   |
 
 ## Development
 
@@ -89,13 +89,13 @@ pnpm dev
 ```
 
 On first start, omni-svelte:
+
 - Discovers `*.schema.ts` files
 - Generates `src/lib/db/server/schema.ts`, `src/lib/db/validation/`, `src/lib/db/models/`
 - Writes `src/omni-env.d.ts` (ambient type declarations)
 - Runs pending database migrations (if a `DATABASE_URL` is set)
 
 If you only want to test schema code-generation without a database, skip the `DATABASE_URL` — the generator still runs, migrations are simply skipped.
-
 
 ## Making changes
 

@@ -18,17 +18,21 @@
 	<title>{data.meta?.title ?? 'Docs'} — omni-svelte</title>
 </svelte:head>
 
-<article class="prose prose-slate max-w-3xl dark:prose-invert prose-headings:scroll-mt-20 prose-code:before:content-none prose-code:after:content-none">
+<article
+	class="prose prose-slate dark:prose-invert prose-headings:scroll-mt-20 prose-code:before:content-none prose-code:after:content-none max-w-3xl"
+>
 	<svelte:component this={data.content} />
 </article>
 
 <!-- Prev / next navigation -->
 {#if prev || next}
-	<nav class="mt-16 flex items-center justify-between border-t border-slate-200 pt-8 dark:border-slate-800">
+	<nav
+		class="mt-16 flex items-center justify-between border-t border-slate-200 pt-8 dark:border-slate-800"
+	>
 		{#if prev}
 			<a
 				href="/docs/{prev.slug}"
-				class="group flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400"
+				class="hover:text-brand-600 dark:hover:text-brand-400 group flex items-center gap-2 text-sm font-medium text-slate-600 transition dark:text-slate-400"
 			>
 				<ChevronLeft class="h-4 w-4 transition group-hover:-translate-x-0.5" />
 				<span>
@@ -43,7 +47,7 @@
 		{#if next}
 			<a
 				href="/docs/{next.slug}"
-				class="group flex items-center gap-2 text-right text-sm font-medium text-slate-600 transition hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400"
+				class="hover:text-brand-600 dark:hover:text-brand-400 group flex items-center gap-2 text-right text-sm font-medium text-slate-600 transition dark:text-slate-400"
 			>
 				<span>
 					<span class="block text-xs text-slate-400">Next</span>

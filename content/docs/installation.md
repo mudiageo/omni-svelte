@@ -33,7 +33,7 @@ import { omniSvelte } from 'omni-svelte/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  plugins: [omniSvelte()]
+	plugins: [omniSvelte()]
 });
 ```
 
@@ -49,18 +49,18 @@ import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 const config = {
-  preprocess: vitePreprocess(),
-  kit: { adapter: adapter() },
-  omni: {
-    database: {
-      enabled: true,
-      connection: { url: process.env.DATABASE_URL }
-    },
-    auth: {
-      enabled: true,
-      secret: process.env.BETTER_AUTH_SECRET
-    }
-  }
+	preprocess: vitePreprocess(),
+	kit: { adapter: adapter() },
+	omni: {
+		database: {
+			enabled: true,
+			connection: { url: process.env.DATABASE_URL }
+		},
+		auth: {
+			enabled: true,
+			secret: process.env.BETTER_AUTH_SECRET
+		}
+	}
 };
 
 export default config;

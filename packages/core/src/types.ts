@@ -4,15 +4,15 @@ import type { AuthConfig } from '$pkg/runtime/auth/types';
 import type { Config } from '@sveltejs/kit';
 
 export interface SvelteConfig extends Config {
-    omni: OmniConfig
+	omni: OmniConfig;
 }
 
 export interface OmniConfig {
-    database?: DatabaseConfig;
-    schema?: SchemaConfig;
-    auth?: AuthConfig;
-    logging?: { enabled?: boolean;[key: string]: unknown };
-    cors?: { enabled?: boolean;[key: string]: unknown };
-    analytics?: { enabled?: boolean;[key: string]: unknown };
-    errorReporting?: { enabled?: boolean;[key: string]: unknown };
+	database?: DatabaseConfig;
+	schema?: SchemaConfig;
+	auth?: AuthConfig;
+	logging?: { enabled?: boolean; [key: string]: unknown };
+	cors?: { enabled?: boolean; [key: string]: unknown };
+	analytics?: { enabled?: boolean; [key: string]: unknown };
+	errorReporting?: { enabled?: boolean; [key: string]: unknown };
 }

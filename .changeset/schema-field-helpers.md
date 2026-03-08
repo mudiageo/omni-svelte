@@ -1,5 +1,5 @@
 ---
-"omni-svelte": minor
+'omni-svelte': minor
 ---
 
 ## New: `field.*` fluent field-definition builder
@@ -10,11 +10,15 @@ You can now define your schema fields using a chainable builder API instead of r
 
 ```ts
 defineSchema('posts', {
-  id:        { type: 'serial', primary: true },
-  title:     { type: 'string', length: 255, required: true },
-  published: { type: 'boolean', default: false },
-  password:  { type: 'password', required: true, hash: 'bcrypt',
-                validation: { min: 8, requireUppercase: true, requireNumbers: true } },
+	id: { type: 'serial', primary: true },
+	title: { type: 'string', length: 255, required: true },
+	published: { type: 'boolean', default: false },
+	password: {
+		type: 'password',
+		required: true,
+		hash: 'bcrypt',
+		validation: { min: 8, requireUppercase: true, requireNumbers: true }
+	}
 });
 ```
 
@@ -24,10 +28,10 @@ defineSchema('posts', {
 import { defineSchema, field } from 'omni-svelte/schema';
 
 defineSchema('posts', {
-  id:        field.serial().primaryKey(),
-  title:     field.string(255).required(),
-  published: field.boolean().default(false),
-  password:  field.password().required().minLength(8).requireUppercase().requireNumbers().hash(),
+	id: field.serial().primaryKey(),
+	title: field.string(255).required(),
+	published: field.boolean().default(false),
+	password: field.password().required().minLength(8).requireUppercase().requireNumbers().hash()
 });
 ```
 

@@ -1,7 +1,7 @@
 import { eq, and, or, desc, asc, sql } from 'drizzle-orm';
-import { getDatabase } from './database.js'
-import { RelationshipLoader } from './relationships.js'
-import { registerModel } from './hooks.js'
+import { getDatabase } from './database.js';
+import { RelationshipLoader } from './relationships.js';
+import { registerModel } from './hooks.js';
 import type { PgTable } from 'drizzle-orm/pg-core';
 import { QueryBuilder } from './query-builder.js';
 import { z } from 'zod';
@@ -27,7 +27,6 @@ export abstract class Model {
 	public relations: Record<string, any> = {};
 	public exists = false;
 	public isDirty = false;
-
 
 	constructor(attributes: Record<string, any> = {}) {
 		this.fill(attributes);
@@ -82,7 +81,9 @@ export abstract class Model {
 		const allKeys = new Set([
 			...Object.keys(this.attributes),
 			// Add common table columns that might not be in attributes yet
-			'id', 'created_at', 'updated_at'
+			'id',
+			'created_at',
+			'updated_at'
 		]);
 
 		// Try to get column names from the table if available
@@ -91,7 +92,7 @@ export abstract class Model {
 			if (table && typeof table === 'object') {
 				// Get column names from table schema
 				const columns = Object.keys(table);
-				columns.forEach(col => allKeys.add(col));
+				columns.forEach((col) => allKeys.add(col));
 			}
 		} catch (error) {
 			// Ignore errors accessing table schema
@@ -157,14 +158,12 @@ export abstract class Model {
 				.where(eq((constructor.table as any)[constructor.primaryKey], this.getKey()));
 		}
 
-
 		this.exists = false;
 
 		// Broadcast realtime event
 		if (constructor.realtime?.enabled && constructor.realtime.events?.includes('deleted')) {
 			constructor.broadcastRealtimeEvent('deleted', this);
 		}
-
 
 		return true;
 	}
@@ -213,9 +212,9 @@ export abstract class Model {
 			case 'number':
 				return Number(value);
 			case 'boolean':
-				return typeof value === 'string' ?
-					['true', '1', 'yes', 'on'].includes(value.toLowerCase()) :
-					Boolean(value);
+				return typeof value === 'string'
+					? ['true', '1', 'yes', 'on'].includes(value.toLowerCase())
+					: Boolean(value);
 			case 'date':
 				return value instanceof Date ? value : new Date(value);
 			case 'json':
@@ -225,17 +224,20 @@ export abstract class Model {
 		}
 	}
 
-	static fromAttributes<T extends typeof Model>(this: T, attributes: Record<string, any>): InstanceType<T> {
-		const instance = new this() as InstanceType<T>
+	static fromAttributes<T extends typeof Model>(
+		this: T,
+		attributes: Record<string, any>
+	): InstanceType<T> {
+		const instance = new this() as InstanceType<T>;
 
 		// Directly set attributes without going through fill() to avoid fillable restrictions
-		instance.attributes = { ...attributes }
-		instance.exists = true
-		instance.isDirty = false
-		instance.syncOriginal()
-		instance.setupAttributeAccessors()
+		instance.attributes = { ...attributes };
+		instance.exists = true;
+		instance.isDirty = false;
+		instance.syncOriginal();
+		instance.setupAttributeAccessors();
 
-		return instance
+		return instance;
 	}
 
 	// Serialization with hidden attributes
@@ -297,11 +299,17 @@ export abstract class Model {
 		};
 	}
 
-	static belongsToMany(related: typeof Model, pivotTable?: string, foreignPivotKey?: string, relatedPivotKey?: string) {
+	static belongsToMany(
+		related: typeof Model,
+		pivotTable?: string,
+		foreignPivotKey?: string,
+		relatedPivotKey?: string
+	) {
 		return {
 			type: 'belongsToMany',
 			related,
-			pivotTable: pivotTable || [this.name.toLowerCase(), related.name.toLowerCase()].sort().join('_'),
+			pivotTable:
+				pivotTable || [this.name.toLowerCase(), related.name.toLowerCase()].sort().join('_'),
 			foreignPivotKey: foreignPivotKey || `${this.name.toLowerCase()}_id`,
 			relatedPivotKey: relatedPivotKey || `${related.name.toLowerCase()}_id`
 		};
@@ -323,15 +331,12 @@ export abstract class Model {
 		// Run creating hooks
 		await constructor.runHooks('creating', this);
 
-		const result = await db
-			.insert(constructor.table)
-			.values(insertData)
-			.returning();
+		const result = await db.insert(constructor.table).values(insertData).returning();
 
 		if (result[0]) {
 			this.fill(result[0]);
 			//Manually set id
-			this.setAttribute('id', result[0]?.id)
+			this.setAttribute('id', result[0]?.id);
 			this.exists = true;
 			this.isDirty = false;
 			this.syncOriginal();
@@ -343,7 +348,6 @@ export abstract class Model {
 		if (constructor.realtime?.enabled && constructor.realtime.events?.includes('created')) {
 			constructor.broadcastRealtimeEvent('created', this);
 		}
-
 
 		return this;
 	}
@@ -372,10 +376,7 @@ export abstract class Model {
 		await db
 			.update(constructor.table)
 			.set(updateData)
-			.where(eq(
-				(constructor.table as any)[constructor.primaryKey],
-				this.getKey()
-			));
+			.where(eq((constructor.table as any)[constructor.primaryKey], this.getKey()));
 
 		this.isDirty = false;
 		this.syncOriginal();
@@ -436,9 +437,9 @@ export abstract class Model {
 
 	// Auto-register model when class is defined
 	static register(name?: string) {
-		const modelName = name || this.name
-		registerModel(modelName, this)
-		return this
+		const modelName = name || this.name;
+		registerModel(modelName, this);
+		return this;
 	}
 
 	// Hook system
@@ -462,7 +463,7 @@ export abstract class Model {
 
 	// Extension system
 	static extend(extensions: any): typeof Model {
-		const ExtendedModel = class extends this { };
+		const ExtendedModel = class extends this {};
 
 		Object.entries(extensions).forEach(([key, value]) => {
 			if (typeof value === 'function') {
@@ -479,9 +480,9 @@ export abstract class Model {
 // Decorator for auto-registration
 export function RegisterModel(name?: string) {
 	return function <T extends typeof Model>(target: T) {
-		target.register(name)
-		return target
-	}
+		target.register(name);
+		return target;
+	};
 }
 
 export interface ModelConfig {
@@ -502,22 +503,23 @@ export interface ModelConfig {
 
 //Helper function to create a model instance
 export function createModel(name: string, config: ModelConfig): typeof Model {
-
 	class NewModel extends Model {
-		static table = config.table
+		static table = config.table;
 		static primaryKey = config.primaryKey || 'id';
-		static fillable = config.fillable || []
-		static hidden = config.hidden || []
-		static validation = config.validation ? {
-			create: config.validation.create,
-			update: config.validation.update
-		} : undefined;
+		static fillable = config.fillable || [];
+		static hidden = config.hidden || [];
+		static validation = config.validation
+			? {
+					create: config.validation.create,
+					update: config.validation.update
+				}
+			: undefined;
 		static timestamps = config.timestamps !== false; // Default to true unless explicitly set to false
 		static hooks = config.hooks || {};
 		static realtime = config.realtime || {};
 		static relationships = config.relationships || {};
 
-		static casts = config.casts || {}
+		static casts = config.casts || {};
 	}
 
 	//Auto reister the model

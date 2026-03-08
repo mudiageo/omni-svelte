@@ -45,18 +45,22 @@ All complaints will be reviewed and investigated promptly and fairly. Maintainer
 Maintainers will follow these guidelines when determining consequences:
 
 ### 1. Correction
+
 **Impact**: Minor, unintentional behavior.  
 **Consequence**: A private written warning with an explanation of the violation.
 
 ### 2. Warning
+
 **Impact**: A single incident or series of actions.  
 **Consequence**: A warning with consequences for continued behavior. No unsolicited interaction with the people involved for a specified period.
 
 ### 3. Temporary Ban
+
 **Impact**: Serious or sustained violation.  
 **Consequence**: A temporary ban from any interaction in the community for a specified period.
 
 ### 4. Permanent Ban
+
 **Impact**: Demonstrating a pattern of violation, harassment, or aggression toward any individual.  
 **Consequence**: A permanent ban from any public interaction within the community.
 

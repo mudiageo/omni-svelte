@@ -1,7 +1,7 @@
 ---
 name: Bug Report
 description: Report a bug in omni-svelte
-labels: ["bug"]
+labels: ['bug']
 body:
   - type: markdown
     attributes:
@@ -12,7 +12,7 @@ body:
     id: version
     attributes:
       label: omni-svelte version
-      placeholder: "0.0.1"
+      placeholder: '0.0.1'
     validations:
       required: true
 
@@ -20,7 +20,7 @@ body:
     id: svelte-version
     attributes:
       label: SvelteKit version
-      placeholder: "2.x.x"
+      placeholder: '2.x.x'
     validations:
       required: true
 
@@ -40,7 +40,7 @@ body:
       value: |
         1. 
         2. 
-        3. 
+        3.
     validations:
       required: true
 

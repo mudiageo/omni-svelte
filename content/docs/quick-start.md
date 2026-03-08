@@ -19,6 +19,7 @@ pnpm add omni-svelte
 ## Configure omni-svelte
 
 Update `vite.config.ts`:
+
 ```ts
 import { omniSvelte } from 'omni-svelte/vite';
 import { defineConfig } from 'vite';
@@ -26,6 +27,7 @@ export default defineConfig({ plugins: [omniSvelte()] });
 ```
 
 Add to `svelte.config.js`:
+
 ```js
 omni: {
   database: { enabled: true, connection: { url: process.env.DATABASE_URL } },
@@ -36,14 +38,15 @@ omni: {
 ## Define a schema
 
 Create `src/lib/posts.schema.ts`:
+
 ```ts
 import { defineSchema, field } from 'omni-svelte/schema';
 export default defineSchema('posts', {
-  id:        field.uuid().primaryKey().defaultRandom(),
-  title:     field.text().notNull(),
-  content:   field.text(),
-  published: field.boolean().default(false),
-  createdAt: field.timestamp().defaultNow()
+	id: field.uuid().primaryKey().defaultRandom(),
+	title: field.text().notNull(),
+	content: field.text(),
+	published: field.boolean().default(false),
+	createdAt: field.timestamp().defaultNow()
 });
 ```
 

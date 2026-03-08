@@ -102,19 +102,19 @@ import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 const config = {
-  preprocess: vitePreprocess(),
-  kit: { adapter: adapter() },
-  omni: {
-    database: {
-      enabled: true,
-      connection: { url: process.env.DATABASE_URL }
-    },
-    auth: {
-      enabled: true,
-      secret: process.env.BETTER_AUTH_SECRET,
-      emailAndPassword: { enabled: true }
-    }
-  }
+	preprocess: vitePreprocess(),
+	kit: { adapter: adapter() },
+	omni: {
+		database: {
+			enabled: true,
+			connection: { url: process.env.DATABASE_URL }
+		},
+		auth: {
+			enabled: true,
+			secret: process.env.BETTER_AUTH_SECRET,
+			emailAndPassword: { enabled: true }
+		}
+	}
 };
 
 export default config;
@@ -161,12 +161,12 @@ Define your data model once. omni-svelte auto-generates everything else.
 import { defineSchema, field } from 'omni-svelte';
 
 export default defineSchema('posts', {
-  id:        field.uuid().primaryKey().defaultRandom(),
-  title:     field.text().notNull(),
-  content:   field.text(),
-  published: field.boolean().default(false),
-  authorId:  field.uuid().references('users.id'),
-  createdAt: field.timestamp().defaultNow()
+	id: field.uuid().primaryKey().defaultRandom(),
+	title: field.text().notNull(),
+	content: field.text(),
+	published: field.boolean().default(false),
+	authorId: field.uuid().references('users.id'),
+	createdAt: field.timestamp().defaultNow()
 });
 ```
 
@@ -184,7 +184,7 @@ Generated outputs (on `pnpm dev` start, watching for changes):
 import { Post } from '$models/post';
 
 // CRUD
-const post  = await Post.create({ title: 'Hello', content: '...' });
+const post = await Post.create({ title: 'Hello', content: '...' });
 const found = await Post.find(id);
 const posts = await Post.where('published', true).get();
 await post.update({ title: 'Updated' });
@@ -205,13 +205,17 @@ import { postsTable } from '$schema';
 import { createPostSchema, updatePostSchema } from '$validation/post';
 
 export const Post = createModel('Post', {
-  table:      postsTable,
-  fillable:   ['title', 'content', 'published'],
-  validation: { create: createPostSchema, update: updatePostSchema },
-  timestamps: true,
-  hooks: {
-    creating: [(post) => { post.slug = slugify(post.title); }]
-  }
+	table: postsTable,
+	fillable: ['title', 'content', 'published'],
+	validation: { create: createPostSchema, update: updatePostSchema },
+	timestamps: true,
+	hooks: {
+		creating: [
+			(post) => {
+				post.slug = slugify(post.title);
+			}
+		]
+	}
 });
 ```
 
@@ -221,9 +225,9 @@ export const Post = createModel('Post', {
 import { Factory, Faker } from 'omni-svelte/database';
 
 class PostFactory extends Factory {
-  definition() {
-    return { title: Faker.text(1), content: Faker.text(3), published: Faker.boolean() };
-  }
+	definition() {
+		return { title: Faker.text(1), content: Faker.text(3), published: Faker.boolean() };
+	}
 }
 
 const posts = await new PostFactory().times(10).create();
@@ -338,25 +342,29 @@ Plugins can integrate with and extend **any part** of the framework:
 import type { OmniPlugin } from 'omni-svelte/plugins';
 
 const myPlugin: OmniPlugin = {
-  name: 'my-plugin',
+	name: 'my-plugin',
 
-  // Add a DB table
-  registerTables: () => ({ pluginLogs: pluginLogsTable }),
+	// Add a DB table
+	registerTables: () => ({ pluginLogs: pluginLogsTable }),
 
-  // Add a CLI command: omni my-plugin:init
-  registerCommands: () => [{
-    name: 'init',
-    description: 'Initialise my-plugin',
-    run: async () => { /* ... */ }
-  }],
+	// Add a CLI command: omni my-plugin:init
+	registerCommands: () => [
+		{
+			name: 'init',
+			description: 'Initialise my-plugin',
+			run: async () => {
+				/* ... */
+			}
+		}
+	],
 
-  // Inject into every request
-  handle: async ({ event, resolve }) => resolve(event),
+	// Inject into every request
+	handle: async ({ event, resolve }) => resolve(event),
 
-  // React to model events across the app
-  onModelEvent: async ({ type, modelName, data }) => {
-    if (type === 'created') auditLog(modelName, data);
-  }
+	// React to model events across the app
+	onModelEvent: async ({ type, modelName, data }) => {
+		if (type === 'created') auditLog(modelName, data);
+	}
 };
 ```
 

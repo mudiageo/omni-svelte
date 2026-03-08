@@ -11,16 +11,16 @@ omni-svelte injects a set of **virtual modules** and **path aliases** so you can
 
 ## Overview
 
-| Alias | Boundary | Description |
-|---|---|---|
-| `$models` | Server only | Barrel export of all generated model classes |
-| `$models/<name>` | Server only | Direct import of one model file |
-| `$schema` | Server only | Barrel export of all generated Drizzle tables |
-| `$db` | Server only | Raw Drizzle database instance |
-| `$validation` | Universal | Barrel export of all generated Zod schemas |
-| `$validation/<name>` | Universal | Direct import of one Zod schema file |
-| `$auth/server` | Server only | Better-Auth server instance |
-| `$auth/client` | Client safe | Better-Auth client instance |
+| Alias                | Boundary    | Description                                   |
+| -------------------- | ----------- | --------------------------------------------- |
+| `$models`            | Server only | Barrel export of all generated model classes  |
+| `$models/<name>`     | Server only | Direct import of one model file               |
+| `$schema`            | Server only | Barrel export of all generated Drizzle tables |
+| `$db`                | Server only | Raw Drizzle database instance                 |
+| `$validation`        | Universal   | Barrel export of all generated Zod schemas    |
+| `$validation/<name>` | Universal   | Direct import of one Zod schema file          |
+| `$auth/server`       | Server only | Better-Auth server instance                   |
+| `$auth/client`       | Client safe | Better-Auth client instance                   |
 
 > Importing a **server-only** alias from a universal context (`+page.ts`, `+layout.ts`) triggers a Vite build warning. Use `+page.server.ts` / `+layout.server.ts` instead.
 
@@ -30,17 +30,17 @@ omni-svelte injects a set of **virtual modules** and **path aliases** so you can
 
 ```ts
 // +page.server.ts
-import { Posts } from '$models';               // barrel — all models
-import { Posts } from '$models/posts.model';   // single model (IDE-friendly)
+import { Posts } from '$models'; // barrel — all models
+import { Posts } from '$models/posts.model'; // single model (IDE-friendly)
 
 export const load = async () => {
-  const posts = await Posts.query()
-    .where('published', true)
-    .orderBy('created_at', 'desc')
-    .limit(10)
-    .get();
+	const posts = await Posts.query()
+		.where('published', true)
+		.orderBy('created_at', 'desc')
+		.limit(10)
+		.get();
 
-  return { posts };
+	return { posts };
 };
 ```
 
@@ -56,10 +56,7 @@ import { db } from '$db';
 import { posts, users } from '$schema';
 import { eq } from 'drizzle-orm';
 
-const publishedPosts = await db
-  .select()
-  .from(posts)
-  .where(eq(posts.published, true));
+const publishedPosts = await db.select().from(posts).where(eq(posts.published, true));
 ```
 
 `$schema` exports everything from your generated Drizzle schema file (`schema.output.drizzle.path`).
@@ -87,7 +84,7 @@ import { postsCreateSchema } from '$validation/posts.validation'; // single file
 // Validate form data
 const result = postsCreateSchema.safeParse(Object.fromEntries(formData));
 if (!result.success) {
-  return fail(400, { errors: result.error.flatten() });
+	return fail(400, { errors: result.error.flatten() });
 }
 ```
 
@@ -119,10 +116,18 @@ omni-svelte writes this file automatically on dev-server start. It declares the 
 
 ```ts
 // src/omni-env.d.ts  ← do not edit manually
-declare module '$models'      { export * from '$lib/db/models/index'; }
-declare module '$schema'      { export * from '$lib/db/server/schema'; }
-declare module '$validation'  { export * from '$lib/db/validation/index'; }
-declare module '$db'          { export const db: PostgresJsDatabase; }
+declare module '$models' {
+	export * from '$lib/db/models/index';
+}
+declare module '$schema' {
+	export * from '$lib/db/server/schema';
+}
+declare module '$validation' {
+	export * from '$lib/db/validation/index';
+}
+declare module '$db' {
+	export const db: PostgresJsDatabase;
+}
 ```
 
 ### Manual: sub-path shims
@@ -132,7 +137,7 @@ For per-file sub-path imports the IDE can't auto-resolve, add a `test-env.d.ts` 
 ```ts
 // test-env.d.ts
 declare module '$models/posts.model' {
-  export * from '$lib/db/models/posts.model';   // ← must be $lib/..., not ./
+	export * from '$lib/db/models/posts.model'; // ← must be $lib/..., not ./
 }
 ```
 
@@ -140,8 +145,8 @@ Make sure this file is included in your `tsconfig.json`:
 
 ```json
 {
-  "extends": "./.svelte-kit/tsconfig.json",
-  "include": ["test-env.d.ts", "src/**/*.ts", "src/**/*.svelte"]
+	"extends": "./.svelte-kit/tsconfig.json",
+	"include": ["test-env.d.ts", "src/**/*.ts", "src/**/*.svelte"]
 }
 ```
 

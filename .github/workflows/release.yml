@@ -7,15 +7,15 @@ on:
 
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: false   # never cancel a release that is in progress
+  cancel-in-progress: false # never cancel a release that is in progress
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
     permissions:
-      contents: write       # to create GitHub releases and push version commits
-      pull-requests: write  # to open "Version Packages" PRs
+      contents: write # to create GitHub releases and push version commits
+      pull-requests: write # to open "Version Packages" PRs
 
     steps:
       - name: Checkout

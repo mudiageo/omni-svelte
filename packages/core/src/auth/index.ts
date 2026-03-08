@@ -1,1 +1,1 @@
-export * from '../runtime/auth/index.js'
+export * from '../runtime/auth/index.js';

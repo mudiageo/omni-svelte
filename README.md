@@ -2,13 +2,13 @@
 
 A monorepo containing:
 
-| Package | Location | Description |
-|---|---|---|
-| `omni-svelte` | `packages/core` | Core library (database, auth, schema, vite plugin, plugins) |
-| `@omni-svelte/shared` | `packages/shared` | Shared types and utilities |
-| `@omni-svelte/plugins` | `packages/plugins` | Standalone plugin package (future) |
-| `playground` | `apps/playground` | Dev sandbox / demo app |
-| `docs` | `apps/docs` | Documentation site |
+| Package                | Location           | Description                                                 |
+| ---------------------- | ------------------ | ----------------------------------------------------------- |
+| `omni-svelte`          | `packages/core`    | Core library (database, auth, schema, vite plugin, plugins) |
+| `@omni-svelte/shared`  | `packages/shared`  | Shared types and utilities                                  |
+| `@omni-svelte/plugins` | `packages/plugins` | Standalone plugin package (future)                          |
+| `playground`           | `apps/playground`  | Dev sandbox / demo app                                      |
+| `docs`                 | `apps/docs`        | Documentation site                                          |
 
 ## Getting started
 

@@ -3,7 +3,7 @@
 ## Supported Versions
 
 | Version | Supported |
-|---------|-----------|
+| ------- | --------- |
 | 0.1.x   | ✅ Yes    |
 | < 0.1   | ❌ No     |
 
@@ -27,12 +27,12 @@ Please provide as much of the following as possible:
 
 ### Response timeline
 
-| Step | Target |
-|------|--------|
-| Initial acknowledgement | 48 hours |
-| Triage and severity assessment | 5 business days |
-| Fix / mitigation | Dependent on severity (critical = ASAP) |
-| Public disclosure | Coordinated with reporter after fix is released |
+| Step                           | Target                                          |
+| ------------------------------ | ----------------------------------------------- |
+| Initial acknowledgement        | 48 hours                                        |
+| Triage and severity assessment | 5 business days                                 |
+| Fix / mitigation               | Dependent on severity (critical = ASAP)         |
+| Public disclosure              | Coordinated with reporter after fix is released |
 
 ## Security considerations for users
 
@@ -56,14 +56,14 @@ openssl rand -base64 32
 
 omni-svelte enforces server-only access for sensitive modules at the Vite plugin level:
 
-| Module | Boundary | Safe for client? |
-|--------|----------|-----------------|
-| `$db` | Server only | ❌ No |
-| `$schema` | Server only | ❌ No |
-| `$models/*` | Server only | ❌ No |
-| `$validation/*` | Universal | ✅ Yes |
-| `$auth/server` | Server only | ❌ No |
-| `$auth/client` | Client safe | ✅ Yes |
+| Module          | Boundary    | Safe for client? |
+| --------------- | ----------- | ---------------- |
+| `$db`           | Server only | ❌ No            |
+| `$schema`       | Server only | ❌ No            |
+| `$models/*`     | Server only | ❌ No            |
+| `$validation/*` | Universal   | ✅ Yes           |
+| `$auth/server`  | Server only | ❌ No            |
+| `$auth/client`  | Client safe | ✅ Yes           |
 
 Importing a server-only module from a universal context (`+page.ts`, `+layout.ts`) will trigger a build-time warning.
 

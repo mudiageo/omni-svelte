@@ -13,12 +13,14 @@
 	{#each nav as section}
 		<div class="mb-6">
 			<div class="mb-2 flex items-center gap-2">
-				<p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+				<p
+					class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+				>
 					{section.title}
 				</p>
 				{#if section.badge}
 					<span
-						class="rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300"
+						class="bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300 rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
 					>
 						{section.badge}
 					</span>
