@@ -105,7 +105,9 @@ export function omni(options = {}): Plugin {
 				return userHooksServer || 'export const handle = null;';
 			}
 			if (id === 'virtual:user-hooks/client') {
-				return userHooksClient || 'export const handleError = null; export const handleFetch = null;';
+				return (
+					userHooksClient || 'export const handleError = null; export const handleFetch = null;'
+				);
 			}
 		},
 
@@ -128,8 +130,12 @@ export function omni(options = {}): Plugin {
 					await loadUserHooks();
 
 					// Invalidate virtual modules to trigger regeneration
-					const serverModule = server.moduleGraph.getModuleById('virtual:omni-svelte/hooks.server.js');
-					const clientModule = server.moduleGraph.getModuleById('virtual:omni-svelte/hooks.client.js');
+					const serverModule = server.moduleGraph.getModuleById(
+						'virtual:omni-svelte/hooks.server.js'
+					);
+					const clientModule = server.moduleGraph.getModuleById(
+						'virtual:omni-svelte/hooks.client.js'
+					);
 
 					if (serverModule) server.reloadModule(serverModule);
 					if (clientModule) server.reloadModule(clientModule);
@@ -400,7 +406,9 @@ const plugin_omni_virtual_aliases: Plugin = {
 		if (id.includes('+page.ts') || id.includes('+layout.ts')) {
 			for (const mod of SERVER_ONLY_MODULES) {
 				if (code.includes(`from '${mod}'`) || code.includes(`from "${mod}"`)) {
-					this.warn(`[omni-svelte] "${mod}" is server-only but imported in a universal context (${id}). Use "+page.server.ts" or "+layout.server.ts" instead.`);
+					this.warn(
+						`[omni-svelte] "${mod}" is server-only but imported in a universal context (${id}). Use "+page.server.ts" or "+layout.server.ts" instead.`
+					);
 				}
 			}
 		}
@@ -486,10 +494,12 @@ userHandle: ${userHooksHandler}
 return frameworkHandler({ event, resolve });
 }`;
 
-	const initFunction = omniConfig.database?.enabled ? `
+	const initFunction = omniConfig.database?.enabled
+		? `
 export async function init() {
 await initDb(${JSON.stringify(omniConfig.database, null, 2)})
-}` : '';
+}`
+		: '';
 
 	return `${imports.join('\n')}\n${userHooksImport}\n\n${handleFunction}\n\n${initFunction}`;
 }
@@ -560,14 +570,16 @@ export function omniSvelte(options = {}) {
 				const omniConfig = await getOmniConfig();
 				if (omniConfig) {
 					const migrationsPlugin = omniMigrationsPlugin(omniConfig, resolvedConfig.root);
-					const configResolvedHook = typeof migrationsPlugin.configResolved === 'function'
-						? migrationsPlugin.configResolved
-						: (migrationsPlugin.configResolved as any)?.handler;
+					const configResolvedHook =
+						typeof migrationsPlugin.configResolved === 'function'
+							? migrationsPlugin.configResolved
+							: (migrationsPlugin.configResolved as any)?.handler;
 					if (configResolvedHook) await configResolvedHook.call(this, resolvedConfig);
 
-					const buildStartHook = typeof migrationsPlugin.buildStart === 'function'
-						? migrationsPlugin.buildStart
-						: (migrationsPlugin.buildStart as any)?.handler;
+					const buildStartHook =
+						typeof migrationsPlugin.buildStart === 'function'
+							? migrationsPlugin.buildStart
+							: (migrationsPlugin.buildStart as any)?.handler;
 					if (buildStartHook) await buildStartHook.call(this, {});
 				}
 			}

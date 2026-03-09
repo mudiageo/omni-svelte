@@ -215,7 +215,10 @@ export class ZodGenerator {
 				format: 'single-file'
 			},
 			zod: outputConfig,
-			model: outputConfig.model || { path: './src/lib/models', format: 'per-schema' }
+			model: outputConfig.model || {
+				path: './src/lib/models',
+				format: 'per-schema'
+			}
 		});
 
 		if (outputConfig.format === 'single-file') {

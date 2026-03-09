@@ -75,7 +75,10 @@ export async function sendMail(message: MailMessage): Promise<SendResult> {
 
 	// TODO: Implement actual providers (SMTP, Resend, SendGrid, etc.)
 	console.warn(`📧 [Mail] Provider '${mailConfig.provider}' not yet implemented. Email not sent.`);
-	return { success: false, error: `Provider '${mailConfig.provider}' not implemented` };
+	return {
+		success: false,
+		error: `Provider '${mailConfig.provider}' not implemented`
+	};
 }
 
 // ─── Auth Email Helpers ──────────────────────────────────────────────────────

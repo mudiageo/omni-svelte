@@ -416,7 +416,9 @@ export class QueryBuilder<T extends typeof Model> {
 
 	selectRaw(expression: string, alias?: string) {
 		const rawExpression = alias ? sql.raw(`${expression} as ${alias}`) : sql.raw(expression);
-		this.queryBuilder = this.queryBuilder.select({ [alias || 'raw']: rawExpression });
+		this.queryBuilder = this.queryBuilder.select({
+			[alias || 'raw']: rawExpression
+		});
 		return this;
 	}
 

@@ -69,13 +69,21 @@ class FieldBuilder {
 
 	/** Set a minimum length for string/password validation. */
 	minLength(n: number, message?: string): this {
-		this.def.validation = { ...this.def.validation, min: n, ...(message && { message }) };
+		this.def.validation = {
+			...this.def.validation,
+			min: n,
+			...(message && { message })
+		};
 		return this;
 	}
 
 	/** Set a maximum length for string validation. */
 	maxLength(n: number, message?: string): this {
-		this.def.validation = { ...this.def.validation, max: n, ...(message && { message }) };
+		this.def.validation = {
+			...this.def.validation,
+			max: n,
+			...(message && { message })
+		};
 		return this;
 	}
 

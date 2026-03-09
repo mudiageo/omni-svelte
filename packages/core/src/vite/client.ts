@@ -15,7 +15,10 @@ export function createClientHandler({
 	hooks = [],
 	config = {},
 	userHooks = null
-}: ClientHandlerConfig): { handleError: HandleClientError; handleFetch: HandleFetch } {
+}: ClientHandlerConfig): {
+	handleError: HandleClientError;
+	handleFetch: HandleFetch;
+} {
 	return {
 		async handleError({ error, event, status, message }) {
 			// Run framework error handlers

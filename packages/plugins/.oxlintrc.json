@@ -1,0 +1,24 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": ["unicorn"],
+	"categories": {
+		"correctness": "off"
+	},
+	"env": {
+		"builtin": true
+	},
+	"ignorePatterns": [".svelte-kit/**", "dist/**", "node_modules/**"],
+	"rules": {},
+	"overrides": [
+		{
+			"files": ["*.svelte", "**/*.svelte"],
+			"rules": {
+				"no-inner-declarations": "off",
+				"no-self-assign": "off",
+				"svelte/comment-directive": "error",
+				"svelte/system": "error"
+			},
+			"jsPlugins": ["eslint-plugin-svelte"]
+		}
+	]
+}

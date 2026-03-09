@@ -28,7 +28,7 @@
 	}
 </script>
 
-<div class="container mx-auto p-6">
+<div class="p-6 container mx-auto">
 	<div class="mb-6 flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Users</h1>
 		<a href="/users/create" class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
@@ -37,25 +37,25 @@
 	</div>
 
 	{#if form?.error}
-		<div class="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
+		<div class="mb-4 rounded border-red-400 bg-red-100 px-4 py-3 text-red-700 border">
 			{form.error}
 		</div>
 	{/if}
 
 	{#if form?.success}
-		<div class="mb-4 rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700">
+		<div class="mb-4 rounded border-green-400 bg-green-100 px-4 py-3 text-green-700 border">
 			{form.message}
 		</div>
 	{/if}
 
 	<!-- Search -->
 	<div class="mb-6">
-		<form onsubmit={handleSearch} class="flex gap-2">
+		<form onsubmit={handleSearch} class="gap-2 flex">
 			<input
 				type="text"
 				bind:value={searchValue}
 				placeholder="Search users by name or email..."
-				class="flex-1 rounded border px-3 py-2"
+				class="rounded px-3 py-2 flex-1 border"
 			/>
 			<button type="submit" class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
 				Search
@@ -64,41 +64,41 @@
 	</div>
 
 	<!-- Users Table -->
-	<div class="overflow-hidden rounded-lg bg-white shadow">
+	<div class="rounded-lg bg-white shadow overflow-hidden">
 		<table class="min-w-full">
 			<thead class="bg-gray-50">
 				<tr>
-					<th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Name</th>
-					<th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Email</th>
-					<th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Status</th>
-					<th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Created</th>
-					<th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Actions</th>
+					<th class="px-6 py-3 text-xs font-medium text-gray-500 text-left uppercase">Name</th>
+					<th class="px-6 py-3 text-xs font-medium text-gray-500 text-left uppercase">Email</th>
+					<th class="px-6 py-3 text-xs font-medium text-gray-500 text-left uppercase">Status</th>
+					<th class="px-6 py-3 text-xs font-medium text-gray-500 text-left uppercase">Created</th>
+					<th class="px-6 py-3 text-xs font-medium text-gray-500 text-left uppercase">Actions</th>
 				</tr>
 			</thead>
-			<tbody class="divide-y divide-gray-200">
+			<tbody class="divide-gray-200 divide-y">
 				{#each data.users.data as user}
 					<tr>
-						<td class="whitespace-nowrap px-6 py-4">
+						<td class="px-6 py-4 whitespace-nowrap">
 							<a href="/users/{user.id}" class="font-medium text-blue-600 hover:text-blue-800">
 								{user.name}
 							</a>
 						</td>
-						<td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+						<td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
 							{user.email}
 						</td>
-						<td class="whitespace-nowrap px-6 py-4">
+						<td class="px-6 py-4 whitespace-nowrap">
 							<span
-								class="rounded-full px-2 py-1 text-xs {user.active
+								class="px-2 py-1 text-xs rounded-full {user.active
 									? 'bg-green-100 text-green-800'
 									: 'bg-red-100 text-red-800'}"
 							>
 								{user.active ? 'Active' : 'Inactive'}
 							</span>
 						</td>
-						<td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+						<td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
 							{new Date(user.created_at).toLocaleDateString()}
 						</td>
-						<td class="space-x-2 whitespace-nowrap px-6 py-4 text-sm">
+						<td class="space-x-2 px-6 py-4 text-sm whitespace-nowrap">
 							<a href="/users/{user.id}/edit" class="text-blue-600 hover:text-blue-800">Edit</a>
 
 							<form
@@ -141,7 +141,7 @@
 		</table>
 
 		{#if data.users.data.length === 0}
-			<div class="py-8 text-center text-gray-500">No users found.</div>
+			<div class="py-8 text-gray-500 text-center">No users found.</div>
 		{/if}
 	</div>
 
@@ -152,7 +152,7 @@
 				Showing {data.users.meta.from} to {data.users.meta.to} of {data.users.meta.total} users
 			</div>
 
-			<div class="flex space-x-2">
+			<div class="space-x-2 flex">
 				{#if data.users.meta.links.prev}
 					<button
 						onclick={() => goToPage(data.users.meta.links.prev)}

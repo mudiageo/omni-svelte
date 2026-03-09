@@ -155,8 +155,14 @@ export class DrizzleGenerator {
 
 		const pathResolver = new PathResolver({
 			drizzle: outputConfig,
-			zod: outputConfig.zod || { path: './src/lib/validation', format: 'single-file' },
-			model: outputConfig.model || { path: './src/lib/models', format: 'per-schema' }
+			zod: outputConfig.zod || {
+				path: './src/lib/validation',
+				format: 'single-file'
+			},
+			model: outputConfig.model || {
+				path: './src/lib/models',
+				format: 'per-schema'
+			}
 		});
 
 		if (outputConfig.format === 'single-file') {

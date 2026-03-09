@@ -182,7 +182,10 @@ export class ModelGenerator {
 					path: './src/lib/db/server/schema.ts',
 					format: 'single-file'
 				},
-				zod: outputConfig.zod || { path: './src/lib/validation', format: 'per-schema' },
+				zod: outputConfig.zod || {
+					path: './src/lib/validation',
+					format: 'per-schema'
+				},
 				model: outputConfig.model || outputConfig
 			});
 		}
@@ -206,7 +209,10 @@ export class ModelGenerator {
 				path: './src/lib/db/server/schema.ts',
 				format: 'single-file'
 			},
-			zod: outputConfig.zod || { path: './src/lib/validation', format: 'per-schema' },
+			zod: outputConfig.zod || {
+				path: './src/lib/validation',
+				format: 'per-schema'
+			},
 			model: outputConfig
 		});
 
@@ -256,7 +262,10 @@ export class ModelGenerator {
 				path: './src/lib/db/server/schema.ts',
 				format: 'single-file'
 			},
-			zod: outputConfig.zod || { path: './src/lib/validation', format: 'per-schema' },
+			zod: outputConfig.zod || {
+				path: './src/lib/validation',
+				format: 'per-schema'
+			},
 			model: outputConfig
 		});
 

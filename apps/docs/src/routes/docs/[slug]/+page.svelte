@@ -27,16 +27,16 @@
 <!-- Prev / next navigation -->
 {#if prev || next}
 	<nav
-		class="mt-16 flex items-center justify-between border-t border-slate-200 pt-8 dark:border-slate-800"
+		class="mt-16 border-slate-200 pt-8 dark:border-slate-800 flex items-center justify-between border-t"
 	>
 		{#if prev}
 			<a
 				href="/docs/{prev.slug}"
-				class="hover:text-brand-600 dark:hover:text-brand-400 group flex items-center gap-2 text-sm font-medium text-slate-600 transition dark:text-slate-400"
+				class="hover:text-brand-600 dark:hover:text-brand-400 group gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center transition"
 			>
-				<ChevronLeft class="h-4 w-4 transition group-hover:-translate-x-0.5" />
+				<ChevronLeft class="h-4 w-4 group-hover:-translate-x-0.5 transition" />
 				<span>
-					<span class="block text-xs text-slate-400">Previous</span>
+					<span class="text-xs text-slate-400 block">Previous</span>
 					{prev.title}
 				</span>
 			</a>
@@ -47,13 +47,13 @@
 		{#if next}
 			<a
 				href="/docs/{next.slug}"
-				class="hover:text-brand-600 dark:hover:text-brand-400 group flex items-center gap-2 text-right text-sm font-medium text-slate-600 transition dark:text-slate-400"
+				class="hover:text-brand-600 dark:hover:text-brand-400 group gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center text-right transition"
 			>
 				<span>
-					<span class="block text-xs text-slate-400">Next</span>
+					<span class="text-xs text-slate-400 block">Next</span>
 					{next.title}
 				</span>
-				<ChevronRight class="h-4 w-4 transition group-hover:translate-x-0.5" />
+				<ChevronRight class="h-4 w-4 group-hover:translate-x-0.5 transition" />
 			</a>
 		{/if}
 	</nav>

@@ -8,7 +8,7 @@
 		"build": "vite build",
 		"preview": "vite preview --port 5174",
 		"prepare": "svelte-kit sync || echo ''",
-		"lint": "prettier --check . && eslint .",
+		"lint": "prettier --check . && oxlint .",
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
@@ -24,7 +24,8 @@
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.14.0",
 		"globals": "^17.3.0",
-		"mdsvex": "^0.12.3",
+		"mdsvex": "^0.12.6",
+		"oxlint": "^1.51.0",
 		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.4.1",
 		"prettier-plugin-tailwindcss": "^0.7.2",

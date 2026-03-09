@@ -40,7 +40,10 @@ export class PathResolver {
 	 * Get the import path for Zod validation from model location
 	 */
 	getZodImportPath(modelPath: string, schemaName: string): string {
-		const zodConfig = this.config.zod || { path: './src/lib/validation', format: 'per-schema' };
+		const zodConfig = this.config.zod || {
+			path: './src/lib/validation',
+			format: 'per-schema'
+		};
 
 		if (zodConfig.format === 'single-file') {
 			return this.getRelativePath(modelPath, zodConfig.path);

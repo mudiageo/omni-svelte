@@ -1,5 +1,5 @@
 ---
-"omni-svelte": minor
+'omni-svelte': minor
 ---
 
 ## New: `drizzle.config.ts` is now auto-generated from your schema config
@@ -11,11 +11,13 @@ omni-svelte will automatically create and keep `drizzle.config.ts` in sync with 
 On every dev-server start and whenever a schema file changes, the Vite plugin writes (or updates) `drizzle.config.ts` using the values from `svelte.config.js → omni.schema.output.drizzle`.
 
 **Single-file format** — bare path:
+
 ```ts
 schema: './src/lib/db/server/schema.ts',
 ```
 
 **Per-schema format** — glob pattern:
+
 ```ts
 schema: './src/lib/db/server/**/*.ts',
 ```

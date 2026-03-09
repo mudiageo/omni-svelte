@@ -12,7 +12,7 @@
 </script>
 
 <header
-	class="sticky top-0 z-50 flex h-16 items-center gap-4 border-b border-slate-200 bg-white/80 px-4 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/80"
+	class="top-0 h-16 gap-4 border-slate-200 bg-white/80 px-4 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/80 sticky z-50 flex items-center border-b"
 >
 	<!-- Mobile sidebar toggle -->
 	<button
@@ -28,16 +28,16 @@
 	</button>
 
 	<!-- Logo -->
-	<a href="/" class="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
+	<a href="/" class="gap-2 font-bold text-slate-900 dark:text-white flex items-center">
 		<span
-			class="from-brand-500 flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br to-indigo-600 text-xs font-black text-white shadow-md"
+			class="from-brand-500 h-7 w-7 rounded-lg to-indigo-600 text-xs font-black text-white shadow-md flex items-center justify-center bg-gradient-to-br"
 		>
 			O
 		</span>
 		<span>omni<span class="text-brand-600">-svelte</span></span>
 	</a>
 
-	<div class="ml-auto flex items-center gap-2">
+	<div class="gap-2 ml-auto flex items-center">
 		<a
 			href="https://github.com/mudiageo/omni-svelte"
 			target="_blank"
@@ -58,7 +58,7 @@
 			aria-label="Toggle dark mode"
 		>
 			<Moon class="h-5 w-5 dark:hidden" />
-			<Sun class="hidden h-5 w-5 dark:block" />
+			<Sun class="h-5 w-5 hidden dark:block" />
 		</button>
 	</div>
 </header>

@@ -1,0 +1,6 @@
+.svelte-kit
+dist
+build
+node_modules
+.env
+src/app.html

@@ -226,7 +226,11 @@ import { Factory, Faker } from 'omni-svelte/database';
 
 class PostFactory extends Factory {
 	definition() {
-		return { title: Faker.text(1), content: Faker.text(3), published: Faker.boolean() };
+		return {
+			title: Faker.text(1),
+			content: Faker.text(3),
+			published: Faker.boolean()
+		};
 	}
 }
 

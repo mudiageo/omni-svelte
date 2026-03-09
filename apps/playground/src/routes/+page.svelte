@@ -10,11 +10,11 @@
 	}
 </script>
 
-<div class="container mx-auto p-6">
+<div class="p-6 container mx-auto">
 	<h1 class="mb-6 text-3xl font-bold">OmniSvelte Database Test</h1>
 
 	{#if data.error}
-		<div class="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
+		<div class="mb-4 rounded border-red-400 bg-red-100 px-4 py-3 text-red-700 border">
 			<strong>Error:</strong>
 			{data.error}
 		</div>
@@ -23,7 +23,7 @@
 	<a href="/posts"> POsts </a>
 
 	<!-- Database Statistics -->
-	<div class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+	<div class="mb-8 gap-4 md:grid-cols-3 grid grid-cols-1">
 		<div class="rounded-lg bg-blue-100 p-4">
 			<h3 class="font-semibold text-blue-800">Total Users</h3>
 			<p class="text-2xl font-bold text-blue-600">{data.stats.totalUsers}</p>
@@ -42,27 +42,27 @@
 	<div class="mb-8">
 		<h2 class="mb-4 text-2xl font-semibold">Recent Active Users</h2>
 		{#if data.recentUsers.length > 0}
-			<div class="overflow-hidden rounded-lg bg-white shadow">
+			<div class="rounded-lg bg-white shadow overflow-hidden">
 				<table class="min-w-full">
 					<thead class="bg-gray-50">
 						<tr>
-							<th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Name</th>
-							<th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Email</th>
-							<th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500"
+							<th class="px-6 py-3 text-xs font-medium text-gray-500 text-left uppercase">Name</th>
+							<th class="px-6 py-3 text-xs font-medium text-gray-500 text-left uppercase">Email</th>
+							<th class="px-6 py-3 text-xs font-medium text-gray-500 text-left uppercase"
 								>Created</th
 							>
 						</tr>
 					</thead>
-					<tbody class="divide-y divide-gray-200">
+					<tbody class="divide-gray-200 divide-y">
 						{#each data.recentUsers as user}
 							<tr>
-								<td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+								<td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
 									{user.name}
 								</td>
-								<td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+								<td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
 									{user.email}
 								</td>
-								<td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+								<td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
 									{new Date(user.created_at).toLocaleDateString()}
 								</td>
 							</tr>

@@ -16,7 +16,11 @@ const mockUserSchema: Schema = {
 			type: 'string',
 			length: 255,
 			required: true,
-			validation: { min: 2, max: 100, message: 'Name must be between 2-100 characters' }
+			validation: {
+				min: 2,
+				max: 100,
+				message: 'Name must be between 2-100 characters'
+			}
 		},
 		email: { type: 'email', required: true, unique: true },
 		password: {
@@ -47,7 +51,11 @@ const mockPostSchema: Schema = {
 			type: 'string',
 			length: 255,
 			required: true,
-			validation: { min: 5, max: 255, message: 'Title must be between 5-255 characters' }
+			validation: {
+				min: 5,
+				max: 255,
+				message: 'Title must be between 5-255 characters'
+			}
 		},
 		slug: { type: 'string', required: true, unique: true },
 		content: { type: 'string', required: true },
@@ -63,7 +71,10 @@ const mockPostSchema: Schema = {
 };
 
 const mockOutputConfig = {
-	drizzle: { path: './src/lib/db/server/schema.ts', format: 'single-file' as const },
+	drizzle: {
+		path: './src/lib/db/server/schema.ts',
+		format: 'single-file' as const
+	},
 	zod: { path: './src/lib/validation', format: 'per-schema' as const },
 	model: { path: './src/lib/models', format: 'per-schema' as const }
 };
@@ -121,7 +132,9 @@ describe('Schema System', () => {
 			const schemaFile = path.join(schemaDir, 'user.schema.ts');
 			fs.writeFileSync(schemaFile, schemaContent);
 
-			const parser = new SchemaParser({ input: { patterns: [`${schemaDir}/**/*.schema.ts`] } });
+			const parser = new SchemaParser({
+				input: { patterns: [`${schemaDir}/**/*.schema.ts`] }
+			});
 			// parse the individual file
 			const schemas = await parser.parseSchemas(schemaFile).catch(() => []);
 			expect(Array.isArray(schemas)).toBe(true);

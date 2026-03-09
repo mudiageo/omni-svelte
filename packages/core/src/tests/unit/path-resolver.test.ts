@@ -180,7 +180,10 @@ describe('PathResolver', () => {
 
 		it('should handle Windows-style paths', () => {
 			const windowsConfig = {
-				drizzle: { path: '.\\src\\lib\\db\\server\\schema.ts', format: 'single-file' },
+				drizzle: {
+					path: '.\\src\\lib\\db\\server\\schema.ts',
+					format: 'single-file'
+				},
 				zod: { path: '.\\src\\lib\\validation', format: 'per-schema' }
 			};
 			const resolver = new PathResolver(windowsConfig);
@@ -192,7 +195,10 @@ describe('PathResolver', () => {
 
 		it('should handle complex nested paths', () => {
 			const complexConfig = {
-				drizzle: { path: './src/app/server/database/schemas/drizzle.ts', format: 'single-file' },
+				drizzle: {
+					path: './src/app/server/database/schemas/drizzle.ts',
+					format: 'single-file'
+				},
 				model: { path: './src/app/models', format: 'per-schema' }
 			};
 			const resolver = new PathResolver(complexConfig);

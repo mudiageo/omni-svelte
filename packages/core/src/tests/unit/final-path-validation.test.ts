@@ -45,7 +45,10 @@ describe('Path Resolution - Final Validation', () => {
 
 	it('should handle mixed configurations correctly', () => {
 		const config = {
-			drizzle: { path: './src/lib/server/db/drizzle.ts', format: 'single-file' },
+			drizzle: {
+				path: './src/lib/server/db/drizzle.ts',
+				format: 'single-file'
+			},
 			zod: { path: './src/lib/validation.ts', format: 'single-file' },
 			model: { path: './src/lib/models', format: 'per-schema' }
 		};

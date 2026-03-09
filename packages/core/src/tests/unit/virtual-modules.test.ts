@@ -7,7 +7,10 @@ const fakeConfig = {
 	schema: {
 		output: {
 			model: { path: 'src/lib/db/models', format: 'per-schema' as const },
-			drizzle: { path: 'src/lib/db/server/schema.ts', format: 'single-file' as const },
+			drizzle: {
+				path: 'src/lib/db/server/schema.ts',
+				format: 'single-file' as const
+			},
 			zod: { path: 'src/lib/db/validation', format: 'per-schema' as const }
 		}
 	}

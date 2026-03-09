@@ -156,10 +156,19 @@ registerCommand({
 	description: 'Generate code from schema definitions',
 	aliases: ['g', 'gen'],
 	args: [
-		{ name: 'type', description: 'Type to generate (schema, model, migration)', required: true }
+		{
+			name: 'type',
+			description: 'Type to generate (schema, model, migration)',
+			required: true
+		}
 	],
 	options: [
-		{ name: 'output', alias: 'o', description: 'Output directory', type: 'string' },
+		{
+			name: 'output',
+			alias: 'o',
+			description: 'Output directory',
+			type: 'string'
+		},
 		{
 			name: 'force',
 			alias: 'f',
@@ -193,7 +202,11 @@ registerCommand({
 			type: 'boolean',
 			default: false
 		},
-		{ name: 'step', description: 'Number of migrations to run/rollback', type: 'number' }
+		{
+			name: 'step',
+			description: 'Number of migrations to run/rollback',
+			type: 'number'
+		}
 	],
 	action: async (args, options) => {
 		console.log(`🗄️  Running migration: ${args.action}...`);
@@ -212,7 +225,14 @@ registerCommand({
 		},
 		{ name: 'name', description: 'Name of the file to create', required: true }
 	],
-	options: [{ name: 'directory', alias: 'd', description: 'Target directory', type: 'string' }],
+	options: [
+		{
+			name: 'directory',
+			alias: 'd',
+			description: 'Target directory',
+			type: 'string'
+		}
+	],
 	action: async (args, options) => {
 		console.log(`📝 Creating ${args.type}: ${args.name}...`);
 		console.warn('⚠️  Make command not yet implemented.');
@@ -223,7 +243,12 @@ registerCommand({
 	name: 'seed',
 	description: 'Run database seeders',
 	options: [
-		{ name: 'class', alias: 'c', description: 'Specific seeder class to run', type: 'string' }
+		{
+			name: 'class',
+			alias: 'c',
+			description: 'Specific seeder class to run',
+			type: 'string'
+		}
 	],
 	action: async (args, options) => {
 		console.log('🌱 Running seeders...');
@@ -235,8 +260,19 @@ registerCommand({
 	name: 'dev',
 	description: 'Start the development server with Omni features',
 	options: [
-		{ name: 'port', alias: 'p', description: 'Port number', type: 'number', default: 5173 },
-		{ name: 'host', description: 'Host to bind to', type: 'string', default: 'localhost' }
+		{
+			name: 'port',
+			alias: 'p',
+			description: 'Port number',
+			type: 'number',
+			default: 5173
+		},
+		{
+			name: 'host',
+			description: 'Host to bind to',
+			type: 'string',
+			default: 'localhost'
+		}
 	],
 	action: async (args, options) => {
 		console.log(`🚀 Starting Omni dev server on ${options.host}:${options.port}...`);

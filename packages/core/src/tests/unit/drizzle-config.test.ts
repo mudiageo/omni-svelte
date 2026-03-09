@@ -44,7 +44,9 @@ describe('resolveSchemaGlob', () => {
 
 	it('per-schema format → returns directory glob', () => {
 		const config = makeSchemaConfig({
-			output: { drizzle: { path: './src/lib/db/server', format: 'per-schema' } }
+			output: {
+				drizzle: { path: './src/lib/db/server', format: 'per-schema' }
+			}
 		});
 		const glob = resolveSchemaGlob('/project', config.output!.drizzle);
 		expect(glob).toBe('./src/lib/db/server/**/*.ts');
@@ -52,7 +54,9 @@ describe('resolveSchemaGlob', () => {
 
 	it('per-schema path with trailing slash → still produces correct glob', () => {
 		const config = makeSchemaConfig({
-			output: { drizzle: { path: './src/lib/db/server/', format: 'per-schema' } }
+			output: {
+				drizzle: { path: './src/lib/db/server/', format: 'per-schema' }
+			}
 		});
 		const glob = resolveSchemaGlob('/project', config.output!.drizzle);
 		expect(glob).toMatch(/\*\*\/\*\.ts$/);
@@ -73,7 +77,10 @@ describe('resolveMigrationsOut', () => {
 	it('uses drizzleConfig.out when specified', () => {
 		const config = makeSchemaConfig({
 			output: {
-				drizzle: { path: './src/lib/db/server/schema.ts', format: 'single-file' },
+				drizzle: {
+					path: './src/lib/db/server/schema.ts',
+					format: 'single-file'
+				},
 				drizzleConfig: { out: './migrations' }
 			} as any
 		});
@@ -159,7 +166,9 @@ describe('generateDrizzleConfig', () => {
 
 		// Now regenerate with a different path
 		const updatedConfig = makeSchemaConfig({
-			output: { drizzle: { path: './src/lib/db/schema.ts', format: 'single-file' } }
+			output: {
+				drizzle: { path: './src/lib/db/schema.ts', format: 'single-file' }
+			}
 		});
 		await generateDrizzleConfig(ROOT, updatedConfig, makeOmniConfig());
 
@@ -194,7 +203,9 @@ describe('generateDrizzleConfig', () => {
 	it('uses glob for per-schema format', async () => {
 		const configPath = join(ROOT, 'drizzle.config.ts');
 		const config = makeSchemaConfig({
-			output: { drizzle: { path: './src/lib/db/server', format: 'per-schema' } }
+			output: {
+				drizzle: { path: './src/lib/db/server', format: 'per-schema' }
+			}
 		});
 
 		await generateDrizzleConfig(ROOT, config, makeOmniConfig());

@@ -304,7 +304,11 @@ export class AuthSchemaSync {
 			name: table.name,
 			fields,
 			config: { timestamps: false, fillable: 'auto', hidden: 'auto' },
-			metadata: { generatedBy: 'auth', isAuthTable: true, managedBy: 'auth-cli' }
+			metadata: {
+				generatedBy: 'auth',
+				isAuthTable: true,
+				managedBy: 'auth-cli'
+			}
 		};
 	}
 
@@ -558,10 +562,22 @@ export class AuthSchemaSync {
 
 		// Fallback: check common paths
 		const possiblePaths = [
-			{ path: resolve(this.projectRoot, 'src/lib/users.schema.ts'), name: 'users' },
-			{ path: resolve(this.projectRoot, 'src/lib/user.schema.ts'), name: 'user' },
-			{ path: resolve(this.projectRoot, 'src/lib/schema/users.schema.ts'), name: 'users' },
-			{ path: resolve(this.projectRoot, 'src/lib/schema/user.schema.ts'), name: 'user' }
+			{
+				path: resolve(this.projectRoot, 'src/lib/users.schema.ts'),
+				name: 'users'
+			},
+			{
+				path: resolve(this.projectRoot, 'src/lib/user.schema.ts'),
+				name: 'user'
+			},
+			{
+				path: resolve(this.projectRoot, 'src/lib/schema/users.schema.ts'),
+				name: 'users'
+			},
+			{
+				path: resolve(this.projectRoot, 'src/lib/schema/user.schema.ts'),
+				name: 'user'
+			}
 		];
 
 		for (const { path, name } of possiblePaths) {
