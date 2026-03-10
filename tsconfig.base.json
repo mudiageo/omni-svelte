@@ -1,25 +1,25 @@
 ﻿{
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "allowJs": true,
-    "checkJs": true,
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
-    "outDir": "dist",
-    "baseUrl": ".",
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
-    "paths": {
-      "@omni-svelte/*": ["packages/*/src"]
-    }
-  }
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"allowJs": true,
+		"checkJs": true,
+		"sourceMap": true,
+		"declaration": true,
+		"declarationMap": true,
+		"outDir": "dist",
+		"baseUrl": ".",
+		"allowImportingTsExtensions": true,
+		"noEmit": true,
+		"paths": {
+			"@omni-svelte/*": ["packages/*/src"]
+		}
+	}
 }
