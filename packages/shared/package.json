@@ -3,19 +3,19 @@
   "version": "0.0.1",
   "description": "Shared utilities for omni-svelte.",
   "type": "module",
-  "main": "./dist/utils.js",
-  "types": "./dist/utils.d.ts",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "types": "./dist/utils.d.ts",
-      "default": "./dist/utils.js"
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
     }
   },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsdown",
     "format": "prettier --write .",
     "lint": "prettier --check . && oxlint ."
   },
@@ -24,6 +24,7 @@
   ],
   "devDependencies": {
     "oxlint": "^1.51.0",
+    "tsdown": "^0.21.1",
     "typescript": "^5.0.0"
   }
 }
