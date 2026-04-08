@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import Post from '$models/posts.model';
+import { Post } from '$lib/schema';
 import { fail } from '@sveltejs/kit';
 import { parsePagination } from 'omni-svelte';
 
@@ -30,7 +30,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		return {
 			posts: {
 				...postsPaginated,
-				data: postsPaginated.data.map((post) => post.toJSON())
+				data: postsPaginated.data.map((post: { toJSON: () => unknown }) => post.toJSON())
 			},
 			search,
 			status

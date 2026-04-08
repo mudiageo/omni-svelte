@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		return {
 			users: {
 				...usersPaginated,
-				data: usersPaginated.data.map((user) => user.toJSON())
+				data: usersPaginated.data.map((user: { toJSON: () => unknown }) => user.toJSON())
 			},
 			search
 		};

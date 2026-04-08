@@ -9,7 +9,7 @@ export function generateModel(
 	schema: Schema,
 	drizzleSchema: ReturnType<typeof generateDrizzleSchema>,
 	zodSchemas: ReturnType<typeof generateZodSchemas>
-) {
+): typeof Model {
 	class GeneratedModel extends Model {
 		static tableName = schema.name;
 		static table = drizzleSchema.table;
@@ -21,12 +21,12 @@ export function generateModel(
 		static realtime = schema.config.realtime;
 		static timestamps = schema.config.timestamps !== false; // Default to true unless explicitly set to false
 
-		constructor(attributes: any = {}) {
+		constructor(attributes: Record<string, unknown> = {}) {
 			super(attributes);
 			this.addComputedProperties(schema);
 		}
 
-		private addComputedProperties(schema: Schema) {
+		addComputedProperties(schema: Schema) {
 			Object.entries(schema.fields).forEach(([fieldName, field]) => {
 				if (field.computed && field.get) {
 					Object.defineProperty(this, fieldName, {

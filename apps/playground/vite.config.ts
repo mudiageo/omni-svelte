@@ -1,6 +1,7 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import tailwindcss from '@tailwindcss/vite';
 import { omniSvelte } from 'omni-svelte/vite';
+import { playwright } from '@vitest/browser-playwright';
 
 export default defineConfig({
 	plugins: [tailwindcss(), omniSvelte()],
@@ -13,7 +14,7 @@ export default defineConfig({
 					environment: 'browser',
 					browser: {
 						enabled: true,
-						provider: 'playwright',
+						provider: playwright(),
 						instances: [{ browser: 'chromium' }]
 					},
 					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],

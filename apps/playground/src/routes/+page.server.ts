@@ -1,6 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { User } from '$lib/schema';
-import { Posts as Post } from '$models/posts.model';
+import { User, Post } from '$lib/schema';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	try {
@@ -34,8 +33,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 				totalPosts,
 				publishedPosts: stats.published
 			},
-			recentUsers: recentUsers.map((user) => user.toJSON()),
-			publishedPosts: publishedPosts.map((post) => post.toJSON())
+			recentUsers: recentUsers.map((user: { toJSON: () => unknown }) => user.toJSON()),
+			publishedPosts: publishedPosts.map((post: { toJSON: () => unknown }) => post.toJSON())
 		};
 	} catch (error) {
 		console.error('Database error:', error);

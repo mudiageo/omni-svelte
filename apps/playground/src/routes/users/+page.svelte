@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { enhance } from '$app/forms';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
@@ -8,7 +8,7 @@
 
 	let searchValue = data.search;
 
-	function handleSearch(e) {
+	function handleSearch(e: SubmitEvent) {
 		e.preventDefault();
 
 		const params = new URLSearchParams(page.url.searchParams);
@@ -21,7 +21,7 @@
 		goto(`?${params.toString()}`);
 	}
 
-	function goToPage(pageNum) {
+	function goToPage(pageNum: number) {
 		const params = new URLSearchParams(page.url.searchParams);
 		params.set('page', pageNum.toString());
 		goto(`?${params.toString()}`);
