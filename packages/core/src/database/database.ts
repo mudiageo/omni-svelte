@@ -2,9 +2,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { loadEnvFile } from 'process';
-
 loadEnvFile();
-
 
 export let database: PostgresJsDatabase = drizzle(postgres(process.env.DATABASE_URL));
 
