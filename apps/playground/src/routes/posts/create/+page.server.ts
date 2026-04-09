@@ -4,10 +4,10 @@ import { redirect, fail, isRedirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	try {
-		const users = await locals.query.users.where('active', true).orderBy('name', 'asc').get();
+		const users = await locals.query.model(User).where('active', true).orderBy('name', 'asc').get();
 
 		return {
-			users: users.map((user: { getAttribute: (key: string) => unknown }) => ({
+			users: users.map((user) => ({
 				id: user.getAttribute('id'),
 				name: user.getAttribute('name')
 			}))

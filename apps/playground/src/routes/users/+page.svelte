@@ -155,7 +155,7 @@
 			<div class="space-x-2 flex">
 				{#if data.users.meta.links.prev}
 					<button
-						onclick={() => goToPage(data.users.meta.links.prev)}
+						onclick={() => goToPage(data.users.meta.links.prev!)}
 						class="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
 					>
 						Previous
@@ -169,7 +169,7 @@
 				{#if data.users.meta.links.next}
 					{data.users.meta.links.next}
 					<button
-						onclick={() => goToPage(data.users.meta.links.next)}
+						onclick={() => goToPage(data.users.meta.links.next!)}
 						class="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
 					>
 						Next

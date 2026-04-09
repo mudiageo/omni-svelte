@@ -300,7 +300,7 @@ const plugin_omni_virtual_aliases: Plugin = {
 			``,
 			`// SERVER-ONLY: Models (contain database queries)`,
 			`declare module '$models' { export * from '${modelsIndex}'; }`,
-			`declare module '$models/*' { const mod: any; export = mod; }`,
+			`declare module '$models/*' { export * from '${modelsIndex}'; }`,
 			``,
 			`// SERVER-ONLY: Drizzle schema table definitions`,
 			`declare module '$schema' { export * from '${drizzleAlias}'; }`,
@@ -313,7 +313,7 @@ const plugin_omni_virtual_aliases: Plugin = {
 			``,
 			`// UNIVERSAL: Zod validation schemas (safe for client and server)`,
 			`declare module '$validation' { export * from '${zodIndex}'; }`,
-			`declare module '$validation/*' { const mod: any; export = mod; }`
+			`declare module '$validation/*' { export * from '${zodIndex}'; }`
 		].join('\n');
 
 		const dtsPath = resolve(root, 'src/omni-env.d.ts');

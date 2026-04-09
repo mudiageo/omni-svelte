@@ -11,12 +11,13 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const status = url.searchParams.get('status') || '';
 
 	try {
-		let query = locals.query.posts.with(['author']);
+		let query = locals.query.model(Post).with(['author']);
 
 		if (search) {
-			query = query
-				.where('title', 'ilike', `%${search}%`)
-				.orWhere('content', 'ilike', `%${search}%`);
+			query = query.whereAny([
+				['title', 'ilike', `%${search}%`],
+				['content', 'ilike', `%${search}%`]
+			]);
 		}
 
 		if (status === 'published') {
@@ -30,7 +31,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		return {
 			posts: {
 				...postsPaginated,
-				data: postsPaginated.data.map((post: { toJSON: () => unknown }) => post.toJSON())
+				data: postsPaginated.data.map((post) => post.toJSON())
 			},
 			search,
 			status

@@ -8,13 +8,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 		const totalPosts = await Post.query().count();
 
 		// Test using locals.query for registered models
-		const recentUsers = await locals.query.users
+		const recentUsers = await locals.query.model(User)
 			.where('active', true)
 			.orderBy('created_at', 'desc')
 			.limit(5)
 			.get();
 
-		const publishedPosts = await locals.query.posts
+		const publishedPosts = await locals.query.model(Post)
 			.where('published', true)
 			.with(['author'])
 			.latest()
@@ -33,8 +33,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 				totalPosts,
 				publishedPosts: stats.published
 			},
-			recentUsers: recentUsers.map((user: { toJSON: () => unknown }) => user.toJSON()),
-			publishedPosts: publishedPosts.map((post: { toJSON: () => unknown }) => post.toJSON())
+			recentUsers: recentUsers.map((user) => user.toJSON()),
+			publishedPosts: publishedPosts.map((post) => post.toJSON())
 		};
 	} catch (error) {
 		console.error('Database error:', error);

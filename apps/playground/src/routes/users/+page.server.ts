@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	perPage = perPage || 10;
 
 	try {
-		let query = locals.query.users;
+		let query = locals.query.model(User);
 		if (search) {
 			query = query.search(search, ['name', 'email']);
 		}
@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		return {
 			users: {
 				...usersPaginated,
-				data: usersPaginated.data.map((user: { toJSON: () => unknown }) => user.toJSON())
+				data: usersPaginated.data.map((user) => user.toJSON())
 			},
 			search
 		};
