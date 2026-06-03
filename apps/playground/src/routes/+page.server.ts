@@ -1,6 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { User } from '$lib/schema';
-import { Posts as Post } from '$models/posts.model';
+import { User, Post } from '$lib/schema';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	try {
@@ -9,13 +8,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 		const totalPosts = await Post.query().count();
 
 		// Test using locals.query for registered models
-		const recentUsers = await locals.query.users
+		const recentUsers = await locals.query.model(User)
 			.where('active', true)
 			.orderBy('created_at', 'desc')
 			.limit(5)
 			.get();
 
-		const publishedPosts = await locals.query.posts
+		const publishedPosts = await locals.query.model(Post)
 			.where('published', true)
 			.with(['author'])
 			.latest()

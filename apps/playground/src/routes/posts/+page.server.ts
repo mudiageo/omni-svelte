@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import Post from '$models/posts.model';
+import { Post } from '$lib/schema';
 import { fail } from '@sveltejs/kit';
 import { parsePagination } from 'omni-svelte';
 
@@ -11,12 +11,13 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const status = url.searchParams.get('status') || '';
 
 	try {
-		let query = locals.query.posts.with(['author']);
+		let query = locals.query.model(Post).with(['author']);
 
 		if (search) {
-			query = query
-				.where('title', 'ilike', `%${search}%`)
-				.orWhere('content', 'ilike', `%${search}%`);
+			query = query.whereAny([
+				['title', 'ilike', `%${search}%`],
+				['content', 'ilike', `%${search}%`]
+			]);
 		}
 
 		if (status === 'published') {

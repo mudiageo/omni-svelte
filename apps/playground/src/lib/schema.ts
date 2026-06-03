@@ -66,7 +66,8 @@ export const userSchema = defineSchema(
 		fullName: {
 			type: 'string',
 			computed: true,
-			get: (record) => `${record.firstName} ${record.lastName}`.trim()
+			get: (record: { firstName: string; lastName: string }) =>
+				`${record.firstName} ${record.lastName}`.trim()
 		}
 	},
 	{
@@ -80,7 +81,7 @@ export const userSchema = defineSchema(
 		realtime: {
 			enabled: true,
 			events: ['created', 'updated'],
-			channels: (user) => [`users`, `user:${user.id}`]
+			channels: (user: { id: number | string }) => [`users`, `user:${user.id}`]
 		}
 	}
 );
@@ -130,7 +131,7 @@ export const postSchema = defineSchema(
 		realtime: {
 			enabled: true,
 			events: ['created', 'updated'],
-			channels: (post) => [`posts`, `post:${post.id}`]
+			channels: (post: { id: number | string }) => [`posts`, `post:${post.id}`]
 		}
 	}
 );

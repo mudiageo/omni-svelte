@@ -98,7 +98,7 @@ function generateDtsContent(config: typeof fakeConfig, root: string): string {
 		``,
 		`// SERVER-ONLY: Models (contain database queries)`,
 		`declare module '$models' { export * from '${modelsIndex}'; }`,
-		`declare module '$models/*' { const mod: any; export = mod; }`,
+		`declare module '$models/*' { export * from '${modelsIndex}'; }`,
 		``,
 		`// SERVER-ONLY: Drizzle schema table definitions`,
 		`declare module '$schema' { export * from '${drizzleAlias}'; }`,
@@ -111,7 +111,7 @@ function generateDtsContent(config: typeof fakeConfig, root: string): string {
 		``,
 		`// UNIVERSAL: Zod validation schemas (safe for client and server)`,
 		`declare module '$validation' { export * from '${zodIndex}'; }`,
-		`declare module '$validation/*' { const mod: any; export = mod; }`
+		`declare module '$validation/*' { export * from '${zodIndex}'; }`
 	].join('\n');
 }
 

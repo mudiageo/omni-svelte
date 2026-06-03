@@ -1,11 +1,10 @@
 import type { PageServerLoad, Actions } from './$types';
-import { Post } from '$lib/models/post.js';
-import { User } from '$lib/models/user.js';
+import { Post, User } from '$lib/schema';
 import { redirect, fail, isRedirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	try {
-		const users = await locals.query.Users.where('active', true).orderBy('name', 'asc').get();
+		const users = await locals.query.model(User).where('active', true).orderBy('name', 'asc').get();
 
 		return {
 			users: users.map((user) => ({
@@ -48,7 +47,7 @@ export const actions: Actions = {
 
 		try {
 			// Verify user exists
-			const user = await User.find(user_id);
+			const user = await User.find(user_id!);
 			if (!user) {
 				return fail(400, {
 					errors: { user_id: 'Selected user not found' },
@@ -58,9 +57,9 @@ export const actions: Actions = {
 
 			// Create post
 			const post = await Post.create({
-				title: title.trim(),
-				content: content.trim(),
-				user_id: parseInt(user_id),
+				title: title!.trim(),
+				content: content!.trim(),
+				user_id: parseInt(user_id!),
 				published
 			});
 

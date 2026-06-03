@@ -36,18 +36,18 @@ export const actions: Actions = {
 		console.log('active', name);
 		try {
 			// Check if email already exists
-			const existingUser = await locals.query.users.where('email', email).first();
+			const existingUser = await locals.query.users.where('email', email!).first();
 			if (existingUser) {
 				return fail(400, {
-					errors: { email: 'Email already exists' },
+					errors: { email: 'Email already exists' } as Record<string, string>,
 					values: { name, email, active }
 				});
 			}
 
 			// Create user
 			const user = await User.create({
-				name: name.trim(),
-				email: email.toLowerCase().trim(),
+				name: name!.trim(),
+				email: email!.toLowerCase().trim(),
 				password, // In real app, hash this password
 				active
 			});
@@ -58,7 +58,7 @@ export const actions: Actions = {
 
 			console.error('Error creating user:', error);
 			return fail(500, {
-				errors: { general: 'Failed to create user' },
+				errors: { general: 'Failed to create user' } as Record<string, string>,
 				values: { name, email, active }
 			});
 		}
