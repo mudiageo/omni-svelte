@@ -61,7 +61,7 @@ export async function handleGenerateCommand(args: mri.Argv) {
 }
 
 function generateModel(name: string) {
-	const className = name.charAt(0).toUpperCase() + name.slice(1);
+const className = name.split(/[-_]/).map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('');
 	const content = `import { Model } from 'omni-svelte/database';
 // import { ${name.toLowerCase()}Table } from '$lib/schema/${name.toLowerCase()}';
 
