@@ -4,31 +4,31 @@ import { addOmniToViteConfig, hasPackageJson, hasViteConfig } from '../utils/pro
 import { installDependencies } from '../utils/package-manager.js';
 
 export interface AddCommandOptions {
-cwd?: string;
-dev?: boolean;
+	cwd?: string;
+	dev?: boolean;
 }
 
 export async function handleAddCommand(options: AddCommandOptions): Promise<void> {
-const cwd = options.cwd ?? process.cwd();
+	const cwd = options.cwd ?? process.cwd();
 
-if (!hasPackageJson(cwd)) {
-throw new Error(`No package.json found in ${cwd}.`);
-}
+	if (!hasPackageJson(cwd)) {
+		throw new Error(`No package.json found in ${cwd}.`);
+	}
 
-intro(pc.bgCyan(pc.black(' OmniSvelte Add ')));
-await installDependencies(['omni-svelte'], { cwd, dev: Boolean(options.dev) });
+	intro(pc.bgCyan(pc.black(' OmniSvelte Add ')));
+	await installDependencies(['omni-svelte'], { cwd, dev: Boolean(options.dev) });
 
-if (!hasViteConfig(cwd)) {
-outro(
-`${pc.yellow('Installed omni-svelte.')}\nNo vite.config.ts found. Add { omni } from 'omni-svelte/vite' manually.`
-);
-return;
-}
+	if (!hasViteConfig(cwd)) {
+		outro(
+			`${pc.yellow('Installed omni-svelte.')}\nNo vite.config.ts found. Add { omni } from 'omni-svelte/vite' manually.`
+		);
+		return;
+	}
 
-const viteUpdated = addOmniToViteConfig(cwd);
-outro(
-viteUpdated
-? pc.green('omni-svelte installed and vite.config.ts updated.')
-: pc.green('omni-svelte installed. vite.config.ts already configured.')
-);
+	const viteUpdated = addOmniToViteConfig(cwd);
+	outro(
+		viteUpdated
+			? pc.green('omni-svelte installed and vite.config.ts updated.')
+			: pc.green('omni-svelte installed. vite.config.ts already configured.')
+	);
 }

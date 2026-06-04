@@ -6,108 +6,115 @@ import { join } from 'path';
 export type GeneratorType = 'model' | 'migration' | 'resource' | 'auth-page' | 'email';
 
 export interface GenerateCommandOptions {
-type?: GeneratorType;
-name?: string;
-output?: string;
-force?: boolean;
-cwd?: string;
+	type?: GeneratorType;
+	name?: string;
+	output?: string;
+	force?: boolean;
+	cwd?: string;
 }
 
 export async function handleGenerateCommand(options: GenerateCommandOptions): Promise<void> {
-let type = options.type;
-let name = options.name;
-const cwd = options.cwd ?? process.cwd();
+	let type = options.type;
+	let name = options.name;
+	const cwd = options.cwd ?? process.cwd();
 
-if (!type) {
-const selectedType = await select({
-message: 'What do you want to generate?',
-options: [
-{ value: 'model', label: 'Model' },
-{ value: 'migration', label: 'Migration' },
-{ value: 'resource', label: 'Resource' },
-{ value: 'auth-page', label: 'Auth Page' },
-{ value: 'email', label: 'Email Template' },
-],
-});
+	if (!type) {
+		const selectedType = await select({
+			message: 'What do you want to generate?',
+			options: [
+				{ value: 'model', label: 'Model' },
+				{ value: 'migration', label: 'Migration' },
+				{ value: 'resource', label: 'Resource' },
+				{ value: 'auth-page', label: 'Auth Page' },
+				{ value: 'email', label: 'Email Template' }
+			]
+		});
 
-if (isCancel(selectedType)) {
-cancel('Operation cancelled');
-return;
-}
+		if (isCancel(selectedType)) {
+			cancel('Operation cancelled');
+			return;
+		}
 
-type = selectedType as GeneratorType;
-}
+		type = selectedType as GeneratorType;
+	}
 
-if (type !== 'auth-page' && !name) {
-const enteredName = await text({
-message: `Name for ${type}`,
-placeholder: 'User',
-validate(value) {
-if (!value.trim()) return 'Name is required';
-},
-});
+	if (type !== 'auth-page' && !name) {
+		const enteredName = await text({
+			message: `Name for ${type}`,
+			placeholder: 'User',
+			validate(value) {
+				if (!value.trim()) return 'Name is required';
+			}
+		});
 
-if (isCancel(enteredName)) {
-cancel('Operation cancelled');
-return;
-}
+		if (isCancel(enteredName)) {
+			cancel('Operation cancelled');
+			return;
+		}
 
-name = String(enteredName);
-}
+		name = String(enteredName);
+	}
 
-switch (type) {
-case 'model':
-generateModel(name!, cwd, options.output, Boolean(options.force));
-break;
-case 'migration':
-generateMigration(name!, cwd, options.output, Boolean(options.force));
-break;
-case 'resource':
-console.log(pc.yellow('Resource generator is planned and coming soon.'));
-break;
-case 'auth-page':
-console.log(pc.yellow('Auth page generator is planned and coming soon.'));
-break;
-case 'email':
-console.log(pc.yellow('Email template generator is planned and coming soon.'));
-break;
-default:
-throw new Error(`Unknown generator type: ${type}`);
-}
+	switch (type) {
+		case 'model':
+			generateModel(name!, cwd, options.output, Boolean(options.force));
+			break;
+		case 'migration':
+			generateMigration(name!, cwd, options.output, Boolean(options.force));
+			break;
+		case 'resource':
+			console.log(pc.yellow('Resource generator is planned and coming soon.'));
+			break;
+		case 'auth-page':
+			console.log(pc.yellow('Auth page generator is planned and coming soon.'));
+			break;
+		case 'email':
+			console.log(pc.yellow('Email template generator is planned and coming soon.'));
+			break;
+		default:
+			throw new Error(`Unknown generator type: ${type}`);
+	}
 }
 
 function generateModel(name: string, cwd: string, output?: string, force = false) {
-const className = toPascalCase(name);
-const targetDir = output ? join(cwd, output) : join(cwd, 'src/lib/models');
-const targetFile = join(targetDir, `${className}.ts`);
+	const className = toPascalCase(name);
+	const targetDir = output ? join(cwd, output) : join(cwd, 'src/lib/models');
+	const targetFile = join(targetDir, `${className}.ts`);
 
-ensureDir(targetDir);
-if (existsSync(targetFile) && !force) {
-throw new Error(`Model ${className} already exists at ${targetFile}. Use --force to overwrite.`);
-}
+	ensureDir(targetDir);
+	if (existsSync(targetFile) && !force) {
+		throw new Error(
+			`Model ${className} already exists at ${targetFile}. Use --force to overwrite.`
+		);
+	}
 
-const content = `import { Model } from 'omni-svelte/database';
+	const content = `import { Model } from 'omni-svelte/database';
 
 export class ${className} extends Model {
 }
 `;
 
-writeFileSync(targetFile, content);
-console.log(pc.green(`✓ Model ${className} created at ${targetFile}`));
+	writeFileSync(targetFile, content);
+	console.log(pc.green(`✓ Model ${className} created at ${targetFile}`));
 }
 
 function generateMigration(name: string, cwd: string, output?: string, force = false) {
-const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
-const filename = `${timestamp}_${name}.ts`;
-const targetDir = output ? join(cwd, output) : join(cwd, 'migrations');
-const targetFile = join(targetDir, filename);
+	const timestamp = new Date()
+		.toISOString()
+		.replace(/[-T:.Z]/g, '')
+		.slice(0, 14);
+	const filename = `${timestamp}_${name}.ts`;
+	const targetDir = output ? join(cwd, output) : join(cwd, 'migrations');
+	const targetFile = join(targetDir, filename);
 
-ensureDir(targetDir);
-if (existsSync(targetFile) && !force) {
-throw new Error(`Migration ${filename} already exists at ${targetFile}. Use --force to overwrite.`);
-}
+	ensureDir(targetDir);
+	if (existsSync(targetFile) && !force) {
+		throw new Error(
+			`Migration ${filename} already exists at ${targetFile}. Use --force to overwrite.`
+		);
+	}
 
-const content = `import { Migration } from 'omni-svelte/database';
+	const content = `import { Migration } from 'omni-svelte/database';
 
 export default class extends Migration {
 async up() {
@@ -120,20 +127,20 @@ async down() {
 }
 `;
 
-writeFileSync(targetFile, content);
-console.log(pc.green(`✓ Migration created at ${targetFile}`));
+	writeFileSync(targetFile, content);
+	console.log(pc.green(`✓ Migration created at ${targetFile}`));
 }
 
 function ensureDir(path: string) {
-if (!existsSync(path)) {
-mkdirSync(path, { recursive: true });
-}
+	if (!existsSync(path)) {
+		mkdirSync(path, { recursive: true });
+	}
 }
 
 function toPascalCase(value: string) {
-return value
-.split(/[-_\s]/)
-.filter(Boolean)
-.map((segment) => segment[0].toUpperCase() + segment.slice(1).toLowerCase())
-.join('');
+	return value
+		.split(/[-_\s]/)
+		.filter(Boolean)
+		.map((segment) => segment[0].toUpperCase() + segment.slice(1).toLowerCase())
+		.join('');
 }
