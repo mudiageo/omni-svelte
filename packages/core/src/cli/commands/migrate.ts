@@ -16,7 +16,7 @@ export async function handleMigrateCommand(options: MigrateCommandOptions): Prom
 
 	switch (action) {
 		case 'up':
-			await runDrizzleMigration('migrate', cwd, options.config);
+			await runDrizzleMigration('migrate', cwd, options.config, options.dbUrl);
 			break;
 		case 'rollback':
 			console.log(pc.yellow('Rollback workflow depends on your migration strategy.'));
@@ -31,9 +31,10 @@ export async function handleMigrateCommand(options: MigrateCommandOptions): Prom
 	}
 }
 
-async function runDrizzleMigration(action: string, cwd: string, config?: string) {
+async function runDrizzleMigration(action: string, cwd: string, config?: string, dbUrl?: string) {
 	console.log(pc.dim(`Running drizzle-kit ${action}...`));
 	await execa('npx', ['drizzle-kit', action, ...(config ? ['--config', config] : [])], {
+		env: { ...process.env, ...(dbUrl ? { DATABASE_URL: dbUrl } : {}) },
 		cwd,
 		stdio: 'inherit'
 	});

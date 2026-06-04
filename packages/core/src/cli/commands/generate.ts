@@ -117,8 +117,10 @@ export default defineSchema('${tableName}', {
 function toSnakeCase(value: string) {
 	return value
 		.replace(/([A-Z])/g, '_$1')
-		.toLowerCase()
-		.replace(/^_/, '');
+		.split(/[-_\s]+/)
+		.filter(Boolean)
+		.join('_')
+		.toLowerCase();
 }
 
 function generateMigration(name: string, cwd: string, output?: string, force = false) {
