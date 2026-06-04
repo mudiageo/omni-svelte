@@ -4,6 +4,7 @@ import pc from 'picocolors';
 export type MigrateAction = 'up' | 'rollback' | 'fresh';
 
 export interface MigrateCommandOptions {
+	dbUrl?: string;
 	action?: MigrateAction;
 	cwd?: string;
 	config?: string;

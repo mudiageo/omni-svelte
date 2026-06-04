@@ -4,6 +4,7 @@ import { addOmniToViteConfig, hasPackageJson, hasViteConfig } from '../utils/pro
 import { installDependencies } from '../utils/package-manager.js';
 
 export interface AddCommandOptions {
+	omniPkg?: string;
 	cwd?: string;
 	dev?: boolean;
 }
@@ -16,7 +17,7 @@ export async function handleAddCommand(options: AddCommandOptions): Promise<void
 	}
 
 	intro(pc.bgCyan(pc.black(' OmniSvelte Add ')));
-	await installDependencies(['omni-svelte'], { cwd, dev: Boolean(options.dev) });
+	await installDependencies([options.omniPkg ?? 'omni-svelte'], { cwd, dev: Boolean(options.dev) });
 
 	if (!hasViteConfig(cwd)) {
 		outro(

@@ -5,6 +5,7 @@ import { runPackageScript } from '../utils/package-manager.js';
 export type DbAction = 'seed' | 'studio' | 'push' | 'pull' | 'generate' | 'check' | 'migrate';
 
 export interface DbCommandOptions {
+	dbUrl?: string;
 	action: DbAction;
 	cwd?: string;
 	config?: string;
