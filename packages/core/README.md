@@ -267,7 +267,7 @@ const session = authClient.useSession();
 
 ---
 
-## CLI (`omni`) _(planned)_
+## CLI (`omni`)
 
 ```bash
 # Project
@@ -275,54 +275,33 @@ npx omni init <name>            # Scaffold a new omni-svelte app
 npx omni add                    # Add omni-svelte to an existing SvelteKit project
 
 # Generators
-omni generate model <name>      # Scaffold schema + model + factory
-omni generate resource <name>   # Scaffold model + routes + CRUD UI
-omni generate auth-page         # Add login/register pages
-omni generate email <name>      # Add email template
+omni generate model <name>      # Scaffold a model
+omni generate migration <name>  # Scaffold a migration file
 
 # Database
 omni migrate                    # Run pending migrations
-omni migrate:rollback           # Roll back last migration
-omni migrate:fresh              # Drop all tables and re-migrate
-omni seed                       # Run database seeders
-omni db:push                    # Push schema changes without migration file
-omni db:pull                    # Pull existing schema from database
+omni migrate rollback           # Show rollback guidance
+omni migrate fresh              # Show fresh-reset guidance
+omni db seed                    # Run database seed script
+omni db push                    # Push schema changes without migration file
+omni db pull                    # Pull existing schema from database
 
 # Development
 omni serve                      # Start dev server (alias for pnpm dev)
-omni serve --with-admin         # Dev server + admin panel (planned)
-omni serve --realtime           # Dev server with WebSocket support
-omni tinker                     # Interactive REPL with models pre-loaded
-
-# Code quality
-omni lint                       # Run ESLint
 omni format                     # Run Prettier
+omni lint                       # Run lints
 omni test                       # Run Vitest
-omni test --coverage            # Run tests with coverage report
+omni build                       # Build project
 
-# Cache
-omni cache:clear                # Clear application cache
-omni cache:stats                # Show cache statistics
-
-# Monitoring & Debug
-omni monitor:queries            # Show slow database queries
-omni monitor:realtime           # Monitor active WebSocket connections
-omni debug:routes               # List all registered routes
-omni debug:models               # List all models and relationships
-omni debug:permissions          # Show permission/role matrix
-omni debug:config               # Show resolved omni config
-
-# Docs
-omni docs:generate              # Generate API docs from schema and types
-omni docs:serve                 # Serve generated docs locally
-
-# Deployment
-omni build:production           # Optimized production build
-omni deploy --env=staging       # Deploy to a target environment
+# Utilities
+omni ui init                    # Initialize shadcn-svelte
+omni ui add button card         # Add UI components
+omni install-dependency zod     # Install dependencies using detected package manager
+omni doctor                     # Validate project setup
 
 # Help
 omni help                       # List all commands
-omni help generate:resource     # Detailed help for a specific command
+omni help generate              # Detailed help for a command
 omni --version                  # Show installed version
 ```
 

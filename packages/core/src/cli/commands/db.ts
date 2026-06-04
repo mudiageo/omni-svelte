@@ -1,69 +1,43 @@
-import mri from 'mri';
-import { select, isCancel, cancel } from '@clack/prompts';
-import { execa } from 'execa';
 import pc from 'picocolors';
+import { execa } from 'execa';
+import { runPackageScript } from '../utils/package-manager.js';
 
-export async function handleDbCommand(args: mri.Argv) {
-	let subCommand = args._[1];
+export type DbAction = 'seed' | 'studio' | 'push' | 'pull' | 'generate' | 'check' | 'migrate';
 
-	if (!subCommand) {
-		const action = await select({
-			message: 'Database operations:',
-			options: [
-				{ value: 'seed', label: 'Seed Database' },
-				{ value: 'studio', label: 'Open Drizzle Studio' },
-				{ value: 'push', label: 'Push Schema (Prototyping)' },
-				{ value: 'generate', label: 'Generate Migrations' },
-				{ value: 'check', label: 'Check Database' },
-			],
-		});
-		if (isCancel(action)) {
-			cancel('Operation cancelled');
-			return process.exit(0);
-		}
-		subCommand = action as string;
-	}
+export interface DbCommandOptions {
+	action: DbAction;
+	cwd?: string;
+	config?: string;
+	script?: string;
+}
 
-	switch (subCommand) {
+export async function handleDbCommand(options: DbCommandOptions): Promise<void> {
+	const cwd = options.cwd ?? process.cwd();
+
+	switch (options.action) {
 		case 'seed':
-			await runDbSeed();
+			await runDbSeed(cwd, options.script);
 			break;
 		case 'studio':
-			await runDrizzleCommand('studio');
-			break;
 		case 'push':
-			await runDrizzleCommand('push');
-			break;
+		case 'pull':
 		case 'generate':
-			await runDrizzleCommand('generate');
-			break;
 		case 'check':
-			await runDrizzleCommand('check');
+		case 'migrate':
+			await runDrizzleCommand(options.action, cwd, options.config);
 			break;
 		default:
-			console.log(pc.red(`Unknown DB command: ${subCommand}`));
+			throw new Error(`Unknown DB command: ${options.action}`);
 	}
 }
 
-async function runDbSeed() {
-	// Need to check if a seeder exists or if we have a seed script
-	console.log(pc.dim('Running seed script...'));
-	try {
-        // Looking for a seed script in package.json or running a default location
-        // For now, assuming standard sveltekit structure, maybe we run a specific file with ts-node or similar?
-        // But sveltekit uses vite-node or similar usually.
-        // Simplest is checking if there is a db:seed script in package.json
-        await execa('npm', ['run', 'db:seed'], { stdio: 'inherit' });
-    } catch (e) {
-         console.log(pc.yellow('Could not find or run "db:seed" script. Please ensure it is defined in package.json or implemented.'));
-    }
+async function runDbSeed(cwd: string, script = 'db:seed') {
+	console.log(pc.dim(`Running ${script} script...`));
+	await runPackageScript(script, [], cwd);
 }
 
-async function runDrizzleCommand(cmd: string) {
-    try {
-        console.log(pc.dim(`Running drizzle-kit ${cmd}...`));
-        await execa('npx', ['drizzle-kit', cmd], { stdio: 'inherit' });
-    } catch (e) {
-        // Error handling delegated to the child process output
-    }
+async function runDrizzleCommand(cmd: string, cwd: string, config?: string) {
+	console.log(pc.dim(`Running drizzle-kit ${cmd}...`));
+	const args = ['drizzle-kit', cmd, ...(config ? ['--config', config] : [])];
+	await execa('npx', args, { cwd, stdio: 'inherit' });
 }

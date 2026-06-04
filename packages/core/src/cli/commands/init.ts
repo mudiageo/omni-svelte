@@ -1,103 +1,74 @@
-import mri from 'mri';
-import { text, isCancel, cancel, intro, outro, spinner } from '@clack/prompts';
-import { execa } from 'execa';
+import { cancel, intro, isCancel, outro, spinner, text } from '@clack/prompts';
 import pc from 'picocolors';
 import { join } from 'path';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { addOmniToViteConfig } from '../utils/project.js';
+import {
+	installDependencies,
+	runPackageExec,
+	runPackageInstall
+} from '../utils/package-manager.js';
 
-export async function handleInitCommand(args: mri.Argv) {
-	intro(pc.bgBlue(pc.white(' Initialize OmniSvelte Project ')));
+export interface InitCommandOptions {
+	name?: string;
+	cwd?: string;
+	skipInstall?: boolean;
+	packageManager?: 'npm' | 'pnpm' | 'yarn' | 'bun';
+}
 
-	let projectName = args._[1];
+export async function handleInitCommand(options: InitCommandOptions): Promise<void> {
+	intro(pc.bgBlue(pc.white(' OmniSvelte Init ')));
 
+	let projectName = options.name;
 	if (!projectName) {
 		const name = await text({
-			message: 'What is the name of your project?',
+			message: 'Project name',
 			placeholder: 'my-omni-app',
-			defaultValue: 'my-omni-app',
+			defaultValue: 'my-omni-app'
 		});
 
 		if (isCancel(name)) {
 			cancel('Operation cancelled');
-			return process.exit(0);
+			return;
 		}
-		projectName = name as string;
+
+		projectName = name.trim();
 	}
+
+	const root = options.cwd ?? process.cwd();
+	const projectPath = join(root, projectName);
 
 	const s = spinner();
-	s.start('Creating SvelteKit project...');
+	s.start('Creating SvelteKit project');
 
-	try {
-		// Run sv create
-		// Using --no-install to modify files before installation
-		await execa('pnpm', [
-			'dlx',
-			'sv',
+	await runPackageExec(
+		'sv',
+		[
 			'create',
 			projectName,
-			'--template', 'minimal',
-			'--types', 'ts',
-			'--add', 'tailwindcss',
+			'--template',
+			'minimal',
+			'--types',
+			'ts',
+			'--add',
+			'tailwindcss',
 			'--no-install'
-		], { stdio: 'inherit' });
+		],
+		root,
+		options.packageManager
+	);
 
-		s.message('Configuring OmniSvelte...');
+	s.message('Installing omni-svelte dependency');
+	await installDependencies(['omni-svelte'], { cwd: projectPath });
 
-		const projectPath = join(process.cwd(), projectName);
+	s.message('Configuring vite plugin');
+	addOmniToViteConfig(projectPath);
 
-		// Update vite.config.ts
-		updateViteConfig(projectPath);
-
-		// Add omni-svelte dependency
-		addDependency(projectPath);
-
-		s.message('Installing dependencies...');
-		await execa('pnpm', ['install'], { cwd: projectPath });
-
-		s.stop('Project created successfully!');
-
-		outro(`
-${pc.green('Success!')} Created ${projectName} at ${projectPath}
-
-Next steps:
-  cd ${projectName}
-  pnpm dev
-`);
-
-	} catch (error: any) {
-		s.stop('Failed to create project');
-		console.error(pc.red(error.message));
-		process.exit(1);
+	if (!options.skipInstall) {
+		s.message('Installing project dependencies');
+		await runPackageInstall(projectPath);
 	}
-}
 
-function updateViteConfig(projectPath: string) {
-	const viteConfigPath = join(projectPath, 'vite.config.ts');
-	if (existsSync(viteConfigPath)) {
-		let content = readFileSync(viteConfigPath, 'utf-8');
+	s.stop('Project initialized');
 
-		// Add import
-		if (!content.includes('omni-svelte/vite')) {
-			content = "import { omni } from 'omni-svelte/vite';"+'\n' + content;
-		}
-
-		// Add plugin
-		// Looking for plugins: [ ... ]
-		// We insert omni() before sveltekit()
-		if (content.includes('plugins: [')) {
-			content = content.replace('plugins: [', 'plugins: [omni(), ');
-		}
-
-		writeFileSync(viteConfigPath, content);
-	}
-}
-
-function addDependency(projectPath: string) {
-	const pkgPath = join(projectPath, 'package.json');
-	if (existsSync(pkgPath)) {
-		const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-		pkg.dependencies = pkg.dependencies || {};
-		pkg.dependencies['omni-svelte'] = 'latest'; // Or specific version
-		writeFileSync(pkgPath, JSON.stringify(pkg, null, '\t'));
-	}
+	outro(`${pc.green('Success!')} Created ${projectName} at ${projectPath}`);
 }

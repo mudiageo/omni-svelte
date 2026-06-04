@@ -162,10 +162,11 @@
 		"@omni-svelte/shared": "workspace:*",
 		"better-auth": "^1.4.4",
 		"chokidar": "^4.0.3",
+		"commander": "^14.0.2",
 		"drizzle-orm": "^0.40.0",
 		"execa": "^9.6.1",
 		"glob": "^11.0.3",
-		"mri": "^1.2.0",
+		"package-manager-detector": "^1.6.0",
 		"picocolors": "^1.1.1",
 		"postgres": "^3.4.5",
 		"zod": "^4.0.5"
