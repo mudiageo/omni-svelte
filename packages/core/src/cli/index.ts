@@ -4,7 +4,6 @@ import { cancel, intro, isCancel, outro, select } from '@clack/prompts';
 import { Command } from 'commander';
 import pc from 'picocolors';
 import { readFileSync } from 'fs';
-import { join } from 'path';
 import { handleAddCommand } from './commands/add.js';
 import { handleDbCommand } from './commands/db.js';
 import { handleDevCommand } from './commands/dev.js';
@@ -193,7 +192,7 @@ async function showInteractiveMenu() {
 		]
 	});
 
-	if (isCancel(action) || action === 'exit') {
+	if (isCancel(action) || (Array.isArray(action) && action[0] === 'exit')) {
 		cancel('Operation cancelled');
 		return;
 	}
@@ -250,11 +249,12 @@ async function runAction(action: () => Promise<void>) {
 }
 
 function getCliVersion() {
-	const localPackagePath = join(process.cwd(), 'package.json');
-	const corePackagePath = join(process.cwd(), 'node_modules', 'omni-svelte', 'package.json');
-	const sourcePackagePath = join(process.cwd(), 'packages', 'core', 'package.json');
+	const packageCandidates = [
+		new URL('../../package.json', import.meta.url),
+		new URL('../../../package.json', import.meta.url)
+	];
 
-	for (const filePath of [localPackagePath, corePackagePath, sourcePackagePath]) {
+	for (const filePath of packageCandidates) {
 		try {
 			const content = readFileSync(filePath, 'utf-8');
 			const pkg = JSON.parse(content) as { version?: string };

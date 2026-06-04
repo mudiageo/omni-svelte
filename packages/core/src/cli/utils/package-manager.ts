@@ -18,7 +18,9 @@ export async function detectPackageManager(cwd = process.cwd()): Promise<Package
 	const userAgent = getUserAgent();
 	const userAgentName = userAgent?.name;
 
-	const candidate = [detected?.name, userAgentName].find((name): name is string => Boolean(name));
+	const candidate = [detected?.name, userAgentName].find(
+		(name): name is string => name != null && name !== ''
+	);
 
 	if (candidate === 'pnpm' || candidate === 'yarn' || candidate === 'bun' || candidate === 'npm') {
 		return { name: candidate, cwd };

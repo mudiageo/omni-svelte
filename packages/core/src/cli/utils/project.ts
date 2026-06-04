@@ -15,7 +15,10 @@ export function addOmniToViteConfig(projectPath: string): boolean {
 	}
 
 	if (!updated.includes('omni()')) {
-		updated = updated.replace(/plugins:\s*\[/, 'plugins: [omni(), ');
+		const pluginArrayPattern = /plugins:\s*\[/m;
+		if (pluginArrayPattern.test(updated)) {
+			updated = updated.replace(pluginArrayPattern, 'plugins: [omni(), ');
+		}
 	}
 
 	if (updated !== original) {

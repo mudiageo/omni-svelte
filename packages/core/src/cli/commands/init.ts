@@ -31,7 +31,7 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 			return;
 		}
 
-		projectName = String(name).trim();
+		projectName = name.trim();
 	}
 
 	const root = options.cwd ?? process.cwd();

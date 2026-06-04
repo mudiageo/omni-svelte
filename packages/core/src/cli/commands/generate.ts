@@ -55,12 +55,16 @@ export async function handleGenerateCommand(options: GenerateCommandOptions): Pr
 		name = String(enteredName);
 	}
 
+	if ((type === 'model' || type === 'migration') && !name) {
+		throw new Error(`A name is required for "${type}" generator.`);
+	}
+
 	switch (type) {
 		case 'model':
-			generateModel(name!, cwd, options.output, Boolean(options.force));
+			generateModel(name, cwd, options.output, Boolean(options.force));
 			break;
 		case 'migration':
-			generateMigration(name!, cwd, options.output, Boolean(options.force));
+			generateMigration(name, cwd, options.output, Boolean(options.force));
 			break;
 		case 'resource':
 			console.log(pc.yellow('Resource generator is planned and coming soon.'));
@@ -117,13 +121,13 @@ function generateMigration(name: string, cwd: string, output?: string, force = f
 	const content = `import { Migration } from 'omni-svelte/database';
 
 export default class extends Migration {
-async up() {
-// Implement migration
-}
+	async up() {
+		// Implement migration
+	}
 
-async down() {
-// Rollback migration
-}
+	async down() {
+		// Rollback migration
+	}
 }
 `;
 
@@ -141,6 +145,9 @@ function toPascalCase(value: string) {
 	return value
 		.split(/[-_\s]/)
 		.filter(Boolean)
-		.map((segment) => segment[0].toUpperCase() + segment.slice(1).toLowerCase())
+		.map((segment) => {
+			const [first = '', ...rest] = segment;
+			return first.toUpperCase() + rest.join('').toLowerCase();
+		})
 		.join('');
 }

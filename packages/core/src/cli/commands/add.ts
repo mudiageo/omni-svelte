@@ -20,7 +20,7 @@ export async function handleAddCommand(options: AddCommandOptions): Promise<void
 
 	if (!hasViteConfig(cwd)) {
 		outro(
-			`${pc.yellow('Installed omni-svelte.')}\nNo vite.config.ts found. Add { omni } from 'omni-svelte/vite' manually.`
+			`${pc.yellow('Installed omni-svelte.')}\nNo vite.config.ts found. Add \`import { omni } from 'omni-svelte/vite'\` and include \`omni()\` in your Vite plugins manually.`
 		);
 		return;
 	}
