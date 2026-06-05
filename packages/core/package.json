@@ -140,6 +140,7 @@
 		"eslint-plugin-svelte": "^3.14.0",
 		"globals": "^17.3.0",
 		"oxlint": "^1.51.0",
+		"package-manager-detector": "^1.6.0",
 		"playwright": "^1.58.2",
 		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.4.1",
@@ -166,7 +167,6 @@
 		"drizzle-orm": "^0.40.0",
 		"execa": "^9.6.1",
 		"glob": "^11.0.3",
-		"package-manager-detector": "^1.6.0",
 		"picocolors": "^1.1.1",
 		"postgres": "^3.4.5",
 		"zod": "^4.0.5"
