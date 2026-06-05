@@ -204,27 +204,62 @@ program
 	});
 
 program
-	.command('debug [target]')
-	.description('Diagnostic commands (routes, models, config) (planned)')
-	.action(() => {
-		console.log(pc.yellow('Debug command is planned and coming soon.'));
-	});
+	.command('debug:routes')
+	.description('List all registered routes (planned)')
+	.action(() => console.log(pc.yellow('Debug routes command is planned.')));
+
+program
+	.command('debug:models')
+	.description('List all models and relationships (planned)')
+	.action(() => console.log(pc.yellow('Debug models command is planned.')));
+
+program
+	.command('debug:permissions')
+	.description('Show permission/role matrix (planned)')
+	.action(() => console.log(pc.yellow('Debug permissions command is planned.')));
+
+program
+	.command('debug:config')
+	.description('Show resolved omni config (planned)')
+	.action(() => console.log(pc.yellow('Debug config command is planned.')));
 
 program
 	.command('cache:clear')
 	.description('Clear application cache (planned)')
-	.action(() => {
-		console.log(pc.yellow('Cache clear command is planned and coming soon.'));
-	});
+	.action(() => console.log(pc.yellow('Cache clear command is planned.')));
 
 program
-	.command('monitor [target]')
-	.description('Monitor queries or realtime connections (planned)')
+	.command('cache:stats')
+	.description('Show cache statistics (planned)')
+	.action(() => console.log(pc.yellow('Cache stats command is planned.')));
+
+program
+	.command('monitor:queries')
+	.description('Show slow database queries (planned)')
+	.action(() => console.log(pc.yellow('Monitor queries command is planned.')));
+
+program
+	.command('monitor:realtime')
+	.description('Monitor active WebSocket connections (planned)')
+	.action(() => console.log(pc.yellow('Monitor realtime command is planned.')));
+
+program
+	.command('serve')
+	.description('Run local development server')
+	.option('--with-admin', 'Dev server + admin panel (planned)')
+	.option('--realtime', 'Dev server with WebSocket support (planned)')
+	.action((options) => {
+		if (options.withAdmin) console.log(pc.yellow('Admin panel is planned and coming soon.'));
+		if (options.realtime) console.log(pc.yellow('Realtime support is planned and coming soon.'));
+		console.log(pc.dim('Running local development server...'));
+	});
+program
+	.command('build:production')
+	.description('Optimized production build (planned)')
 	.action(() => {
-		console.log(pc.yellow('Monitor command is planned and coming soon.'));
+		console.log(pc.yellow('Optimized production build is planned.'));
 	});
 
-addDevAlias('serve', 'Run local development server', 'serve');
 addDevAlias('build', 'Build the project', 'build');
 addDevAlias('test', 'Run test suite', 'test');
 addDevAlias('lint', 'Run lint checks', 'lint');
