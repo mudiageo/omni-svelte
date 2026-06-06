@@ -93,7 +93,7 @@ function generateSchema(
 	const targetDir = output
 		? join(cwd, output)
 		: join(cwd, options?.schemaOutputDir ?? 'src/lib/db/schemas');
-	const targetFile = join(targetDir, `${tableName}.ts`);
+	const targetFile = join(targetDir, `${tableName}.schema.ts`);
 
 	ensureDir(targetDir);
 	if (existsSync(targetFile) && !force) {
