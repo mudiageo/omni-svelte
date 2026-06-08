@@ -3,9 +3,11 @@ import pc from 'picocolors';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-export type GeneratorType = 'model' | 'migration' | 'resource' | 'auth-page' | 'email';
+export type GeneratorType = 'schema' | 'migration' | 'resource' | 'auth-page' | 'email';
 
 export interface GenerateCommandOptions {
+	schemaMode?: string;
+	schemaOutputDir?: string;
 	type?: GeneratorType;
 	name?: string;
 	output?: string;
@@ -22,7 +24,7 @@ export async function handleGenerateCommand(options: GenerateCommandOptions): Pr
 		const selectedType = await select({
 			message: 'What do you want to generate?',
 			options: [
-				{ value: 'model', label: 'Model' },
+				{ value: 'schema', label: 'Schema' },
 				{ value: 'migration', label: 'Migration' },
 				{ value: 'resource', label: 'Resource' },
 				{ value: 'auth-page', label: 'Auth Page' },
@@ -55,13 +57,13 @@ export async function handleGenerateCommand(options: GenerateCommandOptions): Pr
 		name = String(enteredName);
 	}
 
-	if ((type === 'model' || type === 'migration') && !name) {
+	if ((type === 'schema' || type === 'migration') && !name) {
 		throw new Error(`A name is required for "${type}" generator.`);
 	}
 
 	switch (type) {
-		case 'model':
-			generateModel(name, cwd, options.output, Boolean(options.force));
+		case 'schema':
+			generateSchema(name, cwd, options.output, Boolean(options.force), options);
 			break;
 		case 'migration':
 			generateMigration(name, cwd, options.output, Boolean(options.force));
@@ -80,26 +82,45 @@ export async function handleGenerateCommand(options: GenerateCommandOptions): Pr
 	}
 }
 
-function generateModel(name: string, cwd: string, output?: string, force = false) {
-	const className = toPascalCase(name);
-	const targetDir = output ? join(cwd, output) : join(cwd, 'src/lib/models');
-	const targetFile = join(targetDir, `${className}.ts`);
+function generateSchema(
+	name: string,
+	cwd: string,
+	output?: string,
+	force = false,
+	options?: GenerateCommandOptions
+) {
+	const tableName = toSnakeCase(name);
+	const targetDir = output
+		? join(cwd, output)
+		: join(cwd, options?.schemaOutputDir ?? 'src/lib/db/schemas');
+	const targetFile = join(targetDir, `${tableName}.schema.ts`);
 
 	ensureDir(targetDir);
 	if (existsSync(targetFile) && !force) {
 		throw new Error(
-			`Model ${className} already exists at ${targetFile}. Use --force to overwrite.`
+			`Schema ${tableName} already exists at ${targetFile}. Use --force to overwrite.`
 		);
 	}
 
-	const content = `import { Model } from 'omni-svelte/database';
+	const content = `import { defineSchema, field } from 'omni-svelte/schema';
 
-export class ${className} extends Model {
-}
+export default defineSchema('${tableName}', {
+	id: field.uuid().primaryKey().defaultRandom(),
+	// Add your fields here
+});
 `;
 
 	writeFileSync(targetFile, content);
-	console.log(pc.green(`✓ Model ${className} created at ${targetFile}`));
+	console.log(pc.green(`✓ Schema ${tableName} created at ${targetFile}`));
+}
+
+function toSnakeCase(value: string) {
+	return value
+		.replace(/([A-Z])/g, '_$1')
+		.split(/[-_\s]+/)
+		.filter(Boolean)
+		.join('_')
+		.toLowerCase();
 }
 
 function generateMigration(name: string, cwd: string, output?: string, force = false) {

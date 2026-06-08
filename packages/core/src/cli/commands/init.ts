@@ -9,6 +9,7 @@ import {
 } from '../utils/package-manager.js';
 
 export interface InitCommandOptions {
+	omniPkg?: string;
 	name?: string;
 	cwd?: string;
 	skipInstall?: boolean;
@@ -58,7 +59,7 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 	);
 
 	s.message('Installing omni-svelte dependency');
-	await installDependencies(['omni-svelte'], { cwd: projectPath });
+	await installDependencies([options.omniPkg ?? 'omni-svelte'], { cwd: projectPath });
 
 	s.message('Configuring vite plugin');
 	addOmniToViteConfig(projectPath);

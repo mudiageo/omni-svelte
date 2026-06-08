@@ -62,11 +62,12 @@ export async function runPackageExec(
 	packageName: string,
 	args: string[] = [],
 	cwd = process.cwd(),
-	packageManager?: PackageManager
+	packageManager?: PackageManager,
+	execaOptions: any = {}
 ): Promise<PackageManagerContext> {
 	const pm = packageManager ? { name: packageManager, cwd } : await detectPackageManager(cwd);
 	const command = getExecArgs(pm.name, packageName, args);
-	await execa(command.command, command.args, { cwd, stdio: 'inherit' });
+	await execa(command.command, command.args, { cwd, stdio: 'inherit', ...execaOptions });
 	return pm;
 }
 

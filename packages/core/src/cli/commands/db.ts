@@ -1,10 +1,11 @@
 import pc from 'picocolors';
-import { execa } from 'execa';
+import { runPackageExec } from '../utils/package-manager.js';
 import { runPackageScript } from '../utils/package-manager.js';
 
 export type DbAction = 'seed' | 'studio' | 'push' | 'pull' | 'generate' | 'check' | 'migrate';
 
 export interface DbCommandOptions {
+	dbUrl?: string;
 	action: DbAction;
 	cwd?: string;
 	config?: string;
@@ -24,7 +25,7 @@ export async function handleDbCommand(options: DbCommandOptions): Promise<void> 
 		case 'generate':
 		case 'check':
 		case 'migrate':
-			await runDrizzleCommand(options.action, cwd, options.config);
+			await runDrizzleCommand(options.action, cwd, options.config, options.dbUrl);
 			break;
 		default:
 			throw new Error(`Unknown DB command: ${options.action}`);
@@ -36,8 +37,15 @@ async function runDbSeed(cwd: string, script = 'db:seed') {
 	await runPackageScript(script, [], cwd);
 }
 
-async function runDrizzleCommand(cmd: string, cwd: string, config?: string) {
+async function runDrizzleCommand(cmd: string, cwd: string, config?: string, dbUrl?: string) {
 	console.log(pc.dim(`Running drizzle-kit ${cmd}...`));
-	const args = ['drizzle-kit', cmd, ...(config ? ['--config', config] : [])];
-	await execa('npx', args, { cwd, stdio: 'inherit' });
+	await runPackageExec(
+		'drizzle-kit',
+		[cmd, ...(config ? ['--config', config] : [])],
+		cwd,
+		undefined,
+		{
+			env: { ...process.env, ...(dbUrl ? { DATABASE_URL: dbUrl } : {}) }
+		}
+	);
 }
