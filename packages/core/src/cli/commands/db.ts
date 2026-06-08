@@ -1,5 +1,5 @@
 import pc from 'picocolors';
-import { execa } from 'execa';
+import { runPackageExec } from '../utils/package-manager.js';
 import { runPackageScript } from '../utils/package-manager.js';
 
 export type DbAction = 'seed' | 'studio' | 'push' | 'pull' | 'generate' | 'check' | 'migrate';
@@ -39,10 +39,13 @@ async function runDbSeed(cwd: string, script = 'db:seed') {
 
 async function runDrizzleCommand(cmd: string, cwd: string, config?: string, dbUrl?: string) {
 	console.log(pc.dim(`Running drizzle-kit ${cmd}...`));
-	const args = ['drizzle-kit', cmd, ...(config ? ['--config', config] : [])];
-	await execa('npx', args, {
+	await runPackageExec(
+		'drizzle-kit',
+		[cmd, ...(config ? ['--config', config] : [])],
 		cwd,
-		stdio: 'inherit',
-		env: { ...process.env, ...(dbUrl ? { DATABASE_URL: dbUrl } : {}) }
-	});
+		undefined,
+		{
+			env: { ...process.env, ...(dbUrl ? { DATABASE_URL: dbUrl } : {}) }
+		}
+	);
 }

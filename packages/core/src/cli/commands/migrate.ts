@@ -1,4 +1,4 @@
-import { execa } from 'execa';
+import { runPackageExec } from '../utils/package-manager.js';
 import pc from 'picocolors';
 
 export type MigrateAction = 'up' | 'rollback' | 'fresh';
@@ -33,9 +33,13 @@ export async function handleMigrateCommand(options: MigrateCommandOptions): Prom
 
 async function runDrizzleMigration(action: string, cwd: string, config?: string, dbUrl?: string) {
 	console.log(pc.dim(`Running drizzle-kit ${action}...`));
-	await execa('npx', ['drizzle-kit', action, ...(config ? ['--config', config] : [])], {
-		env: { ...process.env, ...(dbUrl ? { DATABASE_URL: dbUrl } : {}) },
+	await runPackageExec(
+		'drizzle-kit',
+		[action, ...(config ? ['--config', config] : [])],
 		cwd,
-		stdio: 'inherit'
-	});
+		undefined,
+		{
+			env: { ...process.env, ...(dbUrl ? { DATABASE_URL: dbUrl } : {}) }
+		}
+	);
 }
