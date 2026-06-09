@@ -161,4 +161,3 @@ function ensureDir(path: string) {
 		mkdirSync(path, { recursive: true });
 	}
 }
-
