@@ -43,6 +43,7 @@ omni init my-app
 ```
 
 **Options:**
+
 - `--cwd <path>`: Create the project from a different directory.
 - `--skip-install`: Skip final dependency installation.
 - `--package-manager <name>`: Force a specific package manager (`npm` | `pnpm` | `yarn` | `bun`).
@@ -60,6 +61,7 @@ omni add --cwd ./my-app
 ```
 
 **Options:**
+
 - `--cwd <path>`: Target project directory (defaults to current directory).
 - `-D, --dev`: Install as a dev dependency.
 - `--omni-pkg <package>`: Install omni-svelte from a specific package or local path.
@@ -76,6 +78,7 @@ omni g migration add_posts_table --output src/lib/db/migrations
 ```
 
 **Types:**
+
 - `schema` — Generates a `defineSchema` file in `src/lib/db/schemas/`.
 - `migration` — Generates a timestamped migration stub in `migrations/`.
 - `resource` _(planned)_ — Full CRUD resource scaffold.
@@ -83,6 +86,7 @@ omni g migration add_posts_table --output src/lib/db/migrations
 - `email` _(planned)_ — Email template scaffold.
 
 **Options:**
+
 - `-o, --output <path>`: Custom output directory (relative to `--cwd`).
 - `-f, --force`: Overwrite existing output files.
 - `--cwd <path>`: Working directory (defaults to current directory).
@@ -102,6 +106,7 @@ omni db studio --config drizzle.config.ts
 ```
 
 **Actions:**
+
 - `push` — Push schema to the database without a migration file.
 - `pull` — Pull the existing schema from the database.
 - `generate` — Generate Drizzle migration files.
@@ -111,6 +116,7 @@ omni db studio --config drizzle.config.ts
 - `seed` — Run the database seed script.
 
 **Options:**
+
 - `--config <path>`: Path to the drizzle config file.
 - `--script <name>`: Script name for the `seed` task (default: `db:seed`).
 - `--cwd <path>`: Working directory.
@@ -129,11 +135,13 @@ omni migrate fresh
 ```
 
 **Actions:**
+
 - _(no action)_ / `up` — Run pending migrations (default).
 - `rollback` — Prints rollback guidance (manual process).
 - `fresh` — Prints fresh-reset guidance (manual process).
 
 **Options:**
+
 - `--cwd <path>`: Working directory.
 - `--config <path>`: Path to the drizzle config file.
 - `--db-url <url>`: Override the database connection URL.
@@ -151,10 +159,12 @@ omni ui add --yes
 ```
 
 **Actions:**
+
 - `init` — Initialize shadcn-svelte in the project.
 - `add [components...]` — Add one or more shadcn-svelte components.
 
 **Options:**
+
 - `--cwd <path>`: Working directory.
 - `-y, --yes`: Skip interactive prompts in the shadcn CLI.
 
@@ -169,6 +179,7 @@ omni doctor
 ```
 
 **Options:**
+
 - `--cwd <path>`: Working directory.
 
 ---
@@ -183,6 +194,7 @@ omni install-dependency vitest @testing-library/svelte -D
 ```
 
 **Options:**
+
 - `--cwd <path>`: Working directory.
 - `-D, --dev`: Install as dev dependencies.
 
@@ -192,15 +204,16 @@ omni install-dependency vitest @testing-library/svelte -D
 
 The following commands proxy to your project's package manager scripts, forwarding any extra arguments:
 
-| Command | Equivalent |
-|---|---|
-| `omni serve` | `<pm> run dev` |
-| `omni build` | `<pm> run build` |
-| `omni test` | `<pm> run test` |
-| `omni lint` | `<pm> run lint` |
+| Command       | Equivalent        |
+| ------------- | ----------------- |
+| `omni serve`  | `<pm> run dev`    |
+| `omni build`  | `<pm> run build`  |
+| `omni test`   | `<pm> run test`   |
+| `omni lint`   | `<pm> run lint`   |
 | `omni format` | `<pm> run format` |
 
 All accept:
+
 - `--cwd <path>`: Working directory.
 - Any extra positional arguments are forwarded to the underlying script.
 
@@ -213,10 +226,10 @@ omni build --mode production
 
 ## Global Options
 
-| Option | Description |
-|---|---|
+| Option          | Description                |
+| --------------- | -------------------------- |
 | `-v, --version` | Show installed CLI version |
-| `--help` | Show help for any command |
+| `--help`        | Show help for any command  |
 
 Running any command with an unknown option shows a suggestion:
 
@@ -232,20 +245,20 @@ omni init --hlep
 
 The following commands are registered as stubs and will be implemented in upcoming releases:
 
-| Command | Description |
-|---|---|
-| `omni tinker` | Interactive REPL with models pre-loaded |
-| `omni deploy [--env <name>]` | Deployment helper |
-| `omni docs:generate` | Generate API docs from schema + JSDoc |
-| `omni docs:serve` | Serve generated docs locally |
-| `omni debug:routes` | List all registered routes |
-| `omni debug:models` | List all models and relationships |
-| `omni debug:permissions` | Show permission/role matrix |
-| `omni debug:config` | Show resolved omni config |
-| `omni cache:clear` | Clear application cache |
-| `omni cache:stats` | Show cache statistics |
-| `omni monitor:queries` | Show slow database queries |
-| `omni monitor:realtime` | Monitor active WebSocket connections |
-| `omni build:production` | Optimized production build |
-| `omni serve --with-admin` | Dev server + admin panel |
-| `omni serve --realtime` | Dev server with WebSocket support |
+| Command                      | Description                             |
+| ---------------------------- | --------------------------------------- |
+| `omni tinker`                | Interactive REPL with models pre-loaded |
+| `omni deploy [--env <name>]` | Deployment helper                       |
+| `omni docs:generate`         | Generate API docs from schema + JSDoc   |
+| `omni docs:serve`            | Serve generated docs locally            |
+| `omni debug:routes`          | List all registered routes              |
+| `omni debug:models`          | List all models and relationships       |
+| `omni debug:permissions`     | Show permission/role matrix             |
+| `omni debug:config`          | Show resolved omni config               |
+| `omni cache:clear`           | Clear application cache                 |
+| `omni cache:stats`           | Show cache statistics                   |
+| `omni monitor:queries`       | Show slow database queries              |
+| `omni monitor:realtime`      | Monitor active WebSocket connections    |
+| `omni build:production`      | Optimized production build              |
+| `omni serve --with-admin`    | Dev server + admin panel                |
+| `omni serve --realtime`      | Dev server with WebSocket support       |
