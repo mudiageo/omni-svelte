@@ -1,6 +1,5 @@
 import pc from 'picocolors';
-import { runPackageExec } from '../utils/package-manager.js';
-import { runPackageScript } from '../utils/package-manager.js';
+import { runPackageExec, runPackageScript } from '../utils/package-manager.js';
 
 export type DbAction = 'seed' | 'studio' | 'push' | 'pull' | 'generate' | 'check' | 'migrate';
 

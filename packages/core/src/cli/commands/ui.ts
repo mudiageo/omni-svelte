@@ -1,6 +1,6 @@
 import { cancel, isCancel, select, text } from '@clack/prompts';
-import { execa } from 'execa';
 import pc from 'picocolors';
+import { runPackageExec } from '../utils/package-manager.js';
 
 export interface UiCommandOptions {
 	action?: 'init' | 'add';
@@ -48,11 +48,11 @@ export async function handleUiCommand(options: UiCommandOptions): Promise<void> 
 			.filter(Boolean);
 	}
 
-	const args =
+	const shadcnArgs =
 		action === 'add'
-			? ['shadcn-svelte@latest', 'add', ...components, ...(options.yes ? ['--yes'] : [])]
-			: ['shadcn-svelte@latest', 'init', ...(options.yes ? ['--yes'] : [])];
+			? ['add', ...components, ...(options.yes ? ['--yes'] : [])]
+			: ['init', ...(options.yes ? ['--yes'] : [])];
 
-	console.log(pc.dim(`Running npx ${args.join(' ')}`));
-	await execa('npx', args, { cwd, stdio: 'inherit' });
+	console.log(pc.dim(`Running shadcn-svelte@latest ${shadcnArgs.join(' ')}`));
+	await runPackageExec('shadcn-svelte@latest', shadcnArgs, cwd);
 }

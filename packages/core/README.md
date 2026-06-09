@@ -23,7 +23,7 @@ Transform SvelteKit into a powerhouse with enterprise-grade features out of the 
 
 🎨 **Beautiful by Default** — shadcn-svelte UI integration, accessible form components, and pre-built layouts. _(in progress)_
 
-🛠️ **Developer First** — Powerful CLI (`omni`) for scaffolding, migrations, seeding, debugging, and more. _(in progress)_
+🛠️ **Developer First** — Powerful CLI (`omni`) for scaffolding, schema generation, migrations, UI components, and more.
 
 🔌 **Extensible by Design** — A comprehensive plugin API that can add database tables, auth providers, CLI commands, routes, API endpoints, UI components, real-time channels, email templates, and more.
 
@@ -275,33 +275,38 @@ npx omni init <name>            # Scaffold a new omni-svelte app
 npx omni add                    # Add omni-svelte to an existing SvelteKit project
 
 # Generators
-omni generate model <name>      # Scaffold a model
+omni generate schema <name>     # Scaffold a schema file
 omni generate migration <name>  # Scaffold a migration file
+omni g schema <name> -o src/lib/db/schemas  # Short alias with custom output
 
 # Database
-omni migrate                    # Run pending migrations
+omni db push                    # Push schema changes without a migration file
+omni db pull                    # Pull existing schema from the database
+omni db generate                # Generate Drizzle migration files
+omni db migrate                 # Run pending migrations
+omni db check                   # Validate migration state
+omni db studio                  # Open Drizzle Studio
+omni db seed --script db:seed   # Run the database seed script
+
+# Migrations
+omni migrate                    # Run pending migrations (shorthand)
 omni migrate rollback           # Show rollback guidance
 omni migrate fresh              # Show fresh-reset guidance
-omni db seed                    # Run database seed script
-omni db push                    # Push schema changes without migration file
-omni db pull                    # Pull existing schema from database
 
-# Development
-omni serve                      # Start dev server (alias for pnpm dev)
-omni format                     # Run Prettier
-omni lint                       # Run lints
-omni test                       # Run Vitest
-omni build                       # Build project
+# Development scripts (delegates to your package manager)
+omni serve                      # Start dev server (runs <pm> dev)
+omni build                      # Build project
+omni test                       # Run test suite
+omni lint                       # Run linter
+omni format                     # Format project files
 
-# Utilities
+# UI components
 omni ui init                    # Initialize shadcn-svelte
 omni ui add button card         # Add UI components
-omni install-dependency zod     # Install dependencies using detected package manager
-omni doctor                     # Validate project setup
 
-# Help
-omni help                       # List all commands
-omni help generate              # Detailed help for a command
+# Utilities
+omni install-dependency zod     # Install deps with auto-detected package manager
+omni doctor                     # Validate project setup
 omni --version                  # Show installed version
 ```
 
@@ -386,10 +391,14 @@ const myPlugin: OmniPlugin = {
 
 - [ ] `createFactory` helper — functional alternative to class-based `Factory`
 - [ ] Relationship definitions in `defineSchema` (auto-generate `with()` loaders)
-- [ ] `npx omni init` — scaffold new projects interactively
-- [ ] `omni add` — add omni-svelte to existing SvelteKit projects
-- [ ] `omni generate model|resource|auth-page|email` generators
-- [ ] `omni migrate`, `omni seed`, `omni db:push` database commands
+- [x] `npx omni init` — scaffold new projects interactively
+- [x] `omni add` — add omni-svelte to existing SvelteKit projects
+- [x] `omni generate schema|migration` generators (resource, auth-page, email coming soon)
+- [x] `omni migrate`, `omni db push|pull|generate|migrate|check|studio|seed` database commands
+- [x] `omni ui init|add` — shadcn-svelte integration
+- [x] `omni doctor` — project health checks
+- [x] `omni install-dependency` — package manager-aware dependency installer
+- [x] `omni serve|build|test|lint|format` — dev script aliases
 - [ ] `omni tinker` — interactive REPL with models pre-loaded
 - [ ] Plugin CLI command registration (`omni <plugin>:<cmd>`)
 - [ ] `omni debug:routes|models|config` diagnostic commands

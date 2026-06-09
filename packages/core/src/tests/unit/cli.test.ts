@@ -1,13 +1,5 @@
 import { describe, expect, it } from 'vitest';
-
-function toSnakeCase(value: string) {
-	return value
-		.replace(/([A-Z])/g, '_$1')
-		.split(/[-_\s]+/)
-		.filter(Boolean)
-		.join('_')
-		.toLowerCase();
-}
+import { toSnakeCase } from '../../cli/commands/generate.js';
 
 describe('CLI utilities', () => {
 	describe('toSnakeCase', () => {

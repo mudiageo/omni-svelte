@@ -114,7 +114,7 @@ export default defineSchema('${tableName}', {
 	console.log(pc.green(`✓ Schema ${tableName} created at ${targetFile}`));
 }
 
-function toSnakeCase(value: string) {
+export function toSnakeCase(value: string) {
 	return value
 		.replace(/([A-Z])/g, '_$1')
 		.split(/[-_\s]+/)
@@ -162,13 +162,3 @@ function ensureDir(path: string) {
 	}
 }
 
-function toPascalCase(value: string) {
-	return value
-		.split(/[-_\s]/)
-		.filter(Boolean)
-		.map((segment) => {
-			const [first = '', ...rest] = segment;
-			return first.toUpperCase() + rest.join('').toLowerCase();
-		})
-		.join('');
-}
