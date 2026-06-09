@@ -1,7 +1,7 @@
 import { cancel, isCancel, select, text } from '@clack/prompts';
 import pc from 'picocolors';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { basename, join, resolve, sep } from 'path';
 
 export type GeneratorType = 'schema' | 'migration' | 'resource' | 'auth-page' | 'email';
 
@@ -89,11 +89,14 @@ function generateSchema(
 	force = false,
 	options?: GenerateCommandOptions
 ) {
-	const tableName = toSnakeCase(name);
+	const safeName = sanitizeName(name);
+	const tableName = toSnakeCase(safeName);
 	const targetDir = output
 		? join(cwd, output)
 		: join(cwd, options?.schemaOutputDir ?? 'src/lib/db/schemas');
 	const targetFile = join(targetDir, `${tableName}.schema.ts`);
+
+	assertWithinDir(targetFile, targetDir);
 
 	ensureDir(targetDir);
 	if (existsSync(targetFile) && !force) {
@@ -124,13 +127,16 @@ export function toSnakeCase(value: string) {
 }
 
 function generateMigration(name: string, cwd: string, output?: string, force = false) {
+	const safeName = sanitizeName(name);
 	const timestamp = new Date()
 		.toISOString()
 		.replace(/[-T:.Z]/g, '')
 		.slice(0, 14);
-	const filename = `${timestamp}_${name}.ts`;
+	const filename = `${timestamp}_${safeName}.ts`;
 	const targetDir = output ? join(cwd, output) : join(cwd, 'migrations');
 	const targetFile = join(targetDir, filename);
+
+	assertWithinDir(targetFile, targetDir);
 
 	ensureDir(targetDir);
 	if (existsSync(targetFile) && !force) {
@@ -159,5 +165,33 @@ export default class extends Migration {
 function ensureDir(path: string) {
 	if (!existsSync(path)) {
 		mkdirSync(path, { recursive: true });
+	}
+}
+
+/**
+ * Sanitize a user-provided name to prevent path traversal.
+ * Strips path separators, `..`, and normalizes to safe characters.
+ */
+function sanitizeName(name: string): string {
+	// Take only the basename to strip any directory segments
+	let safe = basename(name);
+	// Remove any remaining path traversal patterns
+	safe = safe.replace(/\.\./g, '');
+	// Keep only safe characters: letters, digits, hyphens, underscores
+	safe = safe.replace(/[^a-zA-Z0-9_-]/g, '');
+	if (!safe) {
+		throw new Error(`Invalid name: "${name}". Name must contain at least one alphanumeric character.`);
+	}
+	return safe;
+}
+
+/**
+ * Assert that a resolved file path is within the expected target directory.
+ */
+function assertWithinDir(filePath: string, dirPath: string): void {
+	const resolvedFile = resolve(filePath);
+	const resolvedDir = resolve(dirPath);
+	if (!resolvedFile.startsWith(resolvedDir + sep) && resolvedFile !== resolvedDir) {
+		throw new Error(`Path traversal detected: ${filePath} escapes ${dirPath}`);
 	}
 }

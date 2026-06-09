@@ -11,6 +11,7 @@ export interface PackageManagerContext {
 export interface InstallDependencyOptions {
 	cwd?: string;
 	dev?: boolean;
+	packageManager?: PackageManager;
 }
 
 export async function detectPackageManager(cwd = process.cwd()): Promise<PackageManagerContext> {
@@ -34,7 +35,9 @@ export async function installDependencies(
 	options: InstallDependencyOptions = {}
 ): Promise<PackageManagerContext> {
 	const cwd = options.cwd ?? process.cwd();
-	const pm = await detectPackageManager(cwd);
+	const pm = options.packageManager
+		? { name: options.packageManager, cwd }
+		: await detectPackageManager(cwd);
 	const args = getInstallArgs(pm.name, packages, options.dev ?? false);
 	await execa(args.command, args.args, { cwd, stdio: 'inherit' });
 	return pm;
@@ -90,7 +93,7 @@ function getInstallArgs(name: PackageManager, packages: string[], dev: boolean) 
 function getRunScriptArgs(name: PackageManager, script: string, args: string[]) {
 	switch (name) {
 		case 'pnpm':
-			return { command: 'pnpm', args: ['run', script, ...args] };
+			return { command: 'pnpm', args: ['run', script, ...(args.length ? ['--', ...args] : [])] };
 		case 'yarn':
 			return { command: 'yarn', args: [script, ...args] };
 		case 'bun':
