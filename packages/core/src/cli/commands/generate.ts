@@ -180,7 +180,9 @@ function sanitizeName(name: string): string {
 	// Keep only safe characters: letters, digits, hyphens, underscores
 	safe = safe.replace(/[^a-zA-Z0-9_-]/g, '');
 	if (!safe) {
-		throw new Error(`Invalid name: "${name}". Name must contain at least one alphanumeric character.`);
+		throw new Error(
+			`Invalid name: "${name}". Name must contain at least one alphanumeric character.`
+		);
 	}
 	return safe;
 }
