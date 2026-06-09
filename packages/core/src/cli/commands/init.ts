@@ -1,8 +1,10 @@
-import { cancel, intro, isCancel, outro, spinner, text } from '@clack/prompts';
+import { cancel, intro, isCancel, outro, select, spinner, text } from '@clack/prompts';
 import pc from 'picocolors';
 import { join } from 'path';
 import { addOmniToViteConfig } from '../utils/project.js';
 import {
+	type PackageManager,
+	SUPPORTED_PACKAGE_MANAGERS,
 	installDependencies,
 	runPackageExec,
 	runPackageInstall
@@ -13,7 +15,7 @@ export interface InitCommandOptions {
 	name?: string;
 	cwd?: string;
 	skipInstall?: boolean;
-	packageManager?: 'npm' | 'pnpm' | 'yarn' | 'bun';
+	packageManager?: PackageManager;
 }
 
 export async function handleInitCommand(options: InitCommandOptions): Promise<void> {
@@ -33,6 +35,26 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 		}
 
 		projectName = name.trim();
+	}
+
+	// Prompt for package manager if not specified via flag
+	let packageManager = options.packageManager;
+	if (!packageManager) {
+		const selected = await select({
+			message: 'Which package manager do you want to use?',
+			options: SUPPORTED_PACKAGE_MANAGERS.map((pm) => ({
+				value: pm,
+				label: pm,
+				hint: pm === 'vp' ? 'Vite+ toolchain' : pm === 'deno' ? 'Deno runtime' : undefined
+			}))
+		});
+
+		if (isCancel(selected)) {
+			cancel('Operation cancelled');
+			return;
+		}
+
+		packageManager = selected as PackageManager;
 	}
 
 	const root = options.cwd ?? process.cwd();
@@ -55,11 +77,14 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 			'--no-install'
 		],
 		root,
-		options.packageManager
+		packageManager
 	);
 
 	s.message('Installing omni-svelte dependency');
-	await installDependencies([options.omniPkg ?? 'omni-svelte'], { cwd: projectPath });
+	await installDependencies([options.omniPkg ?? 'omni-svelte'], {
+		cwd: projectPath,
+		packageManager
+	});
 
 	s.message('Configuring vite plugin');
 	addOmniToViteConfig(projectPath);

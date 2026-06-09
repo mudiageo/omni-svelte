@@ -51,7 +51,7 @@ program
 	.description('Scaffold a new OmniSvelte-ready SvelteKit app')
 	.option('--cwd <path>', 'Create the project from a different directory')
 	.option('--skip-install', 'Skip final dependency installation', false)
-	.option('--package-manager <name>', 'Force package manager (npm|pnpm|yarn|bun)')
+	.option('--package-manager <name>', 'Force package manager (npm|pnpm|yarn|bun|deno|vp)')
 	.option('--omni-pkg <package>', 'Install omni-svelte from a specific package/path (for testing)')
 	.action(async (name, options) => {
 		await runAction(() =>
@@ -70,10 +70,16 @@ program
 	.description('Add OmniSvelte to an existing SvelteKit project')
 	.option('--cwd <path>', 'Target project directory', process.cwd())
 	.option('-D, --dev', 'Install as a dev dependency', false)
+	.option('--package-manager <name>', 'Force package manager (npm|pnpm|yarn|bun|deno|vp)')
 	.option('--omni-pkg <package>', 'Install omni-svelte from a specific package/path (for testing)')
 	.action(async (options) => {
 		await runAction(() =>
-			handleAddCommand({ cwd: options.cwd, dev: options.dev, omniPkg: options.omniPkg })
+			handleAddCommand({
+				cwd: options.cwd,
+				dev: options.dev,
+				omniPkg: options.omniPkg,
+				packageManager: options.packageManager
+			})
 		);
 	});
 
