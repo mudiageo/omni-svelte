@@ -7,7 +7,7 @@ description: Add omni-svelte to a new or existing SvelteKit project using the CL
 
 ## Prerequisites
 
-- Node.js ≥ 18
+- Node.js ≥ 22
 - pnpm, npm, yarn, or bun
 - A SvelteKit project (for existing projects) or none at all (for new projects)
 
