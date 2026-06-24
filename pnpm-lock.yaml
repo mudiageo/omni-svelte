@@ -50,9 +50,6 @@ importers:
 
   apps/docs:
     dependencies:
-      bits-ui:
-        specifier: ^1.0.0
-        version: 1.8.0(svelte@5.53.7)
       mode-watcher:
         specifier: ^1.1.0
         version: 1.1.0(svelte@5.53.7)
@@ -66,6 +63,9 @@ importers:
       '@fontsource-variable/inter':
         specifier: ^5.2.8
         version: 5.2.8
+      '@internationalized/date':
+        specifier: ^3.12.2
+        version: 3.12.2
       '@lucide/svelte':
         specifier: ^1.21.0
         version: 1.21.0(svelte@5.53.7)
@@ -87,9 +87,15 @@ importers:
       '@types/node':
         specifier: ^24
         version: 24.12.0
+      bits-ui:
+        specifier: ^2.18.1
+        version: 2.18.1(@internationalized/date@3.12.2)(@sveltejs/kit@2.53.4(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.7)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7)(typescript@5.8.3)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      embla-carousel-svelte:
+        specifier: ^8.6.0
+        version: 8.6.0(svelte@5.53.7)
       eslint:
         specifier: ^9.39.2
         version: 9.39.3(jiti@2.6.1)
@@ -1621,8 +1627,8 @@ packages:
       '@types/node':
         optional: true
 
-  '@internationalized/date@3.11.0':
-    resolution: {integrity: sha512-BOx5huLAWhicM9/ZFs84CzP+V3gBW6vlpM02yzsdYC7TGlZJX1OJiEEHcSayF00Z+3jLlm4w79amvSt6RqKN3Q==}
+  '@internationalized/date@3.12.2':
+    resolution: {integrity: sha512-FY1Y+H64NDs+HAF6omlnWxm3mEpfgaCSWtL5l551ZZfImA+kGjPFgrnJrGjH6lfmLL0g8Z/mBu1R3kufeCp6Jw==}
 
   '@isaacs/balanced-match@4.0.1':
     resolution: {integrity: sha512-yzMTt9lEb8Gv7zRioUilSglI0c0smZ9k5D65677DLWLtWJaXIS3CqcGyUFByYKlnUj6TkjLVs54fBl6+TiGQDQ==}
@@ -2764,11 +2770,12 @@ packages:
   birpc@4.0.0:
     resolution: {integrity: sha512-LShSxJP0KTmd101b6DRyGBj57LZxSDYWKitQNW/mi8GRMvZb078Uf9+pveax1DrVL89vm7mWe+TovdI/UDOuPw==}
 
-  bits-ui@1.8.0:
-    resolution: {integrity: sha512-CXD6Orp7l8QevNDcRPLXc/b8iMVgxDWT2LyTwsdLzJKh9CxesOmPuNePSPqAxKoT59FIdU4aFPS1k7eBdbaCxg==}
-    engines: {node: '>=18', pnpm: '>=8.7.0'}
+  bits-ui@2.18.1:
+    resolution: {integrity: sha512-KkemzKFH4T3gt3H+P86JcnAWExjByv/6vlwjm/BoCwTPHu03yiCdxbghdJLvFReQTe0acCAiRcKfmixxD6XvlA==}
+    engines: {node: '>=20'}
     peerDependencies:
-      svelte: ^5.11.0
+      '@internationalized/date': ^3.8.1
+      svelte: ^5.33.0
 
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
@@ -2913,9 +2920,6 @@ packages:
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
-
-  css.escape@1.5.1:
-    resolution: {integrity: sha512-YUifsXXuknHlUsmlgyY0PKzgPOr7/FjCePfHNt0jxm83wHZi44VDMQ7/fGNkjY3/jV1MC+1CmZbaHzugyeRtpg==}
 
   cssesc@3.0.0:
     resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
@@ -3212,6 +3216,19 @@ packages:
 
   electron-to-chromium@1.5.234:
     resolution: {integrity: sha512-RXfEp2x+VRYn8jbKfQlRImzoJU01kyDvVPBmG39eU2iuRVhuS6vQNocB8J0/8GrIMLnPzgz4eW6WiRnJkTuNWg==}
+
+  embla-carousel-reactive-utils@8.6.0:
+    resolution: {integrity: sha512-fMVUDUEx0/uIEDM0Mz3dHznDhfX+znCCDCeIophYb1QGVM7YThSWX+wz11zlYwWFOr74b4QLGg0hrGPJeG2s4A==}
+    peerDependencies:
+      embla-carousel: 8.6.0
+
+  embla-carousel-svelte@8.6.0:
+    resolution: {integrity: sha512-ZDsKk8Sdv+AUTygMYcwZjfRd1DTh+JSUzxkOo8b9iKAkYjg+39mzbY/lwHsE3jXSpKxdKWS69hPSNuzlOGtR2Q==}
+    peerDependencies:
+      svelte: ^3.49.0 || ^4.0.0 || ^5.0.0
+
+  embla-carousel@8.6.0:
+    resolution: {integrity: sha512-SjWyZBHJPbqxHOzckOfo8lHisEaJWmwd23XppYFYVh10bU66/Pn5tkVkbkCMZVdbUE5eTCI2nD8OyIP4Z+uwkA==}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -4655,6 +4672,15 @@ packages:
     peerDependencies:
       svelte: ^5.7.0
 
+  runed@0.35.1:
+    resolution: {integrity: sha512-2F4Q/FZzbeJTFdIS/PuOoPRSm92sA2LhzTnv6FXhCoENb3huf5+fDuNOg1LNvGOouy3u/225qxmuJvcV3IZK5Q==}
+    peerDependencies:
+      '@sveltejs/kit': ^2.21.0
+      svelte: ^5.7.0
+    peerDependenciesMeta:
+      '@sveltejs/kit':
+        optional: true
+
   sade@1.8.1:
     resolution: {integrity: sha512-xal3CZX1Xlo/k4ApwCFrHVACi9fBqJ7V+mwhBsuf/1IOKbBy098Fex+Wa/5QMubw09pSZ/u8EY8PWgevJsXp1A==}
     engines: {node: '>=6'}
@@ -4825,6 +4851,12 @@ packages:
     peerDependenciesMeta:
       svelte:
         optional: true
+
+  svelte-toolbelt@0.10.6:
+    resolution: {integrity: sha512-YWuX+RE+CnWYx09yseAe4ZVMM7e7GRFZM6OYWpBKOb++s+SQ8RBIMMe+Bs/CznBMc0QPLjr+vDBxTAkozXsFXQ==}
+    engines: {node: '>=18', pnpm: '>=8.7.0'}
+    peerDependencies:
+      svelte: ^5.30.2
 
   svelte-toolbelt@0.7.1:
     resolution: {integrity: sha512-HcBOcR17Vx9bjaOceUvxkY3nGmbBmCBBbuWLLEWO6jtmWH8f/QoWmbyUfQZrpDINH39en1b8mptfPQT9VKQ1xQ==}
@@ -6392,7 +6424,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 24.12.0
 
-  '@internationalized/date@3.11.0':
+  '@internationalized/date@3.12.2':
     dependencies:
       '@swc/helpers': 0.5.19
 
@@ -7560,17 +7592,18 @@ snapshots:
 
   birpc@4.0.0: {}
 
-  bits-ui@1.8.0(svelte@5.53.7):
+  bits-ui@2.18.1(@internationalized/date@3.12.2)(@sveltejs/kit@2.53.4(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.7)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7)(typescript@5.8.3)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7):
     dependencies:
       '@floating-ui/core': 1.7.4
       '@floating-ui/dom': 1.7.5
-      '@internationalized/date': 3.11.0
-      css.escape: 1.5.1
+      '@internationalized/date': 3.12.2
       esm-env: 1.2.2
-      runed: 0.23.4(svelte@5.53.7)
+      runed: 0.35.1(@sveltejs/kit@2.53.4(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.7)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7)(typescript@5.8.3)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7)
       svelte: 5.53.7
-      svelte-toolbelt: 0.7.1(svelte@5.53.7)
+      svelte-toolbelt: 0.10.6(@sveltejs/kit@2.53.4(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.7)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7)(typescript@5.8.3)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7)
       tabbable: 6.4.0
+    transitivePeerDependencies:
+      - '@sveltejs/kit'
 
   bl@4.1.0:
     dependencies:
@@ -7707,8 +7740,6 @@ snapshots:
       shebang-command: 2.0.0
       which: 2.0.2
 
-  css.escape@1.5.1: {}
-
   cssesc@3.0.0: {}
 
   debug@4.4.1:
@@ -7812,6 +7843,18 @@ snapshots:
   eastasianwidth@0.2.0: {}
 
   electron-to-chromium@1.5.234: {}
+
+  embla-carousel-reactive-utils@8.6.0(embla-carousel@8.6.0):
+    dependencies:
+      embla-carousel: 8.6.0
+
+  embla-carousel-svelte@8.6.0(svelte@5.53.7):
+    dependencies:
+      embla-carousel: 8.6.0
+      embla-carousel-reactive-utils: 8.6.0(embla-carousel@8.6.0)
+      svelte: 5.53.7
+
+  embla-carousel@8.6.0: {}
 
   emoji-regex@8.0.0: {}
 
@@ -9549,6 +9592,15 @@ snapshots:
       esm-env: 1.2.2
       svelte: 5.53.7
 
+  runed@0.35.1(@sveltejs/kit@2.53.4(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.7)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7)(typescript@5.8.3)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7):
+    dependencies:
+      dequal: 2.0.3
+      esm-env: 1.2.2
+      lz-string: 1.5.0
+      svelte: 5.53.7
+    optionalDependencies:
+      '@sveltejs/kit': 2.53.4(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.7)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7)(typescript@5.8.3)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0))
+
   sade@1.8.1:
     dependencies:
       mri: 1.2.0
@@ -9737,6 +9789,15 @@ snapshots:
       semver: 7.7.4
     optionalDependencies:
       svelte: 5.53.7
+
+  svelte-toolbelt@0.10.6(@sveltejs/kit@2.53.4(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.7)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7)(typescript@5.8.3)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7):
+    dependencies:
+      clsx: 2.1.1
+      runed: 0.35.1(@sveltejs/kit@2.53.4(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.7)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7)(typescript@5.8.3)(vite@8.0.0-beta.16(@types/node@24.12.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.48.0)(yaml@2.9.0)))(svelte@5.53.7)
+      style-to-object: 1.0.14
+      svelte: 5.53.7
+    transitivePeerDependencies:
+      - '@sveltejs/kit'
 
   svelte-toolbelt@0.7.1(svelte@5.53.7):
     dependencies:
