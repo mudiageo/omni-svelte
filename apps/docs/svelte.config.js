@@ -9,7 +9,7 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		alias: {
-			$content: './content',
+			$content: '../../content',
 			$velite: './.velite'
 		},
 		prerender: {

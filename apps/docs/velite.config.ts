@@ -1,7 +1,5 @@
 import { defineConfig, defineCollection, s } from 'velite';
-// import { rehypeCode } from 'rehype-code';
-// import rehypeSlug from 'rehype-slug';
-// import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import { resolve } from 'node:path'
 
 // Velite plugin for vite
 export function velitePlugin() {
@@ -13,10 +11,12 @@ export function velitePlugin() {
 		},
 		async buildStart() {
 			const { build } = await import('velite');
-			await build({ config: 'velite.config.ts', clean: true });
+			await build();
+
 		},
 		handleHotUpdate(ctx: any) {
-			if (ctx.file.startsWith(config.root + '/content/')) {
+		  const contentDir = resolve(config.root, '../../content')
+			if (ctx.file.startsWith(contentDir)) {
 				ctx.server.restart();
 			}
 		}
@@ -71,14 +71,6 @@ export default defineConfig({
 		assets: 'static/assets',
 		base: '/assets/',
 		name: '[name]-[hash:8].[ext]',
-		clean: true
 	},
 	collections: { docs, blog },
-	mdx: {
-		// rehypePlugins: [
-		// 	rehypeSlug,
-		// 	[rehypeAutolinkHeadings, { behavior: 'wrap' }],
-		// 	[rehypeCode, { themes: { light: 'github-light', dark: 'github-dark' } }]
-		// ]
-	}
 });
