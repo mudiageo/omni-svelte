@@ -9,14 +9,14 @@ order: 2
 
 ## Prerequisites
 
-- Node.js ≥ 18
+- Node.js ≥ 22
 - pnpm (recommended) or npm
-- A SvelteKit project (or create one with `pnpm create svelte@latest`)
+- A SvelteKit project (or create one with `pnpx sv@latest create`)
 
 ## 1. Install the package
 
 ```bash
-pnpm add omni-svelte
+pnpm add omni-svelte -D
 ```
 
 ## 2. Add the Vite plugin
