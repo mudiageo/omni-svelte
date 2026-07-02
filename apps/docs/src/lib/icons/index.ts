@@ -1,3 +1,2 @@
-import Github from './github.svelte'
-
-export { Github }
+export { default as Github } from './github.svelte'
+export { default as OmniIcon } from './favicon.svelte'

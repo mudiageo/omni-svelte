@@ -5,7 +5,7 @@
 	import * as Collapsible from '$lib/components/ui/collapsible';
 	import { docsNav } from '$lib/docs-nav.js';
 	import { cn } from '$lib/utils.js';
-	import Zap from '@lucide/svelte/icons/zap';
+	import OmniIcon from '$lib/icons/favicon.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
 	function isActive(href: string | undefined) {
@@ -30,8 +30,8 @@
 				<Sidebar.MenuButton size="lg" href="/" class="h-12">
 					{#snippet child({ props })}
 						<a href="/" {...props}>
-							<div class="flex aspect-square h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 text-white shadow-sm">
-								<Zap class="h-4 w-4 fill-white" />
+							<div class="flex aspect-square h-8 w-8 items-center justify-center rounded-lg shadow-sm">
+								<OmniIcon class="h-4 w-4" />
 							</div>
 							<div class="flex flex-col gap-0.5 leading-none">
 								<span class="font-semibold">OmniSvelte</span>

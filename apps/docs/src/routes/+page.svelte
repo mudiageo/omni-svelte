@@ -9,8 +9,6 @@
 	import {ShinyButton} from '$lib/components/ui/shiny-button';
 	import {StatusDot} from '$lib/components/ui/status-dot';
 	import Timeline from '$lib/components/ui/timeline/index.svelte';
-
-	import Zap from '@lucide/svelte/icons/zap';
   import Database from '@lucide/svelte/icons/database';
   import Shield from '@lucide/svelte/icons/shield';
   import Code2 from '@lucide/svelte/icons/code-2';
@@ -164,7 +162,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 		</p>
 
 		<div class="flex flex-wrap items-center justify-center gap-3 mb-14">
-			<ShinyButton href="/docs/getting-started/installation" class="h-11 px-6 text-sm bg-violet-600 hover:bg-violet-700 text-white border-0 shadow-lg shadow-violet-500/20">
+			<ShinyButton href="/docs/getting-started/installation" class="h-11 px-6 text-sm bg-primary hover:bg-primary/50 text-white border-0 shadow-lg shadow-violet-500/20">
 				Get Started
 				<ArrowRight class="h-4 w-4 ml-1" />
 			</ShinyButton>
@@ -371,7 +369,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 				<h2 class="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Start building today</h2>
 				<p class="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">Free, open source, and ready to use. Add OmniSvelte to any SvelteKit project in minutes.</p>
 				<div class="flex flex-wrap items-center justify-center gap-3">
-					<ShinyButton href="/docs/getting-started/installation" class="h-11 px-7 text-sm bg-violet-600 hover:bg-violet-700 text-white border-0 shadow-lg shadow-violet-500/20">
+					<ShinyButton href="/docs/getting-started/installation" class="h-11 px-7 text-sm bg-primary-600 hover:bg-violet-700 text-white border-0 shadow-lg shadow-violet-500/20">
 						Get Started Free <ArrowRight class="h-4 w-4 ml-1" />
 					</ShinyButton>
 					<Button href="https://github.com/mudiageo/omni-svelte" variant="outline" class="h-11 px-5 gap-2" target="_blank" rel="noopener">

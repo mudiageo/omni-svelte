@@ -1,7 +1,6 @@
 <script lang="ts">
-  import Zap from '@lucide/svelte/icons/zap';
   import Globe from '@lucide/svelte/icons/globe';
-  import { Github } from '$lib/icons'; 
+  import { Github, OmniIcon } from '$lib/icons'; 
 	import { Separator } from '$lib/components/ui/separator';
 	import { Badge } from '$lib/components/ui/badge';
 	import { StatusDot } from '$lib/components/ui/status-dot/index.js';
@@ -53,8 +52,8 @@
 			<!-- Brand col -->
 			<div class="col-span-2 lg:col-span-2">
 				<a href="/" class="flex items-center gap-2 mb-4 w-fit">
-					<div class="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-violet-700">
-						<Zap class="h-3.5 w-3.5 text-white fill-white" />
+					<div class="flex h-6 w-6 items-center justify-center">
+						<OmniIcon class="h-3.5 w-3.5" />
 					</div>
 					<span class="font-bold text-sm">Omni<span class="text-violet-500">Svelte</span></span>
 				</a>

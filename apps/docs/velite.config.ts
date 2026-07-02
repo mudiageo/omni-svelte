@@ -14,12 +14,12 @@ export function velitePlugin() {
 			await build();
 
 		},
-		handleHotUpdate(ctx: any) {
-		  const contentDir = resolve(config.root, '../../content')
-			if (ctx.file.startsWith(contentDir)) {
-				ctx.server.restart();
-			}
-		}
+		// handleHotUpdate(ctx: any) {
+		//   const contentDir = resolve(config.root, '../../content')
+		// 	if (ctx.file.startsWith(contentDir)) {
+		// 		ctx.server.restart();
+		// 	}
+		// }
 	};
 }
 

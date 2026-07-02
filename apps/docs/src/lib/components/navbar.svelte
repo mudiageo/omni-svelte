@@ -11,9 +11,8 @@
   import Moon from '@lucide/svelte/icons/moon';
   import Menu from '@lucide/svelte/icons/menu';
   import X from '@lucide/svelte/icons/x';
-  import Zap from '@lucide/svelte/icons/zap';
   import ArrowRight from '@lucide/svelte/icons/arrow-right';
-  import Github from '$lib/icons/github.svelte'; 
+  import { Github, OmniIcon} from '$lib/icons'; 
 
 	let menuOpen = $state(false);
 
@@ -34,11 +33,11 @@
 	<div class="container mx-auto flex h-14 max-w-screen-2xl items-center px-4 sm:px-6">
 		<!-- Logo -->
 		<a href="/" class="flex items-center gap-2 mr-6 shrink-0 group">
-			<div class="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-violet-700 shadow-sm transition-shadow group-hover:shadow-violet-500/30">
-				<Zap class="h-4 w-4 text-white fill-white" />
+			<div class="flex h-7 w-7 items-center justify-center rounded-md shadow-sm transition-shadow group-hover:shadow-primary-500/30">
+				<OmniIcon class="h-4 w-4" />
 			</div>
 			<span class="font-bold text-base tracking-tight">
-				Omni<span class="text-violet-500">Svelte</span>
+				Omni<span class="text-primary">Svelte</span>
 			</span>
 			<Badge variant="secondary" class="text-[10px] px-1.5 h-4 font-semibold hidden sm:inline-flex">alpha</Badge>
 		</a>
@@ -71,7 +70,7 @@
 				<Sun class="h-4 w-4 dark:hidden" />
 				<Moon class="h-4 w-4 hidden dark:block" />
 			</Button>
-			<ShinyButton href="/docs/getting-started/installation" class="hidden md:inline-flex h-8 px-3 text-xs ml-1 gap-1.5 bg-violet-600 hover:bg-violet-700 text-white border-0">
+			<ShinyButton href="/docs/getting-started/installation" class="hidden md:inline-flex h-8 px-3 text-xs ml-1 gap-1.5 bg-primary hover:bg-primary/50 text-white border-0">
 				Get Started <ArrowRight class="h-3 w-3" />
 			</ShinyButton>
 			<Button variant="ghost" size="icon" onclick={() => (menuOpen = !menuOpen)} class="md:hidden h-8 w-8">
@@ -96,7 +95,7 @@
 				>{link.label}</a>
 			{/each}
 			<Separator class="my-2" />
-			<Button href="/docs/getting-started/installation" size="sm" class="bg-violet-600 hover:bg-violet-700 text-white border-0">
+			<Button href="/docs/getting-started/installation" size="sm" class="bg-primary hover:bg-primary/50 text-white border-0">
 				Get Started
 			</Button>
 		</div>
