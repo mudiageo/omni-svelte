@@ -434,11 +434,11 @@
 		border-radius: 8px;
 		font-size: 0.9rem;
 	}
-	.guidelines li:has(✅) {
+	:global(.guidelines li:has(✅)) {
 		background: rgba(16, 185, 129, 0.08);
 		border: 1px solid rgba(16, 185, 129, 0.2);
 	}
-	.guidelines li:has(❌) {
+	:global(.guidelines li:has(❌)) {
 		background: rgba(255, 62, 0, 0.08);
 		border: 1px solid rgba(255, 62, 0, 0.15);
 	}

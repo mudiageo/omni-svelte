@@ -1,7 +1,7 @@
 <script>
 	import { enhance } from '$app/forms';
 
-	export let data;
+	export const data = undefined;
 	export let form;
 </script>
 

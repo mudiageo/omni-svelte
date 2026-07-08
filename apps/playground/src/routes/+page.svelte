@@ -126,7 +126,7 @@
 	.grid-cols-1 {
 		grid-template-columns: repeat(1, 1fr);
 	}
-	.grid-cols-3 {
+	:global(.grid-cols-3) {
 		grid-template-columns: repeat(3, 1fr);
 	}
 	.gap-4 {
