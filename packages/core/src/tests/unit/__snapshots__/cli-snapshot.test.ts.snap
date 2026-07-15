@@ -1,0 +1,100 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CLI add command > add --cwd with missing package.json shows styled cancel on stdout and exits non-zero > add missing pkg.json stderr 1`] = `""`;
+
+exports[`CLI add command > add --cwd with missing package.json shows styled cancel on stdout and exits non-zero > add missing pkg.json stdout 1`] = `
+"T   OmniSvelte Add
+—  No package.json found in <CWD>"
+`;
+
+exports[`CLI add command > add --help output matches snapshot 1`] = `
+"Usage: omni add [options]
+
+Add OmniSvelte to an existing SvelteKit project
+
+Options:
+  --cwd <path>              Target project directory (default:
+                            "<CWD>")
+  -D, --dev                 Install as a dev dependency (default: false)
+  --package-manager <name>  Force package manager (npm|pnpm|yarn|bun|deno|vp)
+  --omni-pkg <package>      Install omni-svelte from a specific package/path
+                            (for testing)
+  -h, --help                display help for command"
+`;
+
+exports[`CLI add command > add with unknown option exits 1 and shows error 1`] = `
+"error: unknown option '--nonexistent-flag'
+(run with --help for usage examples)"
+`;
+
+exports[`CLI init command > init --help output matches snapshot 1`] = `
+"Usage: omni init [options] [name]
+
+Scaffold a new OmniSvelte-ready SvelteKit app
+
+Options:
+  --cwd <path>              Create the project from a different directory
+  --skip-install            Skip final dependency installation (default: false)
+  --package-manager <name>  Force package manager (npm|pnpm|yarn|bun|deno|vp)
+  --omni-pkg <package>      Install omni-svelte from a specific package/path
+                            (for testing)
+  -h, --help                display help for command"
+`;
+
+exports[`CLI init command > init with unknown option exits 1 and shows error 1`] = `
+"error: unknown option '--nonexistent-flag'
+(run with --help for usage examples)"
+`;
+
+exports[`CLI top-level > --help output matches snapshot 1`] = `
+"Usage: omni [options] [command]
+
+OmniSvelte CLI for scaffolding, database workflows, and DX tooling for the
+OmniSvelte full-stack framework
+
+Options:
+  -v, --version                               Show installed CLI version
+  -h, --help                                  display help for command
+
+Commands:
+  add [options]                               Add OmniSvelte to an existing SvelteKit project
+  build [options] [scriptArgs...]             Build the project
+  build:production [options]                  Optimized production build (planned)
+  cache:clear [options]                       Clear application cache (planned)
+  cache:stats [options]                       Show cache statistics (planned)
+  db [options] [action]                       Run Drizzle database tasks (push, pull, generate, migrate, seed)
+  debug:config [options]                      Show resolved omni config (planned)
+  debug:models [options]                      List all models and relationships (planned)
+  debug:permissions [options]                 Show permission/role matrix (planned)
+  debug:routes [options]                      List all registered routes (planned)
+  deploy [options]                            Deployment helper (planned)
+  docs:generate [options]                     Generate API docs from schema + JSDoc (planned)
+  docs:serve [options]                        Serve generated docs locally (planned)
+  doctor [options]                            Run project health checks and detect package manager
+  format [options] [scriptArgs...]            Format project files
+  generate [options] [type] [name]            Generate schema and migration files with interactive fallback
+  help [command]                              display help for command
+  init [options] [name]                       Scaffold a new OmniSvelte-ready SvelteKit app
+  install-dependency [options] <packages...>  Install one or more dependencies using detected package manager
+  lint [options] [scriptArgs...]              Run lint checks
+  migrate [options] [action]                  Run migrations with safe defaults
+  monitor:queries [options]                   Show slow database queries (planned)
+  monitor:realtime [options]                  Monitor active WebSocket connections (planned)
+  serve [options] [scriptArgs...]             Run local development server
+  test [options] [scriptArgs...]              Run test suite
+  tinker [options]                            Interactive REPL with models pre-loaded (planned)
+  ui [options] [action] [components...]       Run shadcn-svelte init/add flows from omni
+
+Examples:
+  $ omni init my-app
+  $ omni add --cwd .
+  $ omni generate schema users --output src/lib/db/schemas
+  $ omni db push --config drizzle.config.ts
+  $ omni install-dependency zod commander
+  $ omni doctor"
+`;
+
+exports[`CLI top-level > unknown command exits 1 and shows error + suggestion 1`] = `
+"error: unknown command 'unknowncmd'
+(run with --help for usage examples)"
+`;

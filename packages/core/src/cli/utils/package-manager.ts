@@ -108,8 +108,14 @@ export async function runPackageScript(
 	return pm;
 }
 
-export async function runPackageInstall(cwd = process.cwd()): Promise<PackageManagerContext> {
-	const pm = await detectPackageManager(cwd);
+export async function runPackageInstall(
+	cwd = process.cwd(),
+	// Bug 3 fix: accept an explicit packageManager so callers that already know
+	// which PM the user chose don't fall back to auto-detection (which may pick
+	// the wrong PM if no lockfile has been written yet).
+	packageManager?: PackageManager
+): Promise<PackageManagerContext> {
+	const pm = packageManager ? { name: packageManager, cwd } : await detectPackageManager(cwd);
 	const command = getInstallCommandArgs(pm.name);
 	await execa(command.command, command.args, { cwd, stdio: 'inherit' });
 	return pm;
@@ -128,7 +134,8 @@ export async function runPackageExec(
 	return pm;
 }
 
-function getInstallArgs(name: PackageManager, packages: string[], dev: boolean) {
+/** @internal Exported for unit-testing only. */
+export function getInstallArgs(name: PackageManager, packages: string[], dev: boolean) {
 	switch (name) {
 		case 'pnpm':
 			return { command: 'pnpm', args: ['add', ...(dev ? ['-D'] : []), ...packages] };
@@ -137,7 +144,8 @@ function getInstallArgs(name: PackageManager, packages: string[], dev: boolean) 
 		case 'bun':
 			return { command: 'bun', args: ['add', ...(dev ? ['-d'] : []), ...packages] };
 		case 'deno':
-			return { command: 'deno', args: ['add', ...packages] };
+			// Bug 5 fix: deno supports --dev for dev-only dependencies.
+			return { command: 'deno', args: ['add', ...(dev ? ['--dev'] : []), ...packages] };
 		case 'vp':
 			return { command: 'vp', args: ['add', ...(dev ? ['-D'] : []), ...packages] };
 		default:

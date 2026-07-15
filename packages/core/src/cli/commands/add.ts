@@ -17,11 +17,17 @@ export interface AddCommandOptions {
 export async function handleAddCommand(options: AddCommandOptions): Promise<void> {
 	const cwd = options.cwd ?? process.cwd();
 
-	if (!hasPackageJson(cwd)) {
-		throw new Error(`No package.json found in ${cwd}.`);
-	}
-
+	// Bug 4 fix: run intro() before validation so all output (including errors)
+	// is framed within the @clack UI context. Use cancel() instead of throw so
+	// the error is styled consistently rather than falling through to runAction's
+	// bare console.error.
 	intro(pc.bgCyan(pc.black(' OmniSvelte Add ')));
+
+	if (!hasPackageJson(cwd)) {
+		cancel(`No package.json found in ${cwd}.`);
+		process.exitCode = 1;
+		return;
+	}
 
 	// Prompt for package manager if not specified via flag
 	let packageManager = options.packageManager;
