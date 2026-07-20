@@ -70,7 +70,7 @@
 				<Sun class="h-4 w-4 dark:hidden" />
 				<Moon class="h-4 w-4 hidden dark:block" />
 			</Button>
-			<ShinyButton href="/docs/getting-started/installation" class="hidden md:inline-flex h-8 px-3 text-xs ml-1 gap-1.5 bg-primary hover:bg-primary/50 text-white border-0">
+			<ShinyButton href="/docs/getting-started/installation" class="hidden md:inline-flex h-8 px-3 text-xs ml-1 gap-1.5 bg-primary hover:bg-primary/80 text-primary-foreground border-0">
 				Get Started <ArrowRight class="h-3 w-3" />
 			</ShinyButton>
 			<Button variant="ghost" size="icon" onclick={() => (menuOpen = !menuOpen)} class="md:hidden h-8 w-8">
@@ -95,7 +95,7 @@
 				>{link.label}</a>
 			{/each}
 			<Separator class="my-2" />
-			<Button href="/docs/getting-started/installation" size="sm" class="bg-primary hover:bg-primary/50 text-white border-0">
+			<Button href="/docs/getting-started/installation" size="sm" class="bg-primary hover:bg-primary/80 text-primary-foreground border-0">
 				Get Started
 			</Button>
 		</div>
