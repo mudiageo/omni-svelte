@@ -8,3 +8,5 @@ bun.lockb
 # Miscellaneous
 /static/
 /drizzle/
+.test-cli-tmp/
+**/.test-cli-tmp/
