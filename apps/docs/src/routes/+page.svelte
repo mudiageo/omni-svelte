@@ -140,7 +140,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 <section class="relative overflow-hidden border-b border-border/40">
 	<div class="absolute inset-0 bg-grid"></div>
 	<div class="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background pointer-events-none"></div>
-	<div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full bg-violet-500/8 blur-3xl pointer-events-none"></div>
+	<div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full bg-primary/8 blur-3xl pointer-events-none"></div>
 
 	<div class="relative container mx-auto max-w-5xl px-4 sm:px-6 py-24 md:py-36 text-center">
 		<div class="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs text-muted-foreground mb-8 backdrop-blur">
@@ -150,7 +150,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 
 		<h1 class="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
 			SvelteKit,<br/>
-			<span class="bg-gradient-to-r from-violet-500 via-violet-400 to-amber-400 bg-clip-text text-transparent" style="-webkit-background-clip: text; background-clip: text;">
+			<span class="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent" style="-webkit-background-clip: text; background-clip: text;">
 				but with superpowers
 			</span>
 		</h1>
@@ -162,7 +162,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 		</p>
 
 		<div class="flex flex-wrap items-center justify-center gap-3 mb-14">
-			<ShinyButton href="/docs/getting-started/installation" class="h-11 px-6 text-sm bg-primary hover:bg-primary/50 text-white border-0 shadow-lg shadow-violet-500/20">
+			<ShinyButton href="/docs/getting-started/installation" class="h-11 px-6 text-sm bg-primary hover:bg-primary/80 text-primary-foreground border-0 shadow-lg shadow-primary/20">
 				Get Started
 				<ArrowRight class="h-4 w-4 ml-1" />
 			</ShinyButton>
@@ -174,7 +174,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 
 		<!-- Install snippet -->
 		<div class="inline-flex items-center gap-3 rounded-lg border border-border/60 bg-zinc-950 dark:bg-zinc-900 px-4 py-2.5 text-sm font-mono text-zinc-300">
-			<span class="text-violet-400 select-none">$</span>
+			<span class="text-primary select-none">$</span>
 			<span>pnpx omni-svelte init</span>
 		</div>
 	</div>
@@ -185,7 +185,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 <section class="py-24 border-b border-border/40">
 	<div class="container mx-auto max-w-6xl px-4 sm:px-6">
 		<div class="text-center mb-14">
-			<Badge variant="outline" class="mb-4 text-violet-600 border-violet-200 dark:border-violet-800 dark:text-violet-400">Everything included</Badge>
+			<Badge variant="outline" class="mb-4 text-primary border-primary/30 dark:border-primary/50 dark:text-primary">Everything included</Badge>
 			<h2 class="text-3xl sm:text-4xl font-bold tracking-tight mb-4">All the pieces, none of the glue</h2>
 			<p class="text-muted-foreground text-lg max-w-2xl mx-auto">Stop wiring the same things together on every project. OmniSvelte handles it at the framework level.</p>
 		</div>
@@ -212,7 +212,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 		<!-- Step 1: Config -->
 		<div class="grid lg:grid-cols-2 gap-12 items-center">
 			<div>
-				<Badge variant="outline" class="mb-4 text-violet-600 border-violet-200 dark:border-violet-800 dark:text-violet-400">Step 1</Badge>
+				<Badge variant="outline" class="mb-4 text-primary border-primary/30 dark:border-primary/50 dark:text-primary">Step 1</Badge>
 				<h2 class="text-3xl font-bold tracking-tight mb-4">One config block</h2>
 				<p class="text-muted-foreground leading-relaxed mb-5">
 					Add the <code class="text-sm font-mono bg-muted px-1.5 py-0.5 rounded">omni</code> block to your existing <code class="text-sm font-mono bg-muted px-1.5 py-0.5 rounded">svelte.config.js</code>.
@@ -220,7 +220,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 				</p>
 				<ul class="space-y-2.5 text-sm">
 					{#each ['Zero Drizzle boilerplate', 'Better-Auth wired to SvelteKit hooks', 'Type declarations auto-generated'] as item}
-						<li class="flex items-center gap-2.5"><CheckCircle2 class="h-4 w-4 text-violet-500 shrink-0" />{item}</li>
+						<li class="flex items-center gap-2.5"><CheckCircle2 class="h-4 w-4 text-primary shrink-0" />{item}</li>
 					{/each}
 				</ul>
 			</div>
@@ -249,7 +249,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 				<pre class="p-5 text-xs sm:text-sm font-mono leading-relaxed text-zinc-300 overflow-x-auto"><code>{schemaExample}</code></pre>
 			</div>
 			<div class="order-1 lg:order-2">
-				<Badge variant="outline" class="mb-4 text-amber-600 border-amber-200 dark:border-amber-800 dark:text-amber-400">Step 2</Badge>
+				<Badge variant="outline" class="mb-4 text-primary border-primary/30 dark:border-primary/50 dark:text-primary">Step 2</Badge>
 				<h2 class="text-3xl font-bold tracking-tight mb-4">Define your schema once</h2>
 				<p class="text-muted-foreground leading-relaxed mb-5">
 					Create a <code class="text-sm font-mono bg-muted px-1.5 py-0.5 rounded">.schema.ts</code> file with the fluent <code class="text-sm font-mono bg-muted px-1.5 py-0.5 rounded">field.*</code> builder. On every save, OmniSvelte generates three outputs automatically.
@@ -257,7 +257,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 				<div class="grid grid-cols-3 gap-3">
 					{#each ['Drizzle table', 'Zod validators', 'Model class'] as output}
 						<Card.Root class="text-center py-3 px-2">
-							<p class="text-xs font-mono text-violet-600 dark:text-violet-400 font-semibold">{output.split(' ')[0]}</p>
+							<p class="text-xs font-mono text-primary dark:text-primary font-semibold">{output.split(' ')[0]}</p>
 							<p class="text-[11px] text-muted-foreground mt-0.5">{output.split(' ').slice(1).join(' ')}</p>
 						</Card.Root>
 					{/each}
@@ -304,7 +304,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 				<Table.Header>
 					<Table.Row class="bg-muted/50">
 						<Table.Head class="text-xs uppercase tracking-wider text-muted-foreground">Feature</Table.Head>
-						<Table.Head class="text-center text-xs uppercase tracking-wider text-violet-600 dark:text-violet-400">OmniSvelte</Table.Head>
+						<Table.Head class="text-center text-xs uppercase tracking-wider text-primary">OmniSvelte</Table.Head>
 						<Table.Head class="text-center text-xs uppercase tracking-wider text-muted-foreground">Plain SvelteKit</Table.Head>
 					</Table.Row>
 				</Table.Header>
@@ -339,7 +339,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 	<div class="container mx-auto max-w-5xl px-4 sm:px-6">
 		<div class="grid lg:grid-cols-2 gap-12 items-start">
 			<div>
-				<Badge variant="outline" class="mb-4 text-violet-600 border-violet-200 dark:border-violet-800 dark:text-violet-400">Roadmap</Badge>
+				<Badge variant="outline" class="mb-4 text-primary border-primary/30 dark:border-primary/50 dark:text-primary">Roadmap</Badge>
 				<h2 class="text-3xl font-bold tracking-tight mb-4">Built for the long term</h2>
 				<p class="text-muted-foreground leading-relaxed mb-6">
 					OmniSvelte starts with a solid foundation and grows incrementally — email, caching, realtime, payments, jobs, and more.
@@ -361,15 +361,15 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 <!-- ─── CTA ───────────────────────────────────────────────── -->
 <section class="py-28">
 	<div class="container mx-auto max-w-3xl px-4 sm:px-6 text-center">
-		<div class="relative rounded-2xl border border-violet-200/40 dark:border-violet-800/30 bg-gradient-to-br from-violet-500/5 via-background to-amber-500/5 px-8 py-16 overflow-hidden">
-			<div class="absolute -top-20 -right-20 w-64 h-64 bg-violet-500/8 rounded-full blur-3xl pointer-events-none"></div>
-			<div class="absolute -bottom-20 -left-20 w-64 h-64 bg-amber-500/8 rounded-full blur-3xl pointer-events-none"></div>
+		<div class="relative rounded-2xl border border-primary/20 dark:border-primary/20 bg-gradient-to-br from-primary/5 via-background to-primary/5 px-8 py-16 overflow-hidden">
+			<div class="absolute -top-20 -right-20 w-64 h-64 bg-primary/8 rounded-full blur-3xl pointer-events-none"></div>
+			<div class="absolute -bottom-20 -left-20 w-64 h-64 bg-primary/8 rounded-full blur-3xl pointer-events-none"></div>
 			<div class="relative">
-				<Badge variant="outline" class="mb-5 text-violet-600 border-violet-300 dark:border-violet-700 dark:text-violet-300">Open Source · MIT License</Badge>
+				<Badge variant="outline" class="mb-5 text-primary border-primary/30 dark:border-primary/30 dark:text-primary">Open Source · MIT License</Badge>
 				<h2 class="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Start building today</h2>
 				<p class="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">Free, open source, and ready to use. Add OmniSvelte to any SvelteKit project in minutes.</p>
 				<div class="flex flex-wrap items-center justify-center gap-3">
-					<ShinyButton href="/docs/getting-started/installation" class="h-11 px-7 text-sm bg-primary-600 hover:bg-violet-700 text-white border-0 shadow-lg shadow-violet-500/20">
+					<ShinyButton href="/docs/getting-started/installation" class="h-11 px-7 text-sm bg-primary hover:bg-primary/80 text-primary-foreground border-0 shadow-lg shadow-primary/20">
 						Get Started Free <ArrowRight class="h-4 w-4 ml-1" />
 					</ShinyButton>
 					<Button href="https://github.com/mudiageo/omni-svelte" variant="outline" class="h-11 px-5 gap-2" target="_blank" rel="noopener">

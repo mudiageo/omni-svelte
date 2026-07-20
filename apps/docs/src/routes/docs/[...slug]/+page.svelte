@@ -53,22 +53,22 @@
 	<Separator class="mt-10 mb-6" />
 	<div class="flex items-stretch justify-between gap-4 not-prose">
 		{#if prev?.href}
-			<a href={prev.href} class="group flex flex-col gap-1 flex-1 max-w-[48%] rounded-lg border border-border hover:border-violet-300 dark:hover:border-violet-700 p-4 transition-colors">
+			<a href={prev.href} class="group flex flex-col gap-1 flex-1 max-w-[48%] rounded-lg border border-border hover:border-primary/50 p-4 transition-colors">
 				<span class="flex items-center gap-1 text-[11px] text-muted-foreground uppercase tracking-wide font-semibold">
 					<ChevronLeft class="h-3 w-3" /> Previous
 				</span>
-				<span class="text-sm font-medium text-foreground group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors leading-tight">
+				<span class="text-sm font-medium text-foreground group-hover:text-primary transition-colors leading-tight">
 					{prev.title}
 				</span>
 			</a>
 		{:else}<div class="flex-1"></div>{/if}
 
 		{#if next?.href}
-			<a href={next.href} class="group flex flex-col items-end gap-1 flex-1 max-w-[48%] rounded-lg border border-border hover:border-violet-300 dark:hover:border-violet-700 p-4 transition-colors">
+			<a href={next.href} class="group flex flex-col items-end gap-1 flex-1 max-w-[48%] rounded-lg border border-border hover:border-primary/50 p-4 transition-colors">
 				<span class="flex items-center gap-1 text-[11px] text-muted-foreground uppercase tracking-wide font-semibold">
 					Next <ChevronRight class="h-3 w-3" />
 				</span>
-				<span class="text-sm font-medium text-foreground group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors leading-tight text-right">
+				<span class="text-sm font-medium text-foreground group-hover:text-primary transition-colors leading-tight text-right">
 					{next.title}
 				</span>
 			</a>

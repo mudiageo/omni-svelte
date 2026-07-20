@@ -140,7 +140,7 @@ import Github from '$lib/icons/github.svelte';
 <div class="container mx-auto max-w-5xl px-4 sm:px-6 py-14">
 	<!-- Header -->
 	<div class="mb-10">
-		<Badge variant="outline" class="mb-4 text-violet-600 border-violet-200 dark:border-violet-800 dark:text-violet-400">
+		<Badge variant="outline" class="mb-4 text-primary border-primary/30 dark:border-primary/50 dark:text-primary">
 			Public Roadmap
 		</Badge>
 		<div class="flex items-end justify-between flex-wrap gap-4 mb-4">

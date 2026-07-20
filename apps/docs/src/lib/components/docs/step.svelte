@@ -3,7 +3,7 @@
 </script>
 
 <div class="relative [counter-increment:step] mb-0">
-	<div class="absolute -left-[2.85rem] flex h-7 w-7 items-center justify-center rounded-full border-2 border-brand-200 bg-background text-xs font-bold text-brand-600 dark:border-brand-800 dark:text-brand-400" style="content: counter(step)">
+	<div class="absolute -left-[2.85rem] flex h-7 w-7 items-center justify-center rounded-full border-2 border-primary/30 bg-background text-xs font-bold text-primary dark:border-primary/50" style="content: counter(step)">
 		<span class="select-none" aria-hidden="true">
 			<!-- show step number via CSS counter -->
 		</span>

@@ -69,7 +69,7 @@
 	<div class="mb-12">
 		<div class="flex items-center justify-between mb-4">
 			<div>
-				<Badge variant="outline" class="mb-3 text-violet-600 border-violet-200 dark:border-violet-800 dark:text-violet-400">
+				<Badge variant="outline" class="mb-3 text-primary border-primary/30 dark:border-primary/50 dark:text-primary">
 					Blog
 				</Badge>
 				<h1 class="text-4xl font-bold tracking-tight">Latest from OmniSvelte</h1>
@@ -88,12 +88,12 @@
 		<SpotlightCard color="rgba(139, 92, 246, 0.08)" size={400} class="mb-10">
 			<a href="/blog/{featured.slug}" class="block p-8">
 				<div class="flex flex-wrap gap-2 mb-4">
-					<Badge variant="default" class="bg-violet-600 text-white border-0">Featured</Badge>
+					<Badge variant="default" class="bg-primary text-primary-foreground border-0">Featured</Badge>
 					{#each featured.tags as tag}
 						<Badge variant="outline" class="text-xs capitalize">{tag}</Badge>
 					{/each}
 				</div>
-				<h2 class="text-2xl sm:text-3xl font-bold tracking-tight mb-3 group-hover:text-violet-600 transition-colors">
+				<h2 class="text-2xl sm:text-3xl font-bold tracking-tight mb-3 group-hover:text-primary transition-colors">
 					{featured.title}
 				</h2>
 				<p class="text-muted-foreground leading-relaxed mb-6">{featured.description}</p>
@@ -112,7 +112,7 @@
 							{featured.readTime}
 						</span>
 					</div>
-					<Button variant="ghost" size="sm" class="gap-1.5 text-violet-600 dark:text-violet-400 hover:text-violet-700 px-0">
+					<Button variant="ghost" size="sm" class="gap-1.5 text-primary dark:text-primary hover:text-primary/80 px-0">
 						Read post <ArrowRight class="h-3.5 w-3.5" />
 					</Button>
 				</div>
@@ -124,14 +124,14 @@
 	<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
 		{#each rest as post}
 			<a href="/blog/{post.slug}" class="group">
-				<Card class="h-full hover:border-violet-200 dark:hover:border-violet-800 transition-all duration-200 hover:shadow-md hover:shadow-violet-500/5">
+				<Card class="h-full hover:border-primary/30 dark:hover:border-primary/50 transition-all duration-200 hover:shadow-md hover:shadow-primary/5">
 					<CardHeader class="pb-3">
 						<div class="flex flex-wrap gap-1.5 mb-3">
 							{#each post.tags as tag}
 								<Badge variant="outline" class="text-[11px] h-5 px-1.5 capitalize">{tag}</Badge>
 							{/each}
 						</div>
-						<CardTitle class="text-base leading-snug group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+						<CardTitle class="text-base leading-snug group-hover:text-primary transition-colors">
 							{post.title}
 						</CardTitle>
 						<CardDescription class="leading-relaxed text-[13px] mt-1.5">{post.description}</CardDescription>

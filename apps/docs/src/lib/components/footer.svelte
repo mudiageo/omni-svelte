@@ -55,7 +55,7 @@
 					<div class="flex h-6 w-6 items-center justify-center">
 						<OmniIcon class="h-3.5 w-3.5" />
 					</div>
-					<span class="font-bold text-sm">Omni<span class="text-violet-500">Svelte</span></span>
+					<span class="font-bold text-sm">Omni<span class="text-primary">Svelte</span></span>
 				</a>
 				<p class="text-sm text-muted-foreground leading-relaxed max-w-[220px]">
 					SvelteKit, but with superpowers. A batteries-included meta-framework for production-grade Svelte apps.

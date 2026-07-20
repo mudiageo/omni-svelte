@@ -34,7 +34,7 @@
 								'block text-[13px] py-0.5 transition-colors leading-snug',
 								h.level === 3 ? 'pl-3 text-[12px]' : '',
 								activeId === h.id
-									? 'text-violet-600 dark:text-violet-400 font-medium'
+									? 'text-primary font-medium'
 									: 'text-muted-foreground hover:text-foreground'
 							)}
 						>

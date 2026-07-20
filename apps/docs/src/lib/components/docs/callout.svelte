@@ -18,10 +18,10 @@
 		warning: 'border-amber-200/60 bg-amber-50/80 dark:border-amber-800/40 dark:bg-amber-950/20 text-amber-900 dark:text-amber-100',
 		danger:  'border-red-200/60 bg-red-50/80 dark:border-red-800/40 dark:bg-red-950/20 text-red-900 dark:text-red-100',
 		tip:     'border-green-200/60 bg-green-50/80 dark:border-green-800/40 dark:bg-green-950/20 text-green-900 dark:text-green-100',
-		note:    'border-violet-200/60 bg-violet-50/80 dark:border-violet-800/40 dark:bg-violet-950/20 text-violet-900 dark:text-violet-100'
+		note:    'border-primary/30 bg-primary/5 dark:border-primary/30 dark:bg-primary/10 text-foreground'
 	};
 	const iconStyles = {
-		info: 'text-blue-500', warning: 'text-amber-500', danger: 'text-red-500', tip: 'text-green-500', note: 'text-violet-500'
+		info: 'text-blue-500', warning: 'text-amber-500', danger: 'text-red-500', tip: 'text-green-500', note: 'text-primary'
 	};
 	const icons = { info: Info, warning: AlertTriangle, danger: XCircle, tip: CheckCircle, note: Lightbulb };
 	const defaultTitles = { info: 'Info', warning: 'Warning', danger: 'Danger', tip: 'Tip', note: 'Note' };

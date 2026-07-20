@@ -28,7 +28,7 @@
 							<span class="ml-1 text-red-500">*</span>
 						{/if}
 					</td>
-					<td class="px-4 py-2.5 font-mono text-xs text-brand-600 dark:text-brand-400">{prop.type}</td>
+					<td class="px-4 py-2.5 font-mono text-xs text-primary">{prop.type}</td>
 					<td class="px-4 py-2.5 font-mono text-xs text-muted-foreground">{prop.default ?? '—'}</td>
 					<td class="px-4 py-2.5 text-muted-foreground text-xs leading-relaxed">{prop.description}</td>
 				</tr>
