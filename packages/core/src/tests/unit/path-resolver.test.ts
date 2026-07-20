@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PathResolver } from '../../package/schema/utils/path-resolver';
+import { PathResolver } from '../../schema/utils/path-resolver';
 import path from 'path';
 
 describe('PathResolver', () => {
