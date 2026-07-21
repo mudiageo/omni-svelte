@@ -1,4 +1,4 @@
-import { cancel, intro, isCancel, outro, select, spinner, text } from '@clack/prompts';
+import { cancel, intro, isCancel, outro, select, text } from '@clack/prompts';
 import pc from 'picocolors';
 import { join } from 'path';
 import { addOmniToViteConfig } from '../utils/project.js';
@@ -9,6 +9,7 @@ import {
 	runPackageExec,
 	runPackageInstall
 } from '../utils/package-manager.js';
+import { runInProcessStep, runStep } from '../utils/run-step.js';
 
 export interface InitCommandOptions {
 	omniPkg?: string;
@@ -60,54 +61,42 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 	const root = options.cwd ?? process.cwd();
 	const projectPath = join(root, projectName);
 
-	const s = spinner();
+	// runStep handles the spinner label + try/catch + cancel() on failure.
+	// For subprocess steps we use runStep (stops spinner before spawning to avoid stdio conflict).
+	// For in-process steps we use runInProcessStep (keeps spinner animated).
 
-	// Bug 1 fix: stop spinner before any stdio:'inherit' subprocess so the
-	// @clack animation doesn't fight with the subprocess's own stdout/stderr output.
-	// We restart it after each subprocess with an updated message.
+	// Note on tailwindcss arg: no shell quoting — execa passes args directly (Bug 2 fix)
+	if (
+		!(await runStep('Creating SvelteKit project', () =>
+			runPackageExec(
+				'sv',
+				['create', projectName!, '--template', 'minimal', '--types', 'ts', '--add', 'tailwindcss=plugins:none', '--no-install'],
+				root,
+				packageManager
+			)
+		))
+	)
+		return;
 
-	s.start('Creating SvelteKit project...');
-	s.stop('Creating SvelteKit project');
+	if (
+		!(await runStep('Installing omni-svelte', () =>
+			installDependencies([options.omniPkg ?? 'omni-svelte'], {
+				cwd: projectPath,
+				packageManager
+			})
+		))
+	)
+		return;
 
-	// Bug 2 fix: use explicit tailwindcss option string to ensure fully
-	// non-interactive execution. Without plugins:none, sv create may prompt.
-	// Note: execa passes args directly (no shell), so no quotes around the value.
-	await runPackageExec(
-		'sv',
-		[
-			'create',
-			projectName,
-			'--template',
-			'minimal',
-			'--types',
-			'ts',
-			'--add',
-			'tailwindcss=plugins:none',
-			'--no-install'
-		],
-		root,
-		packageManager
-	);
-
-	s.start('Installing omni-svelte...');
-	s.stop('Installing omni-svelte');
-
-	await installDependencies([options.omniPkg ?? 'omni-svelte'], {
-		cwd: projectPath,
-		packageManager
-	});
-
-	s.start('Configuring vite plugin...');
-	addOmniToViteConfig(projectPath);
-	s.stop('Configured vite plugin');
+	// addOmniToViteConfig is synchronous in-process — use runInProcessStep
+	if (!(await runInProcessStep('Configuring vite plugin', () => addOmniToViteConfig(projectPath))))
+		return;
 
 	if (!options.skipInstall) {
-		s.start('Installing project dependencies...');
-		s.stop('Installing project dependencies');
-
-		// Bug 3 fix: pass the user-selected packageManager so we don't fall
-		// back to auto-detection (which may pick the wrong PM if no lockfile exists yet).
-		await runPackageInstall(projectPath, packageManager);
+		// Bug 3 fix: pass the user-selected packageManager so we don't fall back to
+		// auto-detection (which may pick the wrong PM if no lockfile exists yet).
+		if (!(await runStep('Installing project dependencies', () => runPackageInstall(projectPath, packageManager))))
+			return;
 	}
 
 	outro(`${pc.green('Success!')} Created ${projectName} at ${projectPath}`);

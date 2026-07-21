@@ -262,10 +262,18 @@ addDevAlias('test', 'Run test suite', 'test');
 addDevAlias('lint', 'Run lint checks', 'lint');
 addDevAlias('format', 'Format project files', 'format');
 
+// Handle Ctrl+C gracefully: show a styled cancel message.
+// Child subprocesses are killed automatically via cleanup:true in execa.
+process.on('SIGINT', () => {
+	cancel('Operation cancelled');
+	process.exit(130);
+});
+
 main().catch((error) => {
 	console.error(pc.red(error instanceof Error ? error.message : String(error)));
 	process.exit(1);
 });
+
 
 /**
  * Main execution function for the CLI.

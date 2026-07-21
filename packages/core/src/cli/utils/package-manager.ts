@@ -93,7 +93,18 @@ export async function installDependencies(
 		? { name: options.packageManager, cwd }
 		: await detectPackageManager(cwd);
 	const args = getInstallArgs(pm.name, packages, options.dev ?? false);
-	await execa(args.command, args.args, { cwd, stdio: 'inherit' });
+	const result = await execa(args.command, args.args, {
+		cwd,
+		stdio: 'inherit',
+		// Kill child process when the parent exits (e.g. Ctrl+C)
+		cleanup: true,
+		reject: false
+	});
+	if (result.exitCode !== 0) {
+		throw new Error(
+			`Command failed with exit code ${result.exitCode}: ${args.command} ${args.args.join(' ')}`
+		);
+	}
 	return pm;
 }
 
@@ -104,7 +115,17 @@ export async function runPackageScript(
 ): Promise<PackageManagerContext> {
 	const pm = await detectPackageManager(cwd);
 	const command = getRunScriptArgs(pm.name, script, args);
-	await execa(command.command, command.args, { cwd, stdio: 'inherit' });
+	const result = await execa(command.command, command.args, {
+		cwd,
+		stdio: 'inherit',
+		cleanup: true,
+		reject: false
+	});
+	if (result.exitCode !== 0) {
+		throw new Error(
+			`Command failed with exit code ${result.exitCode}: ${command.command} ${command.args.join(' ')}`
+		);
+	}
 	return pm;
 }
 
@@ -117,7 +138,17 @@ export async function runPackageInstall(
 ): Promise<PackageManagerContext> {
 	const pm = packageManager ? { name: packageManager, cwd } : await detectPackageManager(cwd);
 	const command = getInstallCommandArgs(pm.name);
-	await execa(command.command, command.args, { cwd, stdio: 'inherit' });
+	const result = await execa(command.command, command.args, {
+		cwd,
+		stdio: 'inherit',
+		cleanup: true,
+		reject: false
+	});
+	if (result.exitCode !== 0) {
+		throw new Error(
+			`Command failed with exit code ${result.exitCode}: ${command.command} ${command.args.join(' ')}`
+		);
+	}
 	return pm;
 }
 
@@ -130,7 +161,18 @@ export async function runPackageExec(
 ): Promise<PackageManagerContext> {
 	const pm = packageManager ? { name: packageManager, cwd } : await detectPackageManager(cwd);
 	const command = getExecArgs(pm.name, packageName, args);
-	await execa(command.command, command.args, { cwd, stdio: 'inherit', ...execaOptions });
+	const result = await execa(command.command, command.args, {
+		cwd,
+		stdio: 'inherit',
+		cleanup: true,
+		reject: false,
+		...execaOptions
+	});
+	if (result.exitCode !== 0) {
+		throw new Error(
+			`Command failed with exit code ${result.exitCode}: ${command.command} ${command.args.join(' ')}`
+		);
+	}
 	return pm;
 }
 

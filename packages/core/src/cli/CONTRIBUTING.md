@@ -21,7 +21,8 @@ packages/core/src/cli/
 │   └── ui.ts              # omni ui — shadcn-svelte init/add flow
 └── utils/
     ├── package-manager.ts # PM detection, getInstallArgs, getExecArgs, runPackageExec, etc.
-    └── project.ts         # hasPackageJson, hasViteConfig, addOmniToViteConfig
+    ├── project.ts         # hasPackageJson, hasViteConfig, addOmniToViteConfig
+    └── run-step.ts        # runStep / runInProcessStep — error handling helpers (see below)
 ```
 
 ---
@@ -90,6 +91,70 @@ bun /path/to/omni-svelte/packages/core/src/cli/index.ts init test-app \
 
 ---
 
+## Error Handling: `runStep` and `runInProcessStep`
+
+**Never write raw `try/catch` blocks in command handlers.** Use the helper functions from
+[`utils/run-step.ts`](./utils/run-step.ts) instead. They handle the full error lifecycle —
+spinner label, `try/catch`, `cancel()` display, and `process.exitCode = 1` — in one call.
+
+### `runStep(label, fn)` — for subprocess steps
+
+Use this for any step that calls `runPackageExec`, `installDependencies`, `runPackageInstall`,
+or any other function that spawns a subprocess with `stdio: 'inherit'`.
+
+The spinner is stopped before the function runs to prevent output conflicts with the subprocess.
+
+```ts
+import { runStep } from '../utils/run-step.js';
+
+// Returns true on success, false on failure.
+// On failure: cancel() is called with the error, process.exitCode is set to 1.
+// The caller must 'return' immediately when false is returned.
+if (!(await runStep('Installing omni-svelte', () =>
+    installDependencies(['omni-svelte'], { cwd, packageManager })
+)))
+    return;
+```
+
+### `runInProcessStep(label, fn)` — for in-process steps
+
+Use this for steps that do pure in-process work (file reads/writes, config parsing, etc.)
+with no subprocess. The spinner stays animated while `fn` runs.
+
+```ts
+import { runInProcessStep } from '../utils/run-step.js';
+
+if (!(await runInProcessStep('Configuring vite plugin', () => addOmniToViteConfig(cwd))))
+    return;
+```
+
+### Validations before steps
+
+For simple guard checks (not async steps), cancel manually and return:
+
+```ts
+if (!hasPackageJson(cwd)) {
+    cancel(`No package.json found in ${cwd}.`);
+    process.exitCode = 1;
+    return;
+}
+```
+
+---
+
+## Ctrl+C / Signal Handling
+
+A `SIGINT` handler is registered in `index.ts` that:
+1. Displays a styled `cancel('Operation cancelled')` message via `@clack`
+2. Exits with code `130` (the UNIX convention for Ctrl+C termination)
+
+All subprocess calls use `cleanup: true` in `execa`, which automatically kills child
+processes (e.g. `pnpm install`, `sv create`) when the parent CLI process exits.
+
+**You do not need to handle SIGINT in individual command handlers** — it is global.
+
+---
+
 ## Key Gotchas
 
 ### 1. `execa` does NOT use a shell — no shell quoting
@@ -114,16 +179,8 @@ of the `args` array is passed **literally** to the process. There is no shell to
 `@clack/prompts` spinners animate the terminal. Running a subprocess with `stdio: 'inherit'`
 while a spinner is active causes output to clash visually.
 
-Always `s.stop()` before spawning a subprocess:
-
-```ts
-s.start('Creating project...');
-s.stop('Creating project');     // ← stop BEFORE subprocess
-await runPackageExec('sv', [...]);
-s.start('Installing deps...');
-s.stop('Installing deps');
-await installDependencies([...]);
-```
+`runStep()` handles this automatically — it stops the spinner before calling your function.
+Only use `runInProcessStep()` (which keeps the spinner running) for purely in-process work.
 
 ### 3. Run `intro()` before any validation
 
@@ -132,7 +189,7 @@ call `cancel()`. This ensures all output (including errors) is framed inside the
 
 ❌ Wrong:
 ```ts
-if (!hasPackageJson(cwd)) throw new Error('No package.json'); // bare red text, not @clack styled
+if (!hasPackageJson(cwd)) cancel('No package.json found.'); // no intro box = unstyled output
 intro(...);
 ```
 
@@ -161,17 +218,32 @@ CWD. Snapshot tests normalize this value with `<CWD>` via `normalizeOutput()`.
 ```ts
 import { cancel, intro, outro } from '@clack/prompts';
 import pc from 'picocolors';
+import { runStep, runInProcessStep } from '../utils/run-step.js';
+import { installDependencies } from '../utils/package-manager.js';
 
 export interface MyCommandOptions {
     cwd?: string;
 }
 
 export async function handleMyCommand(options: MyCommandOptions): Promise<void> {
-    intro(pc.bgGreen(pc.black(' OmniSvelte My Command ')));
-
     const cwd = options.cwd ?? process.cwd();
 
-    // ... your logic ...
+    intro(pc.bgGreen(pc.black(' OmniSvelte My Command ')));
+
+    // Validation: manual cancel + return
+    if (!someCondition) {
+        cancel('Required condition not met.');
+        process.exitCode = 1;
+        return;
+    }
+
+    // Subprocess step: use runStep
+    if (!(await runStep('Doing subprocess work', () => installDependencies(['some-pkg'], { cwd }))))
+        return;
+
+    // In-process step: use runInProcessStep
+    if (!(await runInProcessStep('Doing in-process work', () => someInProcessFn(cwd))))
+        return;
 
     outro(pc.green('Done!'));
 }
@@ -225,9 +297,10 @@ Before committing CLI changes:
 - [ ] Manually tested the affected command(s) end-to-end
 - [ ] `pnpm vitest run --project server` — all tests pass
 - [ ] If CLI output changed: ran `--update-snapshot` and reviewed the diff
-- [ ] No raw `throw` / `console.error` in command handlers — use `cancel()` + `process.exitCode = 1`
+- [ ] All subprocess steps use `runStep()`, not raw `try/catch`
+- [ ] All in-process steps use `runInProcessStep()`, not raw `try/catch`
+- [ ] `intro()` is called before any `cancel()` / validation
 - [ ] Subprocess args don't use shell-style quoting (see Gotcha #1)
-- [ ] `intro()` is called before any `cancel()` / validation (see Gotcha #3)
 
 ---
 
@@ -244,5 +317,8 @@ All PM-specific logic lives in [`utils/package-manager.ts`](./utils/package-mana
 | `runScript(script, args, cwd, pm?)` | Run a `package.json` script |
 | `getInstallArgs(pm, pkgs, dev)` | *(unit-testable)* Returns `{ command, args }` for install |
 | `getExecArgs(pm, pkg, args)` | *(unit-testable)* Returns `{ command, args }` for exec |
+
+All functions throw a descriptive `Error` on non-zero subprocess exit.
+All subprocess calls use `cleanup: true` so child processes die with the parent.
 
 `SUPPORTED_PACKAGE_MANAGERS` = `['npm', 'pnpm', 'yarn', 'bun', 'deno', 'vp']`

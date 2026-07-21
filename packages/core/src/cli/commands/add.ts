@@ -6,6 +6,7 @@ import {
 	SUPPORTED_PACKAGE_MANAGERS,
 	installDependencies
 } from '../utils/package-manager.js';
+import { runStep } from '../utils/run-step.js';
 
 export interface AddCommandOptions {
 	omniPkg?: string;
@@ -49,11 +50,16 @@ export async function handleAddCommand(options: AddCommandOptions): Promise<void
 		packageManager = selected as PackageManager;
 	}
 
-	await installDependencies([options.omniPkg ?? 'omni-svelte'], {
-		cwd,
-		dev: Boolean(options.dev),
-		packageManager
-	});
+	if (
+		!(await runStep('Installing omni-svelte', () =>
+			installDependencies([options.omniPkg ?? 'omni-svelte'], {
+				cwd,
+				dev: Boolean(options.dev),
+				packageManager
+			})
+		))
+	)
+		return;
 
 	if (!hasViteConfig(cwd)) {
 		outro(
