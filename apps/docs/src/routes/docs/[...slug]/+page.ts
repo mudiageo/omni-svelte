@@ -13,11 +13,11 @@ export const load: PageLoad = async ({ params }) => {
 		if (!doc) {
 			error(404, `Documentation page not found: ${slug}`);
 		}
-  const document  = await getDoc(params.slug);
-	const name = document.metadata.slug;
+    const document  = await getDoc(params.slug);
+	  const name = document.metadata.slug;
+		
 		return { doc, ...document};
 	} catch (e) {
-	  console.log(e)
 		error(404, 'Documentation page not found');
 	}
 };
@@ -26,7 +26,7 @@ export const prerender = true;
 
 export const entries: EntryGenerator = () => {
 	console.info("Prerendering /docs");
-	const modules = import.meta.glob("/content/**/*.md");
+	const modules = import.meta.glob("../../../../content/docs/**/*.md");
 	const entries = [];
 
 	for (const path of Object.keys(modules)) {
