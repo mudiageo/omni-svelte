@@ -1,2 +1,2 @@
-import NumberTicker from "./number-ticker.svelte";
+import NumberTicker from './number-ticker.svelte';
 export { NumberTicker };

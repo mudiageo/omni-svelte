@@ -1,21 +1,20 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import CopyButton from "$lib/components/copy-button.svelte";
-	import CodeBlock from "$lib/components/docs/code-block.svelte";
-	import { cn } from "$lib/utils.js";
-	import type { HTMLAttributes } from "svelte/elements";
+	import { onMount } from 'svelte';
+	import CopyButton from '$lib/components/copy-button.svelte';
+	import CodeBlock from '$lib/components/docs/code-block.svelte';
+	import { cn } from '$lib/utils.js';
+	import type { HTMLAttributes } from 'svelte/elements';
 
 	let { class: className, children, ...restProps }: HTMLAttributes<HTMLPreElement> = $props();
 
 	let preNode = $state<HTMLPreElement>();
-	let code = $state("");
+	let code = $state('');
 
 	onMount(() => {
 		if (preNode) {
-			code = preNode.innerText.trim().replaceAll("  ", " ");
+			code = preNode.innerText.trim().replaceAll('  ', ' ');
 		}
-	}); 
-	
+	});
 </script>
 
 <!--

@@ -58,7 +58,7 @@
 			aria-label="Toggle dark mode"
 		>
 			<Moon class="h-5 w-5 dark:hidden" />
-			<Sun class="h-5 w-5 hidden dark:block" />
+			<Sun class="hidden h-5 w-5 dark:block" />
 		</button>
 	</div>
 </header>

@@ -34,7 +34,7 @@
 {#if href}
 	<a
 		class={cn(
-			'relative overflow-hidden group cursor-pointer',
+			'group relative cursor-pointer overflow-hidden',
 			buttonVariants({ variant, size }),
 			className
 		)}
@@ -46,7 +46,7 @@
 {:else}
 	<button
 		class={cn(
-			'relative overflow-hidden group cursor-pointer',
+			'group relative cursor-pointer overflow-hidden',
 			buttonVariants({ variant, size }),
 			className
 		)}

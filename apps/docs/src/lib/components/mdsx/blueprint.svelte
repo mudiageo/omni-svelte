@@ -20,14 +20,14 @@
 		th,
 		tr,
 		ul,
-		figcaption,
-	} from "./index.js";
+		figcaption
+	} from './index.js';
 </script>
 
 <script lang="ts">
-  let { children } = $props();
+	let { children } = $props();
 </script>
 
 <div class="mdsx">
-  {@render children?.()}
+	{@render children?.()}
 </div>

@@ -1,5 +1,5 @@
 import { defineConfig, defineCollection, s } from 'velite';
-import { resolve } from 'node:path'
+import { resolve } from 'node:path';
 
 // Velite plugin for vite
 export function velitePlugin() {
@@ -12,8 +12,7 @@ export function velitePlugin() {
 		async buildStart() {
 			const { build } = await import('velite');
 			await build();
-
-		},
+		}
 		// handleHotUpdate(ctx: any) {
 		//   const contentDir = resolve(config.root, '../../content')
 		// 	if (ctx.file.startsWith(contentDir)) {
@@ -70,7 +69,7 @@ export default defineConfig({
 		data: '.velite',
 		assets: 'static/assets',
 		base: '/assets/',
-		name: '[name]-[hash:8].[ext]',
+		name: '[name]-[hash:8].[ext]'
 	},
-	collections: { docs, blog },
+	collections: { docs, blog }
 });

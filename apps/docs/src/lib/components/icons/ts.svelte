@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { SVGAttributes } from "svelte/elements";
-	import { cn } from "$lib/utils.js";
+	import type { SVGAttributes } from 'svelte/elements';
+	import { cn } from '$lib/utils.js';
 
 	let { class: className, ...restProps }: SVGAttributes<SVGSVGElement> = $props();
 </script>
@@ -8,7 +8,7 @@
 <svg
 	xmlns="http://www.w3.org/2000/svg"
 	viewBox="0 0 24 24"
-	class={cn("fill-foreground", className)}
+	class={cn('fill-foreground', className)}
 	{...restProps}
 >
 	<path

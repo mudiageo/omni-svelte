@@ -5,7 +5,7 @@ import { mdsxConfig } from './mdsx.config.js';
 
 /** @type {import('omni-svelte').SvelteConfig} */
 const config = {
-	preprocess: [vitePreprocess(), mdsx(mdsxConfig), ],
+	preprocess: [vitePreprocess(), mdsx(mdsxConfig)],
 	kit: {
 		adapter: adapter(),
 		alias: {
@@ -14,7 +14,7 @@ const config = {
 		},
 		prerender: {
 			handleMissingId: (details) => {
-				if (details.id === "#") return;
+				if (details.id === '#') return;
 				console.warn(details.message);
 			},
 			handleHttpError: (details) => {
@@ -22,7 +22,6 @@ const config = {
 				console.warn(details.message);
 			},
 			handleUnseenRoutes: 'ignore'
-			
 		}
 	},
 	extensions: ['.svelte', '.md']

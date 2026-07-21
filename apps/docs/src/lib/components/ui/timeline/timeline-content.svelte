@@ -11,6 +11,6 @@
 	} = $props();
 </script>
 
-<div class={cn('flex flex-col gap-1 flex-1 ml-4 pt-0.5', className)}>
+<div class={cn('ml-4 flex flex-1 flex-col gap-1 pt-0.5', className)}>
 	{@render children()}
 </div>

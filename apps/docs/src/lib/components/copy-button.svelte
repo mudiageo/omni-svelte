@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { Button } from "$lib/components/ui/button/index.js";
-	import * as Tooltip from "$lib/components/ui/tooltip/index.js";
-	import { UseClipboard } from "$lib/hooks/use-clipboard.svelte.js";
-	import { cn } from "$lib/utils.js";
+	import { Button } from '$lib/components/ui/button/index.js';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import { UseClipboard } from '$lib/hooks/use-clipboard.svelte.js';
+	import { cn } from '$lib/utils.js';
 	import CopyIcon from '@lucide/svelte/icons/copy';
-	import CheckIcon from "@lucide/svelte/icons/check";
-	import type { ComponentProps } from "svelte";
+	import CheckIcon from '@lucide/svelte/icons/check';
+	import type { ComponentProps } from 'svelte';
 
 	let {
 		text,
-		variant = "ghost",
+		variant = 'ghost',
 		class: className,
 		...restProps
 	}: ComponentProps<typeof Button> & {
@@ -26,7 +26,7 @@
 	<Tooltip.Trigger
 		{...rp}
 		class={cn(
-			"bg-code absolute end-2 top-3 z-10 size-7 hover:opacity-100 focus-visible:opacity-100",
+			'bg-code absolute end-2 top-3 z-10 size-7 hover:opacity-100 focus-visible:opacity-100',
 			className
 		)}
 		onclick={() => clipboard.copy(text)}
@@ -43,6 +43,6 @@
 		{/snippet}
 	</Tooltip.Trigger>
 	<Tooltip.Content>
-		{clipboard.copied ? "Copied" : "Copy to Clipboard"}
+		{clipboard.copied ? 'Copied' : 'Copy to Clipboard'}
 	</Tooltip.Content>
 </Tooltip.Root>

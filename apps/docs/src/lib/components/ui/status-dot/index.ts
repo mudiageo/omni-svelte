@@ -1,3 +1,3 @@
-import StatusDot from "./status-dot.svelte";
+import StatusDot from './status-dot.svelte';
 
 export { StatusDot as Root, StatusDot };

@@ -28,7 +28,7 @@ type Options = {
  *
  */
 export class UseClipboard {
-	#copiedStatus = $state<"success" | "failure">();
+	#copiedStatus = $state<'success' | 'failure'>();
 	delay: number;
 	reset: boolean;
 	timeout: ReturnType<typeof setTimeout> | undefined = undefined;
@@ -48,7 +48,7 @@ export class UseClipboard {
 	 * @param text
 	 * @returns
 	 */
-	async copy(text: string | number): Promise<"success" | "failure"> {
+	async copy(text: string | number): Promise<'success' | 'failure'> {
 		if (this.timeout) {
 			this.#copiedStatus = undefined;
 			clearTimeout(this.timeout);
@@ -65,12 +65,12 @@ export class UseClipboard {
 
 	/** True when the user has just copied to the clipboard. */
 	get copied(): boolean {
-		return this.#copiedStatus === "success";
+		return this.#copiedStatus === 'success';
 	}
 
 	/**	Indicates whether a copy has occurred
 	 * and gives a status of either `success` or `failure`. */
-	get status(): "success" | "failure" | undefined {
+	get status(): 'success' | 'failure' | undefined {
 		return this.#copiedStatus;
 	}
 
@@ -82,28 +82,28 @@ export class UseClipboard {
 	}
 }
 
-export async function copyText(text: string): Promise<"success" | "failure"> {
+export async function copyText(text: string): Promise<'success' | 'failure'> {
 	try {
 		if (navigator.clipboard && window.isSecureContext) {
 			await navigator.clipboard.writeText(text);
-			return "success";
+			return 'success';
 		}
 
 		// when navigator.clipboard is unavailable we fallback to this for wider browser compatibility
-		const textArea = document.createElement("textarea");
+		const textArea = document.createElement('textarea');
 		textArea.value = text;
-		textArea.style.position = "fixed";
-		textArea.style.top = "0";
-		textArea.style.left = "0";
+		textArea.style.position = 'fixed';
+		textArea.style.top = '0';
+		textArea.style.left = '0';
 		document.body.appendChild(textArea);
 		textArea.select();
 
-		const successful = document.execCommand("copy");
+		const successful = document.execCommand('copy');
 
 		document.body.removeChild(textArea);
 
-		return successful ? "success" : "failure";
+		return successful ? 'success' : 'failure';
 	} catch {
-		return "failure";
+		return 'failure';
 	}
 }

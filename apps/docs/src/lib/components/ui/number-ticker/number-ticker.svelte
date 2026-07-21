@@ -42,6 +42,6 @@
 	let displayValue = $derived(Math.round($count).toLocaleString('en-US'));
 </script>
 
-<span bind:this={element} class={cn('tabular-nums tracking-tight text-foreground', className)}>
+<span bind:this={element} class={cn('tracking-tight text-foreground tabular-nums', className)}>
 	{displayValue}
 </span>

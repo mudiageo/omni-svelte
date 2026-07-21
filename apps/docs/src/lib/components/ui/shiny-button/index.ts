@@ -1,2 +1,2 @@
-import ShinyButton from "./shiny-button.svelte";
+import ShinyButton from './shiny-button.svelte';
 export { ShinyButton };

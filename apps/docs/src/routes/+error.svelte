@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { page } from "$app/state";
-	import { ModeWatcher } from "mode-watcher";
+	import { page } from '$app/state';
+	import { ModeWatcher } from 'mode-watcher';
 </script>
 
 <ModeWatcher />

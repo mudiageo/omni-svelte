@@ -1,18 +1,24 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js';
-	import {Badge} from '$lib/components/ui/badge';
-	import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card/index.js';
-	import {Separator} from '$lib/components/ui/separator';
-	import {StatusDot} from '$lib/components/ui/status-dot';
+	import { Badge } from '$lib/components/ui/badge';
+	import {
+		Card,
+		CardContent,
+		CardHeader,
+		CardTitle,
+		CardDescription
+	} from '$lib/components/ui/card/index.js';
+	import { Separator } from '$lib/components/ui/separator';
+	import { StatusDot } from '$lib/components/ui/status-dot';
 	import Timeline from '$lib/components/ui/timeline/index.svelte';
-	
-	import {SpotlightCard} from '$lib/components/ui/spotlight-card';
+
+	import { SpotlightCard } from '$lib/components/ui/spotlight-card';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
-import Circle from '@lucide/svelte/icons/circle';
-import Clock from '@lucide/svelte/icons/clock';
-import Lightbulb from '@lucide/svelte/icons/lightbulb';
-import ArrowRight from '@lucide/svelte/icons/arrow-right';
-import Github from '$lib/icons/github.svelte';
+	import Circle from '@lucide/svelte/icons/circle';
+	import Clock from '@lucide/svelte/icons/clock';
+	import Lightbulb from '@lucide/svelte/icons/lightbulb';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import Github from '$lib/icons/github.svelte';
 
 	type Status = 'done' | 'progress' | 'planned' | 'exploring';
 
@@ -38,7 +44,11 @@ import Github from '$lib/icons/github.svelte';
 				{ title: 'Database plugin (Drizzle + PostgreSQL)', status: 'done' },
 				{ title: 'Auth plugin (Better Auth)', status: 'done' },
 				{ title: 'Remote function wrappers — query, command', status: 'done' },
-				{ title: 'Remote function wrappers — live, batch, form, prerender, requested', status: 'progress', note: 'In progress' },
+				{
+					title: 'Remote function wrappers — live, batch, form, prerender, requested',
+					status: 'progress',
+					note: 'In progress'
+				},
 				{ title: 'omni create CLI', status: 'progress', note: 'Wizard in progress' },
 				{ title: 'omni db CLI (push, generate, migrate)', status: 'progress' },
 				{ title: 'omni generate CLI', status: 'planned' }
@@ -51,8 +61,16 @@ import Github from '$lib/icons/github.svelte';
 			status: 'progress',
 			color: 'rgba(16, 185, 129, 0.1)',
 			items: [
-				{ title: 'Payments plugin (Paystack + Stripe)', status: 'progress', note: 'Country routing done' },
-				{ title: 'query.live() — real-time remote queries', status: 'progress', note: 'WebSocket + SSE' },
+				{
+					title: 'Payments plugin (Paystack + Stripe)',
+					status: 'progress',
+					note: 'Country routing done'
+				},
+				{
+					title: 'query.live() — real-time remote queries',
+					status: 'progress',
+					note: 'WebSocket + SSE'
+				},
 				{ title: 'Route guards & middleware', status: 'planned' },
 				{ title: 'Role-based access control helpers', status: 'planned' },
 				{ title: 'Email plugin (Resend + Nodemailer)', status: 'planned' },
@@ -117,7 +135,14 @@ import Github from '$lib/icons/github.svelte';
 		}
 	];
 
-	const statusConfig: Record<Status, { label: string; dot: 'success' | 'warning' | 'default' | 'info'; badge: 'success' | 'warning' | 'secondary' | 'info' }> = {
+	const statusConfig: Record<
+		Status,
+		{
+			label: string;
+			dot: 'success' | 'warning' | 'default' | 'info';
+			badge: 'success' | 'warning' | 'secondary' | 'info';
+		}
+	> = {
 		done: { label: 'Done', dot: 'success', badge: 'success' },
 		progress: { label: 'In Progress', dot: 'warning', badge: 'warning' },
 		planned: { label: 'Planned', dot: 'default', badge: 'secondary' },
@@ -134,28 +159,43 @@ import Github from '$lib/icons/github.svelte';
 
 <svelte:head>
 	<title>Roadmap — OmniSvelte</title>
-	<meta name="description" content="The public OmniSvelte roadmap — what's shipped, in progress, and coming next." />
+	<meta
+		name="description"
+		content="The public OmniSvelte roadmap — what's shipped, in progress, and coming next."
+	/>
 </svelte:head>
 
-<div class="container mx-auto max-w-5xl px-4 sm:px-6 py-14">
+<div class="container mx-auto max-w-5xl px-4 py-14 sm:px-6">
 	<!-- Header -->
 	<div class="mb-10">
-		<Badge variant="outline" class="mb-4 text-primary border-primary/30 dark:border-primary/50 dark:text-primary">
+		<Badge
+			variant="outline"
+			class="mb-4 border-primary/30 text-primary dark:border-primary/50 dark:text-primary"
+		>
 			Public Roadmap
 		</Badge>
-		<div class="flex items-end justify-between flex-wrap gap-4 mb-4">
+		<div class="mb-4 flex flex-wrap items-end justify-between gap-4">
 			<div>
-				<h1 class="text-4xl font-bold tracking-tight mb-2">OmniSvelte Roadmap</h1>
-				<p class="text-muted-foreground text-lg">What's shipped, what's building, and what's on the horizon.</p>
+				<h1 class="mb-2 text-4xl font-bold tracking-tight">OmniSvelte Roadmap</h1>
+				<p class="text-lg text-muted-foreground">
+					What's shipped, what's building, and what's on the horizon.
+				</p>
 			</div>
-			<Button href="https://github.com/mudiageo/omnisvelte/discussions" variant="outline" size="sm" class="gap-2 shrink-0" target="_blank" rel="noopener">
+			<Button
+				href="https://github.com/mudiageo/omnisvelte/discussions"
+				variant="outline"
+				size="sm"
+				class="shrink-0 gap-2"
+				target="_blank"
+				rel="noopener"
+			>
 				<Github class="h-3.5 w-3.5" />
 				Discuss on GitHub
 			</Button>
 		</div>
 
 		<!-- Legend -->
-		<div class="flex flex-wrap gap-4 mt-6 p-4 rounded-lg border border-border bg-muted/30">
+		<div class="mt-6 flex flex-wrap gap-4 rounded-lg border border-border bg-muted/30 p-4">
 			{#each legend as l}
 				<div class="flex items-center gap-2 text-sm">
 					<StatusDot status={statusConfig[l.status].dot} size="md" />
@@ -172,15 +212,22 @@ import Github from '$lib/icons/github.svelte';
 			<SpotlightCard color={phase.color} size={500} class="w-full">
 				<div class="p-6">
 					<!-- Phase header -->
-					<div class="flex items-start justify-between flex-wrap gap-3 mb-5">
+					<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
 						<div class="flex items-center gap-3">
 							<div class="flex flex-col">
 								<div class="flex items-center gap-2.5">
-									<StatusDot status={statusConfig[phase.status].dot} pulse={phase.status === 'progress'} />
-									<span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{phase.phase}</span>
-									<Badge variant="outline" class="text-xs font-mono h-5 px-1.5">{phase.version}</Badge>
+									<StatusDot
+										status={statusConfig[phase.status].dot}
+										pulse={phase.status === 'progress'}
+									/>
+									<span class="text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+										>{phase.phase}</span
+									>
+									<Badge variant="outline" class="h-5 px-1.5 font-mono text-xs"
+										>{phase.version}</Badge
+									>
 								</div>
-								<h2 class="text-xl font-bold mt-1">{phase.title}</h2>
+								<h2 class="mt-1 text-xl font-bold">{phase.title}</h2>
 							</div>
 						</div>
 						<Badge variant={statusConfig[phase.status].badge}>
@@ -189,16 +236,20 @@ import Github from '$lib/icons/github.svelte';
 					</div>
 
 					<!-- Items grid -->
-					<div class="grid sm:grid-cols-2 gap-1.5">
+					<div class="grid gap-1.5 sm:grid-cols-2">
 						{#each phase.items as item}
-							<div class="flex items-start gap-2.5 py-1.5 px-2 rounded-md {item.status === 'done' ? 'opacity-70' : ''}">
-								<StatusDot
-									status={statusConfig[item.status].dot}
-									size="sm"
-									class="mt-1 shrink-0"
-								/>
+							<div
+								class="flex items-start gap-2.5 rounded-md px-2 py-1.5 {item.status === 'done'
+									? 'opacity-70'
+									: ''}"
+							>
+								<StatusDot status={statusConfig[item.status].dot} size="sm" class="mt-1 shrink-0" />
 								<div class="min-w-0">
-									<span class="text-sm {item.status === 'done' ? 'line-through text-muted-foreground' : ''}">{item.title}</span>
+									<span
+										class="text-sm {item.status === 'done'
+											? 'text-muted-foreground line-through'
+											: ''}">{item.title}</span
+									>
 									{#if item.note}
 										<span class="ml-2 text-xs text-muted-foreground">— {item.note}</span>
 									{/if}
@@ -213,12 +264,19 @@ import Github from '$lib/icons/github.svelte';
 
 	<!-- Community CTA -->
 	<div class="mt-14 rounded-xl border border-border bg-muted/30 p-8 text-center">
-		<h2 class="text-xl font-bold mb-2">Want to shape the roadmap?</h2>
-		<p class="text-muted-foreground mb-5 text-sm max-w-lg mx-auto">
-			Items marked 💡 Exploring are especially open to community proposals. Open a GitHub Discussion to share your ideas.
+		<h2 class="mb-2 text-xl font-bold">Want to shape the roadmap?</h2>
+		<p class="mx-auto mb-5 max-w-lg text-sm text-muted-foreground">
+			Items marked 💡 Exploring are especially open to community proposals. Open a GitHub Discussion
+			to share your ideas.
 		</p>
-		<div class="flex flex-wrap gap-3 justify-center">
-			<Button href="https://github.com/mudiageo/omnisvelte/discussions" variant="outline" class="gap-2" target="_blank" rel="noopener">
+		<div class="flex flex-wrap justify-center gap-3">
+			<Button
+				href="https://github.com/mudiageo/omnisvelte/discussions"
+				variant="outline"
+				class="gap-2"
+				target="_blank"
+				rel="noopener"
+			>
 				<Github class="h-4 w-4" />
 				Open a Discussion
 			</Button>

@@ -13,10 +13,22 @@
 	<table class="w-full text-sm">
 		<thead>
 			<tr class="border-b border-border bg-muted/50">
-				<th class="px-4 py-2.5 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground">Prop</th>
-				<th class="px-4 py-2.5 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground">Type</th>
-				<th class="px-4 py-2.5 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground">Default</th>
-				<th class="px-4 py-2.5 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground">Description</th>
+				<th
+					class="px-4 py-2.5 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+					>Prop</th
+				>
+				<th
+					class="px-4 py-2.5 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+					>Type</th
+				>
+				<th
+					class="px-4 py-2.5 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+					>Default</th
+				>
+				<th
+					class="px-4 py-2.5 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+					>Description</th
+				>
 			</tr>
 		</thead>
 		<tbody>
@@ -30,7 +42,9 @@
 					</td>
 					<td class="px-4 py-2.5 font-mono text-xs text-primary">{prop.type}</td>
 					<td class="px-4 py-2.5 font-mono text-xs text-muted-foreground">{prop.default ?? '—'}</td>
-					<td class="px-4 py-2.5 text-muted-foreground text-xs leading-relaxed">{prop.description}</td>
+					<td class="px-4 py-2.5 text-xs leading-relaxed text-muted-foreground"
+						>{prop.description}</td
+					>
 				</tr>
 			{/each}
 		</tbody>

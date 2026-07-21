@@ -28,14 +28,16 @@
 		<div class="relative flex gap-4 pb-8 last:pb-0">
 			<!-- Line -->
 			{#if i < items.length - 1}
-				<div class="absolute left-[11px] top-6 bottom-0 w-px bg-border"></div>
+				<div class="absolute top-6 bottom-0 left-[11px] w-px bg-border"></div>
 			{/if}
 
 			<!-- Dot -->
-			<div class={cn(
-				'relative z-10 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2',
-				dotColors[item.variant ?? 'default']
-			)}>
+			<div
+				class={cn(
+					'relative z-10 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2',
+					dotColors[item.variant ?? 'default']
+				)}
+			>
 				{#if item.icon}
 					<item.icon class="h-3 w-3 text-white" />
 				{:else}
@@ -48,9 +50,9 @@
 				{#if item.date}
 					<p class="mb-1 text-xs font-medium text-muted-foreground">{item.date}</p>
 				{/if}
-				<h4 class="text-sm font-semibold leading-tight">{item.title}</h4>
+				<h4 class="text-sm leading-tight font-semibold">{item.title}</h4>
 				{#if item.description}
-					<p class="mt-1 text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+					<p class="mt-1 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
 				{/if}
 			</div>
 		</div>
