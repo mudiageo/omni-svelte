@@ -12,11 +12,11 @@
 </script>
 
 <header
-	class="top-0 h-16 gap-4 border-slate-200 bg-white/80 px-4 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/80 sticky z-50 flex items-center border-b"
+	class="sticky top-0 z-50 flex h-16 items-center gap-4 border-b border-border bg-background/80 px-4 backdrop-blur-md"
 >
 	<!-- Mobile sidebar toggle -->
 	<button
-		class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden dark:hover:bg-slate-800"
+		class="rounded-lg p-2 text-muted-foreground hover:bg-muted lg:hidden"
 		onclick={() => (sidebarOpen = !sidebarOpen)}
 		aria-label="Toggle sidebar"
 	>
@@ -28,21 +28,21 @@
 	</button>
 
 	<!-- Logo -->
-	<a href="/" class="gap-2 font-bold text-slate-900 dark:text-white flex items-center">
+	<a href="/" class="flex items-center gap-2 font-bold text-foreground">
 		<span
-			class="from-brand-500 h-7 w-7 rounded-lg to-indigo-600 text-xs font-black text-white shadow-md flex items-center justify-center bg-gradient-to-br"
+			class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-black text-primary-foreground shadow-md"
 		>
 			O
 		</span>
-		<span>omni<span class="text-brand-600">-svelte</span></span>
+		<span>omni<span class="text-primary">-svelte</span></span>
 	</a>
 
-	<div class="gap-2 ml-auto flex items-center">
+	<div class="ml-auto flex items-center gap-2">
 		<a
 			href="https://github.com/mudiageo/omni-svelte"
 			target="_blank"
 			rel="noopener"
-			class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+			class="rounded-lg p-2 text-muted-foreground hover:bg-muted"
 			aria-label="GitHub"
 		>
 			<svg class="h-5 w-5 fill-current" viewBox="0 0 24 24">
@@ -53,7 +53,7 @@
 		</a>
 
 		<button
-			class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+			class="rounded-lg p-2 text-muted-foreground hover:bg-muted"
 			onclick={toggleDark}
 			aria-label="Toggle dark mode"
 		>

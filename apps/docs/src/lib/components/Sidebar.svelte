@@ -9,18 +9,16 @@
 	}
 </script>
 
-<nav class="px-4 py-6 h-full overflow-y-auto">
+<nav class="h-full overflow-y-auto px-4 py-6">
 	{#each nav as section}
 		<div class="mb-6">
-			<div class="mb-2 gap-2 flex items-center">
-				<p
-					class="text-xs font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase"
-				>
+			<div class="mb-2 flex items-center gap-2">
+				<p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 					{section.title}
 				</p>
 				{#if section.badge}
 					<span
-						class="bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300 px-1.5 py-0.5 font-semibold rounded-full text-[10px]"
+						class="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary"
 					>
 						{section.badge}
 					</span>
@@ -33,23 +31,18 @@
 						<li>
 							<a
 								href="/docs/{item.slug}"
-								class="gap-2 rounded-lg px-3 py-2 text-sm flex items-center transition-colors"
-								class:bg-brand-50={isActive(item)}
-								class:text-brand-700={isActive(item)}
+								class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
+								class:bg-primary/10={isActive(item)}
+								class:text-primary={isActive(item)}
 								class:font-medium={isActive(item)}
-								class:dark:bg-brand-950={isActive(item)}
-								class:dark:text-brand-300={isActive(item)}
-								class:text-slate-600={!isActive(item)}
-								class:hover:bg-slate-100={!isActive(item)}
-								class:hover:text-slate-900={!isActive(item)}
-								class:dark:text-slate-400={!isActive(item)}
-								class:dark:hover:bg-slate-800={!isActive(item)}
-								class:dark:hover:text-slate-100={!isActive(item)}
+								class:text-muted-foreground={!isActive(item)}
+								class:hover:bg-muted={!isActive(item)}
+								class:hover:text-foreground={!isActive(item)}
 							>
 								{item.title}
 								{#if item.badge}
 									<span
-										class="bg-slate-100 px-1.5 py-0.5 font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400 ml-auto rounded-full text-[10px]"
+										class="ml-auto rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
 									>
 										{item.badge}
 									</span>
