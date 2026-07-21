@@ -49,8 +49,12 @@ function normalizeOutput(output: string): string {
 			.replace(/\x1B\[[\d;]*[A-Za-z]/g, '')
 			// Normalize Windows-style backslash paths (e.g. C:\Users\foo\bar)
 			.replace(/[A-Z]:\\[^\s")\n]*/gi, '<CWD>')
-			// Normalize forward-slash absolute paths that start with a drive letter
+			// Normalize forward-slash absolute paths that start with a Windows drive letter
 			.replace(/[A-Z]:\/[^\s")\n]*/gi, '<CWD>')
+			// Normalize Unix absolute paths (e.g. /root/project, /home/user/project)
+			// Only replace when the path is preceded by whitespace, a quote, or start of line,
+			// so we don't accidentally match /path in "package/path" descriptions.
+			.replace(/(^|[\s"(])\/[^\s"):\n]+/gm, '$1<CWD>')
 			// Trim trailing whitespace on each line
 			.replace(/[^\S\n]+$/gm, '')
 			.trim()
@@ -95,6 +99,7 @@ describe('CLI init command', () => {
 		expect(stderr).toMatchSnapshot();
 	});
 });
+
 
 // ─── add command ─────────────────────────────────────────────────────────────
 

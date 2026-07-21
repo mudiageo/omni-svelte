@@ -70,7 +70,8 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 	s.stop('Creating SvelteKit project');
 
 	// Bug 2 fix: use explicit tailwindcss option string to ensure fully
-	// non-interactive execution. Without "plugins:none", sv create may prompt.
+	// non-interactive execution. Without plugins:none, sv create may prompt.
+	// Note: execa passes args directly (no shell), so no quotes around the value.
 	await runPackageExec(
 		'sv',
 		[
@@ -81,7 +82,7 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 			'--types',
 			'ts',
 			'--add',
-			'tailwindcss="plugins:none"',
+			'tailwindcss=plugins:none',
 			'--no-install'
 		],
 		root,

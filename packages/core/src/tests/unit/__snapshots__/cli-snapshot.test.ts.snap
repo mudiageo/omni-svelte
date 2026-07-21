@@ -3,8 +3,8 @@
 exports[`CLI add command > add --cwd with missing package.json shows styled cancel on stdout and exits non-zero > add missing pkg.json stderr 1`] = `""`;
 
 exports[`CLI add command > add --cwd with missing package.json shows styled cancel on stdout and exits non-zero > add missing pkg.json stdout 1`] = `
-"T   OmniSvelte Add
-—  No package.json found in <CWD>"
+"┌   OmniSvelte Add
+└  No package.json found in <CWD>"
 `;
 
 exports[`CLI add command > add --help output matches snapshot 1`] = `
