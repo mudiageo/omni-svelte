@@ -1,5 +1,5 @@
 ---
-"omni-svelte": major
+"omni-svelte": minor
 ---
 
 ## Breaking Changes: CLI command restructuring

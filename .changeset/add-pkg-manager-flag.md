@@ -1,5 +1,5 @@
 ---
-'omni-svelte': patch
+'omni-svelte': minor
 ---
 
 Add `--package-manager` flag to the `add` command.
