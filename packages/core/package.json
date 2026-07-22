@@ -2,6 +2,11 @@
 	"name": "omni-svelte",
 	"version": "0.1.0",
 	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/mudiageo/omni-svelte.git",
+		"directory": "packages/core"
+	},
 	"description": "Batteries included meta-framework for SvelteKit — database, auth, schema, and plugin system.",
 	"keywords": [
 		"svelte",
