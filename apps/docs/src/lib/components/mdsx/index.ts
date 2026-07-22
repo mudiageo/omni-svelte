@@ -19,3 +19,6 @@ export { default as th } from './th.svelte';
 export { default as tr } from './tr.svelte';
 export { default as ul } from './ul.svelte';
 export { default as figcaption } from './figcaption.svelte';
+export { default as callout } from './callout.svelte';
+export { default as steps } from './steps.svelte';
+export { default as step } from './step.svelte';
