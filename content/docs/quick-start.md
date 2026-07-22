@@ -93,10 +93,10 @@ omni-svelte generates your Drizzle table, Zod validators, typed model, and auth 
 
 ## Using an existing SvelteKit project?
 
-Skip step 1 and run `omni add` instead:
+Skip step 1 and run `omni migrate` instead:
 
 ```bash
-npx omni add
+npx omni migrate sveltekit
 ```
 
 Then continue from step 2. See the [Installation guide](/docs/installation) for full details.

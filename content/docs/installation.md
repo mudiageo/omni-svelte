@@ -28,10 +28,10 @@ This runs `sv create` under the hood (with TypeScript and Tailwind), installs `o
 
 ## Add to an existing SvelteKit project
 
-Run `omni add` from the root of your project:
+Run `omni migrate` from the root of your project:
 
 ```bash
-npx omni add
+npx omni migrate sveltekit
 ```
 
 This installs `omni-svelte` and patches `vite.config.ts` to include the `omniSvelte()` plugin automatically.

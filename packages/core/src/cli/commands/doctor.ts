@@ -48,7 +48,7 @@ export async function handleDoctorCommand(options: DoctorCommandOptions): Promis
 		{
 			label: 'omni-svelte installed',
 			ok: isOmniProject(cwd),
-			hint: 'omni-svelte not found in dependencies. Run `omni add` to install it.'
+			hint: 'omni-svelte not found in dependencies. Run `omni migrate sveltekit` to install it.'
 		},
 		{
 			label: '.omni directory',

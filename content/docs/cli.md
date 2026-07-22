@@ -51,20 +51,32 @@ omni init my-app
 
 ---
 
-### `add`
+### `migrate [type]` (alias: `m`)
 
-Adds OmniSvelte to an existing SvelteKit project. Installs the `omni-svelte` package and patches `vite.config.ts` automatically.
+Migrates an existing project to OmniSvelte (or between OmniSvelte versions). Installs the `omni-svelte` package and patches `vite.config.ts` automatically.
 
 ```bash
-omni add
-omni add --cwd ./my-app
+omni migrate sveltekit
+omni migrate sveltekit --cwd ./my-app
 ```
 
 **Options:**
 
 - `--cwd <path>`: Target project directory (defaults to current directory).
 - `-D, --dev`: Install as a dev dependency.
+- `--package-manager <name>`: Force a specific package manager (e.g. pnpm).
 - `--omni-pkg <package>`: Install omni-svelte from a specific package or local path.
+
+---
+
+### `add [feature]` (alias: `a`)
+
+Adds OmniSvelte features and plugins to your project. *(Note: plugins are coming in a future release)*.
+
+```bash
+omni add stripe
+omni add docker
+```
 
 ---
 

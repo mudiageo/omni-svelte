@@ -79,7 +79,7 @@ cd my-app && pnpm install
 
 ```bash
 pnpm add omni-svelte
-npx omni add
+npx omni migrate sveltekit
 ```
 
 ---
@@ -272,7 +272,7 @@ const session = authClient.useSession();
 ```bash
 # Project
 npx omni init <name>            # Scaffold a new omni-svelte app
-npx omni add                    # Add omni-svelte to an existing SvelteKit project
+npx omni migrate sveltekit      # Migrate an existing SvelteKit project to OmniSvelte
 
 # Generators
 omni generate schema <name>     # Scaffold a schema file
@@ -289,9 +289,9 @@ omni db studio                  # Open Drizzle Studio
 omni db seed --script db:seed   # Run the database seed script
 
 # Migrations
-omni migrate                    # Run pending migrations (shorthand)
-omni migrate rollback           # Show rollback guidance
-omni migrate fresh              # Show fresh-reset guidance
+omni db migrate                 # Run pending migrations (shorthand)
+omni db rollback                # Show rollback guidance
+omni db fresh                   # Show fresh-reset guidance
 
 # Development scripts (delegates to your package manager)
 omni serve                      # Start dev server (runs <pm> dev)
@@ -392,9 +392,9 @@ const myPlugin: OmniPlugin = {
 - [ ] `createFactory` helper — functional alternative to class-based `Factory`
 - [ ] Relationship definitions in `defineSchema` (auto-generate `with()` loaders)
 - [x] `npx omni init` — scaffold new projects interactively
-- [x] `omni add` — add omni-svelte to existing SvelteKit projects
-- [x] `omni generate schema|migration` generators (resource, auth-page, email coming soon)
-- [x] `omni migrate`, `omni db push|pull|generate|migrate|check|studio|seed` database commands
+- [x] `omni migrate` — migrate existing SvelteKit projects to OmniSvelte
+- [x] `omni generate` — scaffold CRUD resources, models, schemas, UI forms
+- [x] `omni db push|pull|generate|migrate|rollback|fresh|check|studio|seed` database commands
 - [x] `omni ui init|add` — shadcn-svelte integration
 - [x] `omni doctor` — project health checks
 - [x] `omni install-dependency` — package manager-aware dependency installer
