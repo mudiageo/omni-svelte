@@ -101,11 +101,11 @@ describe('CLI init command', () => {
 });
 
 
-// ─── add command ─────────────────────────────────────────────────────────────
+// ─── migrate command ─────────────────────────────────────────────────────────────
 
-describe('CLI add command', () => {
-	it('add --help output matches snapshot', async () => {
-		const { stdout, exitCode } = await runCli(['add', '--help']);
+describe('CLI migrate command', () => {
+	it('migrate --help output matches snapshot', async () => {
+		const { stdout, exitCode } = await runCli(['migrate', '--help']);
 		expect(exitCode).toBe(0);
 		expect(stdout).toMatchSnapshot();
 	});
@@ -113,26 +113,26 @@ describe('CLI add command', () => {
 	// Bug 4 fix verification: after the fix, intro() runs before the check so
 	// the cancel() message appears on stdout (inside @clack framing) rather than
 	// being thrown and caught as a bare red error on stderr.
-	it('add --cwd with missing package.json shows styled cancel on stdout and exits non-zero', async () => {
+	it('migrate --cwd with missing package.json shows styled cancel on stdout and exits non-zero', async () => {
 		const { stdout, stderr, exitCode } = await runCli([
-			'add',
+			'migrate',
 			'--cwd',
 			'C:/nonexistent/missing-project'
 		]);
 		// After Bug 4 fix, error goes through cancel() → stdout, not throw → stderr
 		expect(exitCode).not.toBe(0);
-		expect(stdout).toMatchSnapshot('add missing pkg.json stdout');
-		expect(stderr).toMatchSnapshot('add missing pkg.json stderr');
+		expect(stdout).toMatchSnapshot('migrate missing pkg.json stdout');
+		expect(stderr).toMatchSnapshot('migrate missing pkg.json stderr');
 	});
 
-	it('add with unknown option exits 1 and shows error', async () => {
-		const { stderr, exitCode } = await runCli(['add', '--nonexistent-flag']);
+	it('migrate with unknown option exits 1 and shows error', async () => {
+		const { stderr, exitCode } = await runCli(['migrate', '--nonexistent-flag']);
 		expect(exitCode).toBe(1);
 		expect(stderr).toMatchSnapshot();
 	});
 
 	it(
-		'add with --package-manager flag skips interactive PM prompt and proceeds to install',
+		'migrate with --package-manager flag skips interactive PM prompt and proceeds to install',
 		{ timeout: 35_000 },
 		async () => {
 			// Use a fake package name so the install fails fast without network access.
@@ -142,7 +142,8 @@ describe('CLI add command', () => {
 				[
 					'run',
 					CLI_ENTRY,
-					'add',
+					'migrate',
+					'sveltekit',
 					'--cwd',
 					CLI_CWD,
 					'--package-manager',

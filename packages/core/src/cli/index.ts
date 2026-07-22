@@ -11,7 +11,7 @@ import { handleDoctorCommand } from './commands/doctor.js';
 import { handleGenerateCommand } from './commands/generate.js';
 import { handleInitCommand } from './commands/init.js';
 import { handleInstallDependencyCommand } from './commands/install-dependency.js';
-import { handleMigrateCommand } from './commands/migrate.js';
+import { handleMigrateCommand } from './commands/migrate.js'; // project migration
 import { handleUiCommand } from './commands/ui.js';
 
 /**
@@ -38,10 +38,11 @@ program.addHelpText(
 	'after',
 	`${pc.bold('\nExamples:')}
   $ omni init my-app
-  $ omni add --cwd .
+  $ omni migrate sveltekit
+  $ omni add auth
   $ omni generate schema users --output src/lib/db/schemas
   $ omni db push --config drizzle.config.ts
-  $ omni install-dependency zod commander
+  $ omni db migrate
   $ omni doctor
 `
 );
@@ -72,27 +73,50 @@ ${pc.bold('Examples:')}
 		);
 	});
 
+// omni migrate — project-level migration (add OmniSvelte to an existing project, etc.)
 program
-	.command('add')
-	.alias('a')
-	.description('Add OmniSvelte to an existing SvelteKit project')
+	.command('migrate [type]')
+	.alias('m')
+	.description('Migrate an existing project to OmniSvelte (or between OmniSvelte versions)')
 	.option('--cwd <path>', 'Target project directory', process.cwd())
-	.option('-D, --dev', 'Install as a dev dependency', false)
+	.option('-D, --dev', 'Install omni-svelte as a dev dependency', false)
 	.option('--package-manager <name>', 'Force package manager (npm|pnpm|yarn|bun|deno|vp)')
 	.option('--omni-pkg <package>', 'Install omni-svelte from a specific package/path (for testing)')
 	.addHelpText('after', `
 ${pc.bold('Examples:')}
-  $ omni add
-  $ omni a --package-manager bun
-  $ omni add --cwd ./my-project -D
+  $ omni migrate
+  $ omni migrate sveltekit
+  $ omni m sveltekit --package-manager pnpm
 `)
-	.action(async (options) => {
+	.action(async (type, options) => {
 		await runAction(() =>
-			handleAddCommand({
+			handleMigrateCommand({
+				type,
 				cwd: options.cwd,
 				dev: options.dev,
 				omniPkg: options.omniPkg,
 				packageManager: options.packageManager
+			})
+		);
+	});
+
+// omni add — add OmniSvelte features and plugins
+program
+	.command('add [feature]')
+	.alias('a')
+	.description('Add OmniSvelte features and plugins to your project')
+	.option('--cwd <path>', 'Target project directory', process.cwd())
+	.addHelpText('after', `
+${pc.bold('Examples:')}
+  $ omni add
+  $ omni add auth
+  $ omni a shadcn
+`)
+	.action(async (feature, options) => {
+		await runAction(() =>
+			handleAddCommand({
+				feature,
+				cwd: options.cwd
 			})
 		);
 	});
@@ -131,11 +155,19 @@ ${pc.bold('Examples:')}
 
 program
 	.command('db [action]')
-	.description('Run Drizzle database tasks (push, pull, generate, migrate, seed)')
+	.description('Run Drizzle database tasks (push, pull, generate, migrate, seed, studio)')
 	.option('--config <path>', 'Path to drizzle config file')
 	.option('--script <name>', 'Script name for db seed task', 'db:seed')
 	.option('--cwd <path>', 'Working directory', process.cwd())
 	.option('--db-url <url>', 'Override database connection URL')
+	.addHelpText('after', `
+${pc.bold('Examples:')}
+  $ omni db push
+  $ omni db migrate
+  $ omni db seed --script db:seed
+  $ omni db studio
+  $ omni db:migrate
+`)
 	.action(async (action, options) => {
 		const selectedAction = action ?? (await promptDbAction());
 		if (!selectedAction) return;
@@ -150,16 +182,17 @@ program
 		);
 	});
 
+// omni db:migrate — convenience alias for omni db migrate
 program
-	.command('migrate [action]')
-	.description('Run migrations with safe defaults')
-	.option('--cwd <path>', 'Working directory', process.cwd())
+	.command('db:migrate')
+	.description('Alias for omni db migrate — run Drizzle migrations')
 	.option('--config <path>', 'Path to drizzle config file')
+	.option('--cwd <path>', 'Working directory', process.cwd())
 	.option('--db-url <url>', 'Override database connection URL')
-	.action(async (action, options) => {
+	.action(async (options) => {
 		await runAction(() =>
-			handleMigrateCommand({
-				action,
+			handleDbCommand({
+				action: 'migrate',
 				cwd: options.cwd,
 				config: options.config,
 				dbUrl: options.dbUrl
@@ -322,7 +355,8 @@ async function showInteractiveMenu() {
 		message: 'Select a command',
 		options: [
 			{ value: ['init'], label: 'init — Scaffold a new project' },
-			{ value: ['add'], label: 'add — Add omni-svelte to current project' },
+			{ value: ['migrate'], label: 'migrate — Migrate an existing project to OmniSvelte' },
+			{ value: ['add'], label: 'add — Add features and plugins to your project' },
 			{ value: ['generate'], label: 'generate — Create schema or migration' },
 			{ value: ['db'], label: 'db — Run database workflows' },
 			{ value: ['ui'], label: 'ui — Manage shadcn-svelte components' },
@@ -361,13 +395,15 @@ async function promptDbAction() {
 	const selected = await select({
 		message: 'Select a database action',
 		options: [
-			{ value: 'seed', label: 'seed — Run seeder script' },
 			{ value: 'push', label: 'push — Push schema to database' },
 			{ value: 'pull', label: 'pull — Pull schema from database' },
-			{ value: 'generate', label: 'generate — Generate migration files' },
 			{ value: 'migrate', label: 'migrate — Run migrations' },
+			{ value: 'generate', label: 'generate — Generate migration files' },
 			{ value: 'check', label: 'check — Validate migration state' },
-			{ value: 'studio', label: 'studio — Open Drizzle Studio' }
+			{ value: 'seed', label: 'seed — Run seeder script' },
+			{ value: 'studio', label: 'studio — Open Drizzle Studio' },
+			{ value: 'rollback', label: 'rollback — Guidance on rolling back migrations' },
+			{ value: 'fresh', label: 'fresh — Guidance on resetting the database' }
 		]
 	});
 
@@ -376,7 +412,7 @@ async function promptDbAction() {
 		return null;
 	}
 
-	return selected as 'seed' | 'studio' | 'push' | 'pull' | 'generate' | 'check' | 'migrate';
+	return selected as 'seed' | 'studio' | 'push' | 'pull' | 'generate' | 'check' | 'migrate' | 'rollback' | 'fresh';
 }
 
 /**

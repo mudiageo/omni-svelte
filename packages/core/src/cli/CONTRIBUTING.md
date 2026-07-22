@@ -11,10 +11,10 @@ packages/core/src/cli/
 ├── index.ts               # Entry point — Commander.js program, all command registrations
 ├── commands/
 │   ├── init.ts            # omni init — scaffold new SvelteKit app via sv create
-│   ├── add.ts             # omni add — add omni-svelte to an existing project
+│   ├── add.ts             # omni add — add OmniSvelte features and plugins
 │   ├── generate.ts        # omni generate — generate schema / migration files
-│   ├── db.ts              # omni db — Drizzle database tasks (push, pull, generate, etc.)
-│   ├── migrate.ts         # omni migrate — run migrations
+│   ├── db.ts              # omni db — Drizzle database tasks (push, pull, generate, migrate, etc.)
+│   ├── migrate.ts         # omni migrate — migrate an existing project to OmniSvelte
 │   ├── dev.ts             # omni serve/build/test/lint/format — package script aliases
 │   ├── doctor.ts          # omni doctor — project health checks
 │   ├── install-dependency.ts  # omni install-dependency — install packages with detected PM

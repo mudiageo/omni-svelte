@@ -1,49 +1,53 @@
-import { cancel, intro, isCancel, log, note, outro, select } from '@clack/prompts';
+import { cancel, intro, isCancel, log, outro, select, text } from '@clack/prompts';
 import pc from 'picocolors';
-import { addOmniToViteConfig, hasPackageJson, hasViteConfig, isSvelteKitProject } from '../utils/project.js';
-import {
-	type PackageManager,
-	SUPPORTED_PACKAGE_MANAGERS,
-	installDependencies
-} from '../utils/package-manager.js';
-import { runStep } from '../utils/run-step.js';
+
+export type AddFeature =
+	| 'auth'
+	| 'drizzle'
+	| 'shadcn'
+	| 'docker'
+	| 'tailwind'
+	| 'lucia'
+	| 'resend'
+	| 'stripe';
 
 export interface AddCommandOptions {
-	omniPkg?: string;
+	feature?: AddFeature;
 	cwd?: string;
-	dev?: boolean;
-	packageManager?: PackageManager;
 }
+
+interface FeatureDef {
+	value: AddFeature;
+	label: string;
+	hint: string;
+	available: boolean;
+}
+
+const FEATURES: FeatureDef[] = [
+	{ value: 'auth', label: 'auth — Authentication (sessions, OAuth, magic links)', hint: 'coming soon', available: false },
+	{ value: 'drizzle', label: 'drizzle — Drizzle ORM integration', hint: 'coming soon', available: false },
+	{ value: 'shadcn', label: 'shadcn — shadcn-svelte component library', hint: 'coming soon', available: false },
+	{ value: 'docker', label: 'docker — Docker + docker-compose setup', hint: 'coming soon', available: false },
+	{ value: 'tailwind', label: 'tailwind — Tailwind CSS v4', hint: 'coming soon', available: false },
+	{ value: 'lucia', label: 'lucia — Lucia auth adapter', hint: 'coming soon', available: false },
+	{ value: 'resend', label: 'resend — Resend email integration', hint: 'coming soon', available: false },
+	{ value: 'stripe', label: 'stripe — Stripe payments integration', hint: 'coming soon', available: false }
+];
 
 export async function handleAddCommand(options: AddCommandOptions): Promise<void> {
 	const cwd = options.cwd ?? process.cwd();
 
-	// Bug 4 fix: run intro() before validation so all output (including errors)
-	// is framed within the @clack UI context.
-	intro(pc.bgCyan(pc.black(' OmniSvelte Add ')));
+	intro(pc.bgBlue(pc.white(' OmniSvelte Add ')));
 
-	if (!hasPackageJson(cwd)) {
-		cancel(`No package.json found in ${pc.bold(cwd)}.`);
-		process.exitCode = 1;
-		return;
-	}
+	let feature = options.feature as AddFeature | undefined;
 
-	// Warn if this doesn't look like a SvelteKit project
-	if (!isSvelteKitProject(cwd)) {
-		log.warn(
-			`No svelte.config.js found. This may not be a SvelteKit project.\nContinuing anyway — you can configure OmniSvelte manually.`
-		);
-	}
-
-	// Prompt for package manager if not specified via flag
-	let packageManager = options.packageManager;
-	if (!packageManager) {
+	if (!feature) {
 		const selected = await select({
-			message: 'Which package manager do you want to use?',
-			options: SUPPORTED_PACKAGE_MANAGERS.map((pm) => ({
-				value: pm,
-				label: pm,
-				hint: pm === 'vp' ? 'Vite+ toolchain' : pm === 'deno' ? 'Deno runtime' : undefined
+			message: 'Which feature do you want to add?',
+			options: FEATURES.map((f) => ({
+				value: f.value,
+				label: f.label,
+				hint: f.hint
 			}))
 		});
 
@@ -52,40 +56,25 @@ export async function handleAddCommand(options: AddCommandOptions): Promise<void
 			return;
 		}
 
-		packageManager = selected as PackageManager;
+		feature = selected as AddFeature;
 	}
 
-	if (
-		!(await runStep('Installing omni-svelte', () =>
-			installDependencies([options.omniPkg ?? 'omni-svelte'], {
-				cwd,
-				dev: Boolean(options.dev),
-				packageManager
-			})
-		))
-	)
+	const featureDef = FEATURES.find((f) => f.value === feature);
+	if (!featureDef) {
+		cancel(`Unknown feature: ${pc.bold(feature)}. Available: ${FEATURES.map((f) => f.value).join(', ')}`);
+		process.exitCode = 1;
 		return;
+	}
 
-	if (!hasViteConfig(cwd)) {
-		log.warn(
-			`No vite.config.ts found. Add the following manually:\n` +
-			pc.dim(`  import { omniSvelte } from 'omni-svelte/vite';\n`) +
-			pc.dim(`  // in your plugins array: omniSvelte()`)
+	if (!featureDef.available) {
+		outro(
+			pc.yellow(`✦ ${pc.bold(feature)} is coming soon!\n`) +
+			pc.dim('  Follow https://github.com/mudiageo/omni-svelte for updates.')
 		);
-		note(`${packageManager} run dev`, 'Next steps');
-		outro(pc.yellow('omni-svelte installed — configure Vite plugin manually.'));
 		return;
 	}
 
-	const viteUpdated = addOmniToViteConfig(cwd);
-
-	if (viteUpdated) {
-		log.success('vite.config.ts updated with omniSvelte() plugin.');
-	} else {
-		log.info('vite.config.ts already configured — no changes needed.');
-	}
-
-	note(`${packageManager} run dev`, 'Next steps');
-
-	outro(pc.green('✔ omni-svelte installed and ready!'));
+	// Placeholder — available features will be implemented here
+	cancel(`Feature ${pc.bold(feature)} is not yet implemented.`);
+	process.exitCode = 1;
 }
