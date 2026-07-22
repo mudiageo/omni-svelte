@@ -1,6 +1,7 @@
 {
 	"name": "@omni-svelte/plugins",
 	"version": "0.1.0",
+	"private": true,
 	"description": "Official plugin stubs for omni-svelte (logging, cors, analytics, error reporting).",
 	"type": "module",
 	"main": "./dist/index.js",
