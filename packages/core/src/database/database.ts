@@ -1,10 +1,18 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { loadEnvFile } from 'process';
-loadEnvFile();
+import { loadEnvFile } from 'node:process';
+try {
+	loadEnvFile();
+} catch (e: any) {
+	if (e?.code !== 'ENOENT') {
+		throw e;
+	}
+}
 
-export let database: PostgresJsDatabase = drizzle(postgres(process.env.DATABASE_URL));
+export let database: PostgresJsDatabase = process.env.DATABASE_URL
+	? drizzle(postgres(process.env.DATABASE_URL))
+	: (null as any);
 
 export interface DatabaseConnectionConfig {
 	url?: string; // Connection string takes priority

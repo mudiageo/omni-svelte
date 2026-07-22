@@ -57,13 +57,21 @@ Interactive wizard asks:
 - UI framework (shadcn-svelte, none)
 - Planned features to stub out
 
-### `omni add`
+### `omni migrate`
 
-Add OmniSvelte to an existing SvelteKit project:
+Migrate an existing SvelteKit project to OmniSvelte:
 
 ```bash
 cd my-existing-app
-npx omni add
+npx omni migrate sveltekit
+```
+
+### `omni add`
+
+Add OmniSvelte features and plugins to your project (coming soon):
+
+```bash
+npx omni add stripe
 ```
 
 ---
@@ -118,31 +126,29 @@ omni generate email welcome
 
 ## Database commands
 
-### `omni migrate`
+### `omni db migrate`
 
 Run all pending migrations:
 
 ```bash
-omni migrate
-omni migrate --url=postgres://...   # override DATABASE_URL
+omni db migrate
+omni db migrate --db-url=postgres://...   # override DATABASE_URL
 ```
 
-### `omni migrate:rollback`
+### `omni db rollback`
 
-Roll back the last batch of migrations:
+Roll back the last batch of migrations (manual guidance):
 
 ```bash
-omni migrate:rollback
-omni migrate:rollback --steps=3
+omni db rollback
 ```
 
-### `omni migrate:fresh`
+### `omni db fresh`
 
-Drop all tables and re-run all migrations from scratch. **Destructive.**
+Drop all tables and re-run all migrations from scratch. **Destructive.** (manual guidance):
 
 ```bash
-omni migrate:fresh
-omni migrate:fresh --seed   # also run seeders
+omni db fresh
 ```
 
 ### `omni seed`

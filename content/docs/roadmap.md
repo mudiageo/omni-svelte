@@ -35,7 +35,7 @@ These features are implemented and documented.
 | Feature | Notes |
 |---|---|
 | Documentation site | You are here |
-| `omni` CLI | `omni init`, `omni add`, `omni generate` scaffolding |
+| `omni` CLI | `omni init`, `omni migrate`, `omni generate` scaffolding |
 | UI layer | shadcn-svelte integration, accessible pre-built form components |
 | Plugin registry types | Conflict detection, dependency management |
 

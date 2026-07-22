@@ -2,9 +2,10 @@ packages:
   - 'apps/*'
   - 'packages/*'
 allowBuilds:
-  '@prisma/client': false
-  better-sqlite3: false
+  '@prisma/client': true
+  '@prisma/engines': true
+  '@tailwindcss/oxide': true
+  better-sqlite3: true
   esbuild: true
+  prisma: true
   sharp: true
-onlyBuiltDependencies:
-  - esbuild

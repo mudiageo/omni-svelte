@@ -1,45 +1,44 @@
 ---
 title: Installation
-description: Add omni-svelte to a new or existing SvelteKit project.
+description: Add omni-svelte to a new or existing SvelteKit project using the CLI or manually.
 ---
 
 # Installation
 
 ## Prerequisites
 
-- Node.js ≥ 18
-- pnpm (recommended) or npm
-- A SvelteKit project
+- Node.js ≥ 22
+- pnpm, npm, yarn, or bun
+- A SvelteKit project (for existing projects) or none at all (for new projects)
 
-## 1. Install the package
+---
 
-```bash
-pnpm add omni-svelte
-```
+## New project
 
-Or with npm:
+The fastest way to scaffold a brand-new OmniSvelte app:
 
 ```bash
-npm install omni-svelte
+npx omni init my-app
+cd my-app
 ```
 
-## 2. Add the Vite plugin
+This runs `sv create` under the hood (with TypeScript and Tailwind), installs `omni-svelte`, and wires up the Vite plugin automatically.
 
-Open `vite.config.ts` and replace the default sveltekit plugin with `omniSvelte`:
+---
 
-```ts
-// vite.config.ts
-import { omniSvelte } from 'omni-svelte/vite';
-import { defineConfig } from 'vite';
+## Add to an existing SvelteKit project
 
-export default defineConfig({
-	plugins: [omniSvelte()]
-});
+Run `omni migrate` from the root of your project:
+
+```bash
+npx omni migrate sveltekit
 ```
 
-This replaces `sveltekit()` — `omniSvelte()` includes it internally.
+This installs `omni-svelte` and patches `vite.config.ts` to include the `omniSvelte()` plugin automatically.
 
-## 3. Configure in svelte.config.js
+---
+
+## Configure omni-svelte
 
 Add an `omni` key to your `svelte.config.js`:
 
@@ -66,9 +65,11 @@ const config = {
 export default config;
 ```
 
-## 4. Set environment variables
+---
 
-Copy `.env.example` to `.env` and fill in your values:
+## Set environment variables
+
+Create a `.env` file at your project root:
 
 ```bash
 DATABASE_URL=postgres://user:password@localhost:5432/mydb
@@ -76,10 +77,44 @@ BETTER_AUTH_SECRET=your-secret-here
 BETTER_AUTH_URL=http://localhost:5173
 ```
 
-## 5. Start the dev server
+---
+
+## Start the dev server
 
 ```bash
 pnpm dev
+# or: omni serve
 ```
 
-omni-svelte will generate your hooks, schema, and auth config on first start.
+omni-svelte generates your hooks, schema, and auth config on first start.
+
+---
+
+## Manual installation (optional)
+
+If you prefer not to use the CLI, you can install and configure everything by hand.
+
+**1. Install the package**
+
+```bash
+pnpm add omni-svelte
+# or: npm install omni-svelte
+```
+
+**2. Add the Vite plugin**
+
+Open `vite.config.ts` and add the `omni` plugin:
+
+```ts
+// vite.config.ts
+import { omniSvelte } from 'omni-svelte/vite';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+	plugins: [omniSvelte()]
+});
+```
+
+> `omniSvelte()` includes `sveltekit()` internally — no need to add it separately.
+
+**3. Continue from the [Configure omni-svelte](#configure-omni-svelte) step above.**
