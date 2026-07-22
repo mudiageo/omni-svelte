@@ -1,4 +1,4 @@
-import { cancel, intro, isCancel, outro, select, text } from '@clack/prompts';
+import { cancel, intro, isCancel, note, outro, select, text } from '@clack/prompts';
 import pc from 'picocolors';
 import { join } from 'path';
 import { addOmniToViteConfig } from '../utils/project.js';
@@ -99,5 +99,14 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 			return;
 	}
 
+	let nextSteps = `cd ${projectName}\n`;
+	if (options.skipInstall) {
+		nextSteps += `${packageManager} install\n`;
+	}
+	nextSteps += `${packageManager} run dev`;
+
+	note(nextSteps, 'Next steps');
+
 	outro(`${pc.green('Success!')} Created ${projectName} at ${projectPath}`);
 }
+

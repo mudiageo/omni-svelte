@@ -1,4 +1,4 @@
-import { cancel, intro, isCancel, outro, select } from '@clack/prompts';
+import { cancel, intro, isCancel, note, outro, select } from '@clack/prompts';
 import pc from 'picocolors';
 import { addOmniToViteConfig, hasPackageJson, hasViteConfig } from '../utils/project.js';
 import {
@@ -69,9 +69,13 @@ export async function handleAddCommand(options: AddCommandOptions): Promise<void
 	}
 
 	const viteUpdated = addOmniToViteConfig(cwd);
+	
+	note(`${packageManager} run dev`, 'Next steps');
+
 	outro(
 		viteUpdated
 			? pc.green('omni-svelte installed and vite.config.ts updated.')
 			: pc.green('omni-svelte installed. vite.config.ts already configured.')
 	);
 }
+
