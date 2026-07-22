@@ -2,14 +2,12 @@ import { cancel, intro, isCancel, log, outro, select, text } from '@clack/prompt
 import pc from 'picocolors';
 
 export type AddFeature =
-	| 'auth'
-	| 'drizzle'
-	| 'shadcn'
-	| 'docker'
-	| 'tailwind'
-	| 'lucia'
+	| 'stripe'
 	| 'resend'
-	| 'stripe';
+	| 'docker'
+	| 'redis'
+	| 's3'
+	| 'sentry';
 
 export interface AddCommandOptions {
 	feature?: AddFeature;
@@ -24,14 +22,12 @@ interface FeatureDef {
 }
 
 const FEATURES: FeatureDef[] = [
-	{ value: 'auth', label: 'auth — Authentication (sessions, OAuth, magic links)', hint: 'coming soon', available: false },
-	{ value: 'drizzle', label: 'drizzle — Drizzle ORM integration', hint: 'coming soon', available: false },
-	{ value: 'shadcn', label: 'shadcn — shadcn-svelte component library', hint: 'coming soon', available: false },
-	{ value: 'docker', label: 'docker — Docker + docker-compose setup', hint: 'coming soon', available: false },
-	{ value: 'tailwind', label: 'tailwind — Tailwind CSS v4', hint: 'coming soon', available: false },
-	{ value: 'lucia', label: 'lucia — Lucia auth adapter', hint: 'coming soon', available: false },
+	{ value: 'stripe', label: 'stripe — Stripe payments integration', hint: 'coming soon', available: false },
 	{ value: 'resend', label: 'resend — Resend email integration', hint: 'coming soon', available: false },
-	{ value: 'stripe', label: 'stripe — Stripe payments integration', hint: 'coming soon', available: false }
+	{ value: 'docker', label: 'docker — Docker + docker-compose setup', hint: 'coming soon', available: false },
+	{ value: 'redis', label: 'redis — Upstash Redis for caching/rate limiting', hint: 'coming soon', available: false },
+	{ value: 's3', label: 's3 — AWS S3 / UploadThing for file uploads', hint: 'coming soon', available: false },
+	{ value: 'sentry', label: 'sentry — Sentry error tracking', hint: 'coming soon', available: false }
 ];
 
 export async function handleAddCommand(options: AddCommandOptions): Promise<void> {

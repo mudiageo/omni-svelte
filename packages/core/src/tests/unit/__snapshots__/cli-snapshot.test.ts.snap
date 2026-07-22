@@ -100,7 +100,7 @@ Commands:
 Examples:
   $ omni init my-app
   $ omni migrate sveltekit
-  $ omni add auth
+  $ omni add stripe
   $ omni generate schema users --output src/lib/db/schemas
   $ omni db push --config drizzle.config.ts
   $ omni db migrate

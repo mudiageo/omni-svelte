@@ -39,7 +39,7 @@ program.addHelpText(
 	`${pc.bold('\nExamples:')}
   $ omni init my-app
   $ omni migrate sveltekit
-  $ omni add auth
+  $ omni add stripe
   $ omni generate schema users --output src/lib/db/schemas
   $ omni db push --config drizzle.config.ts
   $ omni db migrate
@@ -109,8 +109,8 @@ program
 	.addHelpText('after', `
 ${pc.bold('Examples:')}
   $ omni add
-  $ omni add auth
-  $ omni a shadcn
+  $ omni add stripe
+  $ omni a docker
 `)
 	.action(async (feature, options) => {
 		await runAction(() =>

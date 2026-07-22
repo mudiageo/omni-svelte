@@ -9,5 +9,3 @@ allowBuilds:
   esbuild: true
   prisma: true
   sharp: true
-onlyBuiltDependencies:
-  - esbuild
