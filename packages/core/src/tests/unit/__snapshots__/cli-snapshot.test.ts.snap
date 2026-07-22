@@ -8,7 +8,7 @@ exports[`CLI add command > add --cwd with missing package.json shows styled canc
 `;
 
 exports[`CLI add command > add --help output matches snapshot 1`] = `
-"Usage: omni add [options]
+"Usage: omni add|a [options]
 
 Add OmniSvelte to an existing SvelteKit project
 
@@ -19,7 +19,12 @@ Options:
   --package-manager <name>  Force package manager (npm|pnpm|yarn|bun|deno|vp)
   --omni-pkg <package>      Install omni-svelte from a specific package/path
                             (for testing)
-  -h, --help                display help for command"
+  -h, --help                display help for command
+
+Examples:
+  $ omni add
+  $ omni a --package-manager bun
+  $ omni add --cwd ./my-project -D"
 `;
 
 exports[`CLI add command > add with unknown option exits 1 and shows error 1`] = `
@@ -28,7 +33,7 @@ exports[`CLI add command > add with unknown option exits 1 and shows error 1`] =
 `;
 
 exports[`CLI init command > init --help output matches snapshot 1`] = `
-"Usage: omni init [options] [name]
+"Usage: omni init|i [options] [name]
 
 Scaffold a new OmniSvelte-ready SvelteKit app
 
@@ -38,7 +43,12 @@ Options:
   --package-manager <name>  Force package manager (npm|pnpm|yarn|bun|deno|vp)
   --omni-pkg <package>      Install omni-svelte from a specific package/path
                             (for testing)
-  -h, --help                display help for command"
+  -h, --help                display help for command
+
+Examples:
+  $ omni init my-app
+  $ omni i blog --package-manager pnpm
+  $ omni init --skip-install"
 `;
 
 exports[`CLI init command > init with unknown option exits 1 and shows error 1`] = `

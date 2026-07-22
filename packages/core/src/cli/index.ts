@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import { cancel, intro, isCancel, outro, select } from '@clack/prompts';
+import { cancel, intro, isCancel, log, outro, select } from '@clack/prompts';
 import { Command } from 'commander';
 import pc from 'picocolors';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { handleAddCommand } from './commands/add.js';
 import { handleDbCommand } from './commands/db.js';
 import { handleDevCommand } from './commands/dev.js';
@@ -48,11 +48,18 @@ program.addHelpText(
 
 program
 	.command('init [name]')
+	.alias('i')
 	.description('Scaffold a new OmniSvelte-ready SvelteKit app')
 	.option('--cwd <path>', 'Create the project from a different directory')
 	.option('--skip-install', 'Skip final dependency installation', false)
 	.option('--package-manager <name>', 'Force package manager (npm|pnpm|yarn|bun|deno|vp)')
 	.option('--omni-pkg <package>', 'Install omni-svelte from a specific package/path (for testing)')
+	.addHelpText('after', `
+${pc.bold('Examples:')}
+  $ omni init my-app
+  $ omni i blog --package-manager pnpm
+  $ omni init --skip-install
+`)
 	.action(async (name, options) => {
 		await runAction(() =>
 			handleInitCommand({
@@ -67,11 +74,18 @@ program
 
 program
 	.command('add')
+	.alias('a')
 	.description('Add OmniSvelte to an existing SvelteKit project')
 	.option('--cwd <path>', 'Target project directory', process.cwd())
 	.option('-D, --dev', 'Install as a dev dependency', false)
 	.option('--package-manager <name>', 'Force package manager (npm|pnpm|yarn|bun|deno|vp)')
 	.option('--omni-pkg <package>', 'Install omni-svelte from a specific package/path (for testing)')
+	.addHelpText('after', `
+${pc.bold('Examples:')}
+  $ omni add
+  $ omni a --package-manager bun
+  $ omni add --cwd ./my-project -D
+`)
 	.action(async (options) => {
 		await runAction(() =>
 			handleAddCommand({
@@ -88,10 +102,18 @@ program
 	.alias('g')
 	.description('Generate schema and migration files with interactive fallback')
 	.option('-o, --output <path>', 'Custom output directory')
-	.option('-f, --force', 'Overwrite existing output files', false)
+	.option('-f, --force', 'Overwrite existing output files without prompting', false)
+	.option('-n, --dry-run', 'Preview what would be generated without writing files', false)
 	.option('--cwd <path>', 'Working directory', process.cwd())
 	.option('--schema-mode <mode>', 'Override OmniConfig.schema.mode')
 	.option('--schema-output-dir <dir>', 'Override OmniConfig.schema.output.directory')
+	.addHelpText('after', `
+${pc.bold('Examples:')}
+  $ omni generate schema User
+  $ omni g migration add_posts_table
+  $ omni generate schema Post --output src/db/schemas
+  $ omni g schema Article --dry-run
+`)
 	.action(async (type, name, options) => {
 		await runAction(() =>
 			handleGenerateCommand({
@@ -99,6 +121,7 @@ program
 				name,
 				output: options.output,
 				force: options.force,
+				dryRun: options.dryRun,
 				cwd: options.cwd,
 				schemaMode: options.schemaMode,
 				schemaOutputDir: options.schemaOutputDir
@@ -363,9 +386,40 @@ async function promptDbAction() {
 async function runAction(action: () => Promise<void>) {
 	try {
 		await action();
+		// Non-blocking update check — prints a notice if a newer version is available
+		await checkForUpdates().catch(() => {/* silently ignore network errors */});
 	} catch (error) {
 		console.error(pc.red(error instanceof Error ? error.message : String(error)));
 		process.exitCode = 1;
+	}
+}
+
+/**
+ * Checks npm registry for a newer version of omni-svelte.
+ * Prints a non-blocking notice if an update is available.
+ * Silently no-ops on any network or parse error.
+ */
+async function checkForUpdates() {
+	const currentVersion = getCliVersion();
+	if (!currentVersion || currentVersion === 'unknown') return;
+
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), 3000);
+	try {
+		const res = await fetch(
+			'https://registry.npmjs.org/omni-svelte/latest',
+			{ signal: controller.signal, headers: { Accept: 'application/json' } }
+		);
+		const data = await res.json() as { version?: string };
+		const latest = data?.version;
+		if (latest && latest !== currentVersion) {
+			log.info(
+				`Update available: ${pc.dim(currentVersion)} → ${pc.green(latest)}\n` +
+				`Run ${pc.cyan('npm add -g omni-svelte')} to update.`
+			);
+		}
+	} finally {
+		clearTimeout(timeout);
 	}
 }
 

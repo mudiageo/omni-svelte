@@ -1,5 +1,7 @@
+import { cancel, log } from '@clack/prompts';
 import pc from 'picocolors';
 import { runPackageExec, runPackageScript } from '../utils/package-manager.js';
+import { isSvelteKitProject } from '../utils/project.js';
 
 export type DbAction = 'seed' | 'studio' | 'push' | 'pull' | 'generate' | 'check' | 'migrate';
 
@@ -13,6 +15,15 @@ export interface DbCommandOptions {
 
 export async function handleDbCommand(options: DbCommandOptions): Promise<void> {
 	const cwd = options.cwd ?? process.cwd();
+
+	// Guard: only allow running in a SvelteKit project
+	if (!isSvelteKitProject(cwd)) {
+		cancel(
+			`No svelte.config.js found in ${pc.bold(cwd)}.\nRun ${pc.cyan('omni db')} from within a SvelteKit project.`
+		);
+		process.exitCode = 1;
+		return;
+	}
 
 	switch (options.action) {
 		case 'seed':
@@ -32,12 +43,12 @@ export async function handleDbCommand(options: DbCommandOptions): Promise<void> 
 }
 
 async function runDbSeed(cwd: string, script = 'db:seed') {
-	console.log(pc.dim(`Running ${script} script...`));
+	log.step(`Running ${pc.bold(script)} script...`);
 	await runPackageScript(script, [], cwd);
 }
 
 async function runDrizzleCommand(cmd: string, cwd: string, config?: string, dbUrl?: string) {
-	console.log(pc.dim(`Running drizzle-kit ${cmd}...`));
+	log.step(`Running ${pc.bold(`drizzle-kit ${cmd}`)}...`);
 	await runPackageExec(
 		'drizzle-kit',
 		[cmd, ...(config ? ['--config', config] : [])],

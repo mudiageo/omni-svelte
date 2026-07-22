@@ -1,6 +1,6 @@
-import { cancel, intro, isCancel, note, outro, select } from '@clack/prompts';
+import { cancel, intro, isCancel, log, note, outro, select } from '@clack/prompts';
 import pc from 'picocolors';
-import { addOmniToViteConfig, hasPackageJson, hasViteConfig } from '../utils/project.js';
+import { addOmniToViteConfig, hasPackageJson, hasViteConfig, isSvelteKitProject } from '../utils/project.js';
 import {
 	type PackageManager,
 	SUPPORTED_PACKAGE_MANAGERS,
@@ -19,15 +19,20 @@ export async function handleAddCommand(options: AddCommandOptions): Promise<void
 	const cwd = options.cwd ?? process.cwd();
 
 	// Bug 4 fix: run intro() before validation so all output (including errors)
-	// is framed within the @clack UI context. Use cancel() instead of throw so
-	// the error is styled consistently rather than falling through to runAction's
-	// bare console.error.
+	// is framed within the @clack UI context.
 	intro(pc.bgCyan(pc.black(' OmniSvelte Add ')));
 
 	if (!hasPackageJson(cwd)) {
-		cancel(`No package.json found in ${cwd}.`);
+		cancel(`No package.json found in ${pc.bold(cwd)}.`);
 		process.exitCode = 1;
 		return;
+	}
+
+	// Warn if this doesn't look like a SvelteKit project
+	if (!isSvelteKitProject(cwd)) {
+		log.warn(
+			`No svelte.config.js found. This may not be a SvelteKit project.\nContinuing anyway — you can configure OmniSvelte manually.`
+		);
 	}
 
 	// Prompt for package manager if not specified via flag
@@ -62,20 +67,25 @@ export async function handleAddCommand(options: AddCommandOptions): Promise<void
 		return;
 
 	if (!hasViteConfig(cwd)) {
-		outro(
-			`${pc.yellow('Installed omni-svelte.')}\nNo vite.config.ts found. Add \`import { omniSvelte } from 'omni-svelte/vite'\` and include \`omniSvelte()\` in your Vite plugins manually.`
+		log.warn(
+			`No vite.config.ts found. Add the following manually:\n` +
+			pc.dim(`  import { omniSvelte } from 'omni-svelte/vite';\n`) +
+			pc.dim(`  // in your plugins array: omniSvelte()`)
 		);
+		note(`${packageManager} run dev`, 'Next steps');
+		outro(pc.yellow('omni-svelte installed — configure Vite plugin manually.'));
 		return;
 	}
 
 	const viteUpdated = addOmniToViteConfig(cwd);
-	
+
+	if (viteUpdated) {
+		log.success('vite.config.ts updated with omniSvelte() plugin.');
+	} else {
+		log.info('vite.config.ts already configured — no changes needed.');
+	}
+
 	note(`${packageManager} run dev`, 'Next steps');
 
-	outro(
-		viteUpdated
-			? pc.green('omni-svelte installed and vite.config.ts updated.')
-			: pc.green('omni-svelte installed. vite.config.ts already configured.')
-	);
+	outro(pc.green('✔ omni-svelte installed and ready!'));
 }
-

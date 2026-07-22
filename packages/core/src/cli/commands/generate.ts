@@ -1,7 +1,8 @@
-import { cancel, isCancel, select, text } from '@clack/prompts';
+import { cancel, confirm, intro, isCancel, log, outro, select, text } from '@clack/prompts';
 import pc from 'picocolors';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { basename, join, resolve, sep } from 'path';
+import { findProjectRoot, isSvelteKitProject } from '../utils/project.js';
 
 export type GeneratorType = 'schema' | 'migration' | 'resource' | 'auth-page' | 'email';
 
@@ -12,13 +13,31 @@ export interface GenerateCommandOptions {
 	name?: string;
 	output?: string;
 	force?: boolean;
+	dryRun?: boolean;
 	cwd?: string;
 }
 
 export async function handleGenerateCommand(options: GenerateCommandOptions): Promise<void> {
 	let type = options.type;
 	let name = options.name;
-	const cwd = options.cwd ?? process.cwd();
+
+	// Auto-detect project root if user is in a subdirectory
+	const rawCwd = options.cwd ?? process.cwd();
+	const cwd = findProjectRoot(rawCwd);
+	if (cwd !== rawCwd) {
+		log.info(`Using project root: ${pc.dim(cwd)}`);
+	}
+
+	// Guard: only allow running in a SvelteKit project
+	if (!isSvelteKitProject(cwd)) {
+		cancel(
+			`No svelte.config.js found in ${pc.bold(cwd)}.\nRun ${pc.cyan('omni generate')} from within a SvelteKit project.`
+		);
+		process.exitCode = 1;
+		return;
+	}
+
+	intro(pc.bgGreen(pc.black(' OmniSvelte Generate ')));
 
 	if (!type) {
 		const selectedType = await select({
@@ -43,7 +62,7 @@ export async function handleGenerateCommand(options: GenerateCommandOptions): Pr
 	if (type !== 'auth-page' && !name) {
 		const enteredName = await text({
 			message: `Name for ${type}`,
-			placeholder: 'User',
+			placeholder: type === 'schema' ? 'User' : type === 'migration' ? 'add_users_table' : 'MyResource',
 			validate(value) {
 				if (!value.trim()) return 'Name is required';
 			}
@@ -63,30 +82,31 @@ export async function handleGenerateCommand(options: GenerateCommandOptions): Pr
 
 	switch (type) {
 		case 'schema':
-			generateSchema(name, cwd, options.output, Boolean(options.force), options);
+			await generateSchema(name, cwd, options.output, Boolean(options.force), Boolean(options.dryRun), options);
 			break;
 		case 'migration':
-			generateMigration(name, cwd, options.output, Boolean(options.force));
+			await generateMigration(name, cwd, options.output, Boolean(options.force), Boolean(options.dryRun));
 			break;
 		case 'resource':
-			console.log(pc.yellow('Resource generator is planned and coming soon.'));
+			log.warn('Resource generator is planned and coming soon.');
 			break;
 		case 'auth-page':
-			console.log(pc.yellow('Auth page generator is planned and coming soon.'));
+			log.warn('Auth page generator is planned and coming soon.');
 			break;
 		case 'email':
-			console.log(pc.yellow('Email template generator is planned and coming soon.'));
+			log.warn('Email template generator is planned and coming soon.');
 			break;
 		default:
 			throw new Error(`Unknown generator type: ${type}`);
 	}
 }
 
-function generateSchema(
+async function generateSchema(
 	name: string,
 	cwd: string,
 	output?: string,
 	force = false,
+	dryRun = false,
 	options?: GenerateCommandOptions
 ) {
 	const safeName = sanitizeName(name);
@@ -98,35 +118,43 @@ function generateSchema(
 
 	assertWithinDir(targetFile, targetDir);
 
-	ensureDir(targetDir);
-	if (existsSync(targetFile) && !force) {
-		throw new Error(
-			`Schema ${tableName} already exists at ${targetFile}. Use --force to overwrite.`
-		);
-	}
-
 	const content = `import { defineSchema, field } from 'omni-svelte/schema';
 
 export default defineSchema('${tableName}', {
-	id: field.uuid().primaryKey().defaultRandom(),
-	// Add your fields here
+\tid: field.uuid().primaryKey().defaultRandom(),
+\t// Add your fields here
 });
 `;
 
+	if (dryRun) {
+		outro(`${pc.cyan('[dry-run]')} Would create: ${pc.bold(targetFile)}\n\n${pc.dim(content)}`);
+		return;
+	}
+
+	if (existsSync(targetFile) && !force) {
+		const shouldOverwrite = await confirm({
+			message: `${pc.yellow(targetFile)} already exists. Overwrite?`,
+			initialValue: false
+		});
+		if (isCancel(shouldOverwrite) || !shouldOverwrite) {
+			cancel('Aborted. Use --force to overwrite without prompting.');
+			process.exitCode = 1;
+			return;
+		}
+	}
+
+	ensureDir(targetDir);
 	writeFileSync(targetFile, content);
-	console.log(pc.green(`✓ Schema ${tableName} created at ${targetFile}`));
+	outro(`${pc.green('✔')} Schema ${pc.bold(tableName)} created at ${pc.dim(targetFile)}`);
 }
 
-export function toSnakeCase(value: string) {
-	return value
-		.replace(/([A-Z])/g, '_$1')
-		.split(/[-_\s]+/)
-		.filter(Boolean)
-		.join('_')
-		.toLowerCase();
-}
-
-function generateMigration(name: string, cwd: string, output?: string, force = false) {
+async function generateMigration(
+	name: string,
+	cwd: string,
+	output?: string,
+	force = false,
+	dryRun = false
+) {
 	const safeName = sanitizeName(name);
 	const timestamp = new Date()
 		.toISOString()
@@ -138,28 +166,48 @@ function generateMigration(name: string, cwd: string, output?: string, force = f
 
 	assertWithinDir(targetFile, targetDir);
 
-	ensureDir(targetDir);
-	if (existsSync(targetFile) && !force) {
-		throw new Error(
-			`Migration ${filename} already exists at ${targetFile}. Use --force to overwrite.`
-		);
-	}
-
 	const content = `import { Migration } from 'omni-svelte/database';
 
 export default class extends Migration {
-	async up() {
-		// Implement migration
-	}
+\tasync up() {
+\t\t// Implement migration
+\t}
 
-	async down() {
-		// Rollback migration
-	}
+\tasync down() {
+\t\t// Rollback migration
+\t}
 }
 `;
 
+	if (dryRun) {
+		outro(`${pc.cyan('[dry-run]')} Would create: ${pc.bold(targetFile)}\n\n${pc.dim(content)}`);
+		return;
+	}
+
+	if (existsSync(targetFile) && !force) {
+		const shouldOverwrite = await confirm({
+			message: `${pc.yellow(targetFile)} already exists. Overwrite?`,
+			initialValue: false
+		});
+		if (isCancel(shouldOverwrite) || !shouldOverwrite) {
+			cancel('Aborted. Use --force to overwrite without prompting.');
+			process.exitCode = 1;
+			return;
+		}
+	}
+
+	ensureDir(targetDir);
 	writeFileSync(targetFile, content);
-	console.log(pc.green(`✓ Migration created at ${targetFile}`));
+	outro(`${pc.green('✔')} Migration created at ${pc.dim(targetFile)}`);
+}
+
+export function toSnakeCase(value: string) {
+	return value
+		.replace(/([A-Z])/g, '_$1')
+		.split(/[-_\s]+/)
+		.filter(Boolean)
+		.join('_')
+		.toLowerCase();
 }
 
 function ensureDir(path: string) {
@@ -173,11 +221,8 @@ function ensureDir(path: string) {
  * Strips path separators, `..`, and normalizes to safe characters.
  */
 function sanitizeName(name: string): string {
-	// Take only the basename to strip any directory segments
 	let safe = basename(name);
-	// Remove any remaining path traversal patterns
 	safe = safe.replace(/\.\./g, '');
-	// Keep only safe characters: letters, digits, hyphens, underscores
 	safe = safe.replace(/[^a-zA-Z0-9_-]/g, '');
 	if (!safe) {
 		throw new Error(

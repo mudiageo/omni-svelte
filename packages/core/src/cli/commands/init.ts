@@ -1,5 +1,6 @@
-import { cancel, intro, isCancel, note, outro, select, text } from '@clack/prompts';
+import { cancel, intro, isCancel, log, note, outro, select, text } from '@clack/prompts';
 import pc from 'picocolors';
+import { existsSync, rmSync } from 'fs';
 import { join } from 'path';
 import { addOmniToViteConfig } from '../utils/project.js';
 import {
@@ -61,10 +62,22 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 	const root = options.cwd ?? process.cwd();
 	const projectPath = join(root, projectName);
 
-	// runStep handles the spinner label + try/catch + cancel() on failure.
-	// For subprocess steps we use runStep (stops spinner before spawning to avoid stdio conflict).
-	// For in-process steps we use runInProcessStep (keeps spinner animated).
+	// Track whether the project dir was created so we can clean up on failure
+	const projectExistedBefore = existsSync(projectPath);
 
+	// Helper to clean up a partially-created project directory on failure
+	const cleanupOnFailure = () => {
+		if (!projectExistedBefore && existsSync(projectPath)) {
+			try {
+				rmSync(projectPath, { recursive: true, force: true });
+				log.warn(`Cleaned up partially created directory: ${pc.dim(projectPath)}`);
+			} catch {
+				log.warn(`Could not clean up ${projectPath} — please remove it manually.`);
+			}
+		}
+	};
+
+	// runStep prints the step label and wraps the subprocess in try/catch.
 	// Note on tailwindcss arg: no shell quoting — execa passes args directly (Bug 2 fix)
 	if (
 		!(await runStep('Creating SvelteKit project', () =>
@@ -75,8 +88,10 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 				packageManager
 			)
 		))
-	)
+	) {
+		cleanupOnFailure();
 		return;
+	}
 
 	if (
 		!(await runStep('Installing omni-svelte', () =>
@@ -85,18 +100,24 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 				packageManager
 			})
 		))
-	)
+	) {
+		cleanupOnFailure();
 		return;
+	}
 
 	// addOmniToViteConfig is synchronous in-process — use runInProcessStep
-	if (!(await runInProcessStep('Configuring vite plugin', () => addOmniToViteConfig(projectPath))))
+	if (!(await runInProcessStep('Configuring vite plugin', () => addOmniToViteConfig(projectPath)))) {
+		cleanupOnFailure();
 		return;
+	}
 
 	if (!options.skipInstall) {
 		// Bug 3 fix: pass the user-selected packageManager so we don't fall back to
 		// auto-detection (which may pick the wrong PM if no lockfile exists yet).
-		if (!(await runStep('Installing project dependencies', () => runPackageInstall(projectPath, packageManager))))
+		if (!(await runStep('Installing project dependencies', () => runPackageInstall(projectPath, packageManager)))) {
+			cleanupOnFailure();
 			return;
+		}
 	}
 
 	let nextSteps = `cd ${projectName}\n`;
@@ -107,6 +128,5 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 
 	note(nextSteps, 'Next steps');
 
-	outro(`${pc.green('Success!')} Created ${projectName} at ${projectPath}`);
+	outro(`${pc.green('✔ Success!')} Created ${pc.bold(projectName)} at ${pc.dim(projectPath)}`);
 }
-

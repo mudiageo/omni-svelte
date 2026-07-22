@@ -322,3 +322,19 @@ All functions throw a descriptive `Error` on non-zero subprocess exit.
 All subprocess calls use `cleanup: true` so child processes die with the parent.
 
 `SUPPORTED_PACKAGE_MANAGERS` = `['npm', 'pnpm', 'yarn', 'bun', 'deno', 'vp']`
+
+## Project Utilities Reference
+
+All project-detection logic lives in [`utils/project.ts`](./utils/project.ts).
+
+| Function | Purpose |
+|---|---|
+| `findProjectRoot(start?)` | Walks up directory tree from `start` to find the package.json root |
+| `hasPackageJson(cwd)` | Returns true if `package.json` exists in `cwd` |
+| `hasViteConfig(cwd)` | Returns true if `vite.config.ts` exists in `cwd` |
+| `isSvelteKitProject(cwd)` | Returns true if `@sveltejs/kit` is in the project's deps (covers all SK versions including SK3+ where `svelte.config.js` is optional). Falls back to checking for `svelte.config.js/ts` for older projects. |
+| `isOmniProject(cwd)` | Returns true if `omni-svelte` is in the project's dependencies |
+| `addOmniToViteConfig(cwd)` | Injects `omniSvelte()` into `vite.config.ts`; returns true if file was changed |
+
+> **Tip**: Use `isSvelteKitProject(cwd)` at the top of any command that requires a SvelteKit context (e.g. `generate`, `db`). Call `cancel()` and return early if it's false.
+
