@@ -3,6 +3,7 @@ packages:
   - 'packages/*'
 allowBuilds:
   '@prisma/client': false
+  '@tailwindcss/oxide': set this to true or false
   better-sqlite3: false
   esbuild: true
   sharp: true

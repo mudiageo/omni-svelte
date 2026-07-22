@@ -6,7 +6,4 @@
  */
 
 export type * from './types.js';
-export { loggingPlugin } from './logging/index.js';
-export { corsPlugin } from './cors/index.js';
 export { analyticsPlugin } from './analytics/index.js';
-export { errorReportingPlugin } from './error-reporting/index.js';
