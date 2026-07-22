@@ -14,7 +14,7 @@ export interface AnalyticsOptions {
 export function analyticsPlugin(options: AnalyticsOptions = {}): OmniPlugin {
 	return {
 		name: '@omni-svelte/plugin-analytics',
-		async handle(_ctx) {
+		async handle(_ctx: any) {
 			// TODO: implement analytics event tracking
 		}
 	};
