@@ -24,11 +24,11 @@ export async function handleGenerateCommand(options: GenerateCommandOptions): Pr
 		const selectedType = await select({
 			message: 'What do you want to generate?',
 			options: [
-				{ value: 'schema', label: 'Schema' },
-				{ value: 'migration', label: 'Migration' },
-				{ value: 'resource', label: 'Resource' },
-				{ value: 'auth-page', label: 'Auth Page' },
-				{ value: 'email', label: 'Email Template' }
+				{ value: 'schema', label: 'schema — Generate a schema' },
+				{ value: 'migration', label: 'migration — Create a migration' },
+				{ value: 'resource', label: 'resource — Scaffold a new resource' },
+				{ value: 'auth-page', label: 'auth-page — Generate an auth page' },
+				{ value: 'email', label: 'email — Create an email template' }
 			]
 		});
 

@@ -17,8 +17,8 @@ export async function handleUiCommand(options: UiCommandOptions): Promise<void> 
 		const selection = await select({
 			message: 'UI action',
 			options: [
-				{ value: 'init', label: 'Initialize shadcn-svelte' },
-				{ value: 'add', label: 'Add shadcn component' }
+				{ value: 'init', label: 'init — Initialize shadcn-svelte' },
+				{ value: 'add', label: 'add — Add shadcn component' }
 			]
 		});
 
