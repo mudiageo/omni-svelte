@@ -33,3 +33,6 @@ vite.config.ts.timestamp-*
 
 # Auth codegen
 **/src/lib/auth.ts
+
+# Testing
+.test-cli-tmp
