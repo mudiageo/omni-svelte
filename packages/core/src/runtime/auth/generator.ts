@@ -357,7 +357,7 @@ export default config;
     },
   })`;
 				}
-				return 'magicLink()';
+				return 'magicLink({})';
 			},
 
 			emailOTP: (config) => {
@@ -370,7 +370,7 @@ export default config;
     },
   })`;
 				}
-				return 'emailOTP()';
+				return 'emailOTP({})';
 			},
 
 			genericOAuth: (config) => {
@@ -378,6 +378,20 @@ export default config;
 				const cfg = config as any;
 				return `genericOAuth({
     config: ${JSON.stringify(cfg?.config || [], null, 2)},
+  })`;
+			},
+
+			twoFactor: (config) => {
+				if (!config || config === false) return;
+				const cfg = typeof config === 'object' ? config : {};
+				return `twoFactor({
+    otpOptions: {
+      async sendOTP(user, otp) {
+        const { sendVerificationOTP } = await import('omni-svelte/mail');
+        return sendVerificationOTP({ email: user.email, otp, type: '2fa' }, null);
+      }
+    },
+    ...${JSON.stringify(cfg, null, 2)}
   })`;
 			}
 		};
@@ -402,11 +416,11 @@ export default config;
 			// - object => pluginName({...})
 			// - anything else truthy => pluginName()
 			if (pluginConfig === true || pluginConfig == null) {
-				pluginCalls.push(`${pluginName}()`);
+				pluginCalls.push(`${pluginName}({})`);
 			} else if (typeof pluginConfig === 'object') {
 				pluginCalls.push(`${pluginName}(${JSON.stringify(pluginConfig)})`);
 			} else {
-				pluginCalls.push(`${pluginName}()`);
+				pluginCalls.push(`${pluginName}({})`);
 			}
 		}
 
