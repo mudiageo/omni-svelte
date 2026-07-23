@@ -34,103 +34,155 @@
 			phase: 'Phase 1',
 			version: 'v0.1',
 			title: 'Foundation',
-			status: 'progress',
+			status: 'done',
 			color: 'rgba(139, 92, 246, 0.1)',
 			items: [
-				{ title: 'Plugin API (definePlugin, createPlugin)', status: 'done' },
-				{ title: 'omni() helper in svelte.config.ts', status: 'done' },
-				{ title: 'PluginRegistry with conflict detection', status: 'done' },
-				{ title: 'Virtual modules (omni:tables, omni:remote/*)', status: 'done' },
-				{ title: 'Database plugin (Drizzle + PostgreSQL)', status: 'done' },
-				{ title: 'Auth plugin (Better Auth)', status: 'done' },
-				{ title: 'Remote function wrappers — query, command', status: 'done' },
-				{
-					title: 'Remote function wrappers — live, batch, form, prerender, requested',
-					status: 'progress',
-					note: 'In progress'
-				},
-				{ title: 'omni create CLI', status: 'progress', note: 'Wizard in progress' },
-				{ title: 'omni db CLI (push, generate, migrate)', status: 'progress' },
-				{ title: 'omni generate CLI', status: 'planned' }
+				{ title: 'Database ORM (Drizzle) + Model class', status: 'done' },
+				{ title: 'Authentication (Better-Auth)', status: 'done' },
+				{ title: 'Schema-driven codegen & Virtual Modules', status: 'done' },
+				{ title: 'omni init / add / doctor CLI', status: 'done' }
 			]
 		},
 		{
 			phase: 'Phase 2',
 			version: 'v0.2',
-			title: 'Production Ready',
+			title: 'CLI & Developer Experience',
 			status: 'progress',
 			color: 'rgba(16, 185, 129, 0.1)',
 			items: [
-				{
-					title: 'Payments plugin (Paystack + Stripe)',
-					status: 'progress',
-					note: 'Country routing done'
-				},
-				{
-					title: 'query.live() — real-time remote queries',
-					status: 'progress',
-					note: 'WebSocket + SSE'
-				},
-				{ title: 'Route guards & middleware', status: 'planned' },
-				{ title: 'Role-based access control helpers', status: 'planned' },
-				{ title: 'Email plugin (Resend + Nodemailer)', status: 'planned' },
-				{ title: 'File storage plugin (R2, S3)', status: 'planned' },
-				{ title: 'VS Code extension', status: 'planned' },
-				{ title: 'createPluginTestHarness()', status: 'planned' }
+				{ title: 'omni generate remote', status: 'progress' },
+				{ title: 'Schema → remote-form binding', status: 'progress' },
+				{ title: 'Auth session via query.live', status: 'progress' }
 			]
 		},
 		{
 			phase: 'Phase 3',
 			version: 'v0.3',
-			title: 'AI-Native Primitives',
-			status: 'exploring',
+			title: 'UI & Forms',
+			status: 'planned',
 			color: 'rgba(245, 158, 11, 0.1)',
 			items: [
-				{ title: 'omni ai — provider-agnostic AI plugin', status: 'exploring' },
-				{ title: 'defineAgent() — structured agent scaffold', status: 'exploring' },
-				{ title: 'streamResponse() — SSE streaming from remote functions', status: 'exploring' },
-				{ title: 'RAG plugin (pgvector, Pinecone)', status: 'exploring' },
-				{ title: 'AI-powered omni generate', status: 'exploring' }
+				{ title: 'resource(Model) for CRUD generation', status: 'planned' },
+				{ title: 'omni generate resource UI scaffold', status: 'planned' },
+				{ title: 'shadcn-svelte integration', status: 'planned' }
 			]
 		},
 		{
 			phase: 'Phase 4',
 			version: 'v0.4',
-			title: 'Local-First & Offline',
-			status: 'exploring',
+			title: 'Realtime, Email & Caching',
+			status: 'planned',
 			color: 'rgba(59, 130, 246, 0.1)',
 			items: [
-				{ title: 'sveltekit-sync integration', status: 'exploring' },
-				{ title: 'Dexie.js adapter for offline queries', status: 'exploring' },
-				{ title: 'CRDT conflict resolution', status: 'exploring' },
-				{ title: 'Optimistic update helpers for command()', status: 'exploring' }
+				{ title: 'query.live as lightweight realtime primitive', status: 'planned' },
+				{ title: 'remember() on remote queries', status: 'planned' },
+				{ title: 'Redis Cache Driver', status: 'planned' }
 			]
 		},
 		{
 			phase: 'Phase 5',
 			version: 'v0.5',
-			title: 'Cross-Platform',
-			status: 'exploring',
+			title: 'Jobs, Storage & Monitoring',
+			status: 'planned',
 			color: 'rgba(239, 68, 68, 0.1)',
 			items: [
-				{ title: 'omni create --platform tauri', status: 'exploring' },
-				{ title: 'omnisvelte-plugin-tauri', status: 'exploring' },
-				{ title: 'Capacitor adapter (iOS + Android)', status: 'exploring' }
+				{ title: 'Notification persistence + live feed', status: 'planned' },
+				{ title: 'S3-compatible storage driver', status: 'planned' },
+				{ title: 'Dev inspector Telescope-style panel', status: 'planned' }
 			]
 		},
 		{
 			phase: 'Phase 6',
 			version: 'v0.6',
-			title: 'African Infrastructure',
-			status: 'exploring',
+			title: 'Payments & Multi-tenancy',
+			status: 'planned',
 			color: 'rgba(16, 185, 129, 0.08)',
 			items: [
-				{ title: 'Paystack full feature coverage', status: 'progress' },
-				{ title: 'Flutterwave plugin', status: 'exploring' },
-				{ title: 'Termii / mNotify SMS plugin', status: 'exploring' },
-				{ title: "Africa's Talking plugin (SMS, USSD, voice)", status: 'exploring' },
-				{ title: 'MTN MoMo integration', status: 'exploring' },
-				{ title: 'Multi-currency formatting (NGN, GHS, KES)', status: 'planned' }
+				{ title: 'Paystack & Flutterwave plugins', status: 'planned' },
+				{ title: 'Generic webhooks module', status: 'planned' },
+				{ title: 'RBAC / Policy layer', status: 'planned' }
+			]
+		},
+		{
+			phase: 'Phase 7',
+			version: 'v0.7',
+			title: 'Deployment & Docs',
+			status: 'planned',
+			color: 'rgba(139, 92, 246, 0.1)',
+			items: [
+				{ title: 'SEO automation (Sitemaps, meta-tags)', status: 'planned' },
+				{ title: 'Public API / SDK generator', status: 'planned' },
+				{ title: 'HTTP Cache headers', status: 'planned' }
+			]
+		},
+		{
+			phase: 'Phase 8',
+			version: 'v0.8',
+			title: 'Plugin Ecosystem',
+			status: 'planned',
+			color: 'rgba(245, 158, 11, 0.1)',
+			items: [
+				{ title: 'Fix OmniPlugin interface import bug', status: 'planned', note: 'Priority' },
+				{ title: 'Plugin-contributed remote functions', status: 'planned' },
+				{ title: 'Plugin Marketplace', status: 'planned' }
+			]
+		},
+		{
+			phase: 'Phase 9',
+			version: 'v0.9',
+			title: 'Hardening & Quality',
+			status: 'planned',
+			color: 'rgba(59, 130, 246, 0.1)',
+			items: [
+				{ title: 'Soft-delete & Pagination scopes', status: 'planned' },
+				{ title: 'Testing Toolkit & Fake Drivers', status: 'planned' },
+				{ title: 'Rate Limiting & i18n modules', status: 'planned' }
+			]
+		},
+		{
+			phase: 'Phase 10',
+			version: 'v1.0',
+			title: 'Production Ready',
+			status: 'planned',
+			color: 'rgba(16, 185, 129, 0.1)',
+			items: [
+				{ title: 'Stable API and Full Docs', status: 'planned' },
+				{ title: 'Flagship Example Apps', status: 'planned' }
+			]
+		},
+		{
+			phase: 'Phase 11',
+			version: 'v1.1',
+			title: 'AI & Intelligence',
+			status: 'exploring',
+			color: 'rgba(239, 68, 68, 0.1)',
+			items: [
+				{ title: 'defineAgent() structured outputs', status: 'exploring' },
+				{ title: 'Vector/Embedding column type', status: 'exploring' },
+				{ title: 'RAG helper in model hooks', status: 'exploring' }
+			]
+		},
+		{
+			phase: 'Phase 12',
+			version: 'v1.2',
+			title: 'Local-First & Cross-Platform',
+			status: 'exploring',
+			color: 'rgba(139, 92, 246, 0.1)',
+			items: [
+				{ title: 'defineLocalModel() sync', status: 'exploring' },
+				{ title: 'omni add tauri / capacitor', status: 'exploring' }
+			]
+		},
+		{
+			phase: 'Phase 13',
+			version: 'v1.3',
+			title: 'Global Business Primitives',
+			status: 'exploring',
+			color: 'rgba(245, 158, 11, 0.1)',
+			items: [
+				{ title: 'defineWorkflow() state machine', status: 'exploring' },
+				{ title: 'Money value type', status: 'exploring' },
+				{ title: 'African infrastructure (SMS/NIN)', status: 'exploring' }
 			]
 		}
 	];

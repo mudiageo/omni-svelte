@@ -74,21 +74,21 @@
 			variant: 'success' as const
 		},
 		{
-			date: 'v0.2 · Soon',
-			title: 'Developer Experience',
-			description: 'CLI (omni init/add/generate), UI layer, email, caching, plugin marketplace',
+			date: 'v0.2–v0.3 · Soon',
+			title: 'CLI, DX & UI',
+			description: 'omni generate remote, resource CRUD generation, Auth session live query, shadcn-svelte UI',
 			variant: 'default' as const
 		},
 		{
-			date: 'v0.3',
-			title: 'Production Features',
-			description: 'Realtime channels, background jobs, payments (Stripe + Paystack), file storage',
+			date: 'v0.4–v1.0',
+			title: 'Production Readiness',
+			description: 'Realtime channels, caching, background jobs, payments, file storage, plugins',
 			variant: 'warning' as const
 		},
 		{
-			date: 'v0.4+',
+			date: 'v1.1+',
 			title: 'Ecosystem & AI',
-			description: 'Local-first sync, AI primitives, Tauri desktop adapter, African infrastructure',
+			description: 'AI primitives, Local-first sync, Tauri desktop adapter, African infrastructure',
 			variant: 'warning' as const
 		}
 	];
@@ -450,11 +450,11 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 				>
 				<h2 class="mb-4 text-3xl font-bold tracking-tight">Built for the long term</h2>
 				<p class="mb-6 leading-relaxed text-muted-foreground">
-					OmniSvelte starts with a solid foundation and grows incrementally — email, caching,
+					OmniSvelte starts with a solid foundation and grows incrementally — AI primitives, caching,
 					realtime, payments, jobs, and more.
 				</p>
 				<div class="mb-8 flex flex-wrap gap-2">
-					{#each ['Email', 'Caching', 'Realtime', 'Payments', 'Jobs', 'File Storage', 'CLI'] as item}
+					{#each ['AI Primitives', 'Local-First', 'Realtime', 'Payments', 'Jobs', 'File Storage', 'CLI', 'Caching'] as item}
 						<Badge variant="secondary" class="text-xs">{item}</Badge>
 					{/each}
 				</div>

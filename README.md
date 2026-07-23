@@ -43,6 +43,10 @@ pnpm release
 
 You'll need to add an `NPM_TOKEN` secret to your GitHub repo for the release workflow to publish to npm.
 
+## Roadmap
+
+The full strategic roadmap for OmniSvelte, detailing our path to v1.0 and beyond (including upcoming AI primitives, local-first support, and business logic tools), can be found in [packages/core/ROADMAP.md](./packages/core/ROADMAP.md) and on the [docs site roadmap page](https://omni-svelte.dev/docs/roadmap).
+
 ## Documentation
 
 Markdown source lives in `content/docs/`. The docs site at `apps/docs/` renders it via [mdsvex](https://mdsvex.pngwn.io/).
