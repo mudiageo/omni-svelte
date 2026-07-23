@@ -1,4 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="107" height="128" viewBox="0 0 107 128"
+<script lang="ts">
+	import type { SVGAttributes } from 'svelte/elements';
+	let { ...rest }: SVGAttributes<SVGSVGElement> = $props();
+</script>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 107 128" {...rest}
 	><title>omni — emerald teal</title><defs
 		><linearGradient id="v5" x1="0" y1="128" x2="107" y2="0" gradientUnits="userSpaceOnUse"
 			><stop offset="0%" stop-color="#047857" /><stop offset="50%" stop-color="#10B981" /><stop

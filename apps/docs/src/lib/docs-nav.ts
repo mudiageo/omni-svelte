@@ -18,6 +18,7 @@ export const docsNav: NavSection[] = [
 			{ title: 'Introduction', href: '/docs/getting-started/introduction' },
 			{ title: 'Installation', href: '/docs/getting-started/installation' },
 			{ title: 'Quick Start', href: '/docs/getting-started/quick-start' },
+			{ title: 'Tutorial: Zero to Hero', href: '/docs/getting-started/tutorial', label: 'new' },
 			{ title: 'Project Structure', href: '/docs/getting-started/project-structure' },
 			{ title: 'Comparison', href: '/docs/getting-started/comparison' }
 		]
@@ -90,15 +91,30 @@ export const docsNav: NavSection[] = [
 		items: [{ title: 'CLI Reference', href: '/docs/cli/overview', label: 'soon' }]
 	},
 	{
-		title: 'Planned Features',
+		title: 'Advanced',
 		items: [
-			{ title: 'Email', href: '/docs/planned/email', label: 'soon' },
-			{ title: 'Caching', href: '/docs/planned/caching', label: 'soon' },
-			{ title: 'Realtime', href: '/docs/planned/realtime', label: 'soon' },
-			{ title: 'Background Jobs', href: '/docs/planned/jobs', label: 'soon' },
-			{ title: 'File Storage', href: '/docs/planned/storage', label: 'soon' },
-			{ title: 'Payments', href: '/docs/planned/payments', label: 'soon' },
-			{ title: 'CLI (omni)', href: '/docs/planned/cli', label: 'soon' }
+			{ title: 'Remote Functions', href: '/docs/remote-functions/introduction', label: 'soon' },
+			{ title: 'Background Jobs', href: '/docs/jobs/introduction', label: 'soon' },
+			{ title: 'Caching', href: '/docs/caching/introduction', label: 'soon' },
+			{ title: 'Realtime', href: '/docs/realtime/introduction', label: 'soon' }
+		]
+	},
+	{
+		title: 'Integrations',
+		items: [
+			{ title: 'Email', href: '/docs/email/introduction', label: 'soon' },
+			{ title: 'File Storage', href: '/docs/storage/introduction', label: 'soon' },
+			{ title: 'Payments', href: '/docs/payments/introduction', label: 'soon' }
+		]
+	},
+	{
+		title: 'Ecosystem & Future',
+		items: [
+			{ title: 'AI & Intelligence', href: '/docs/ai/introduction', label: 'soon' },
+			{ title: 'Local-First', href: '/docs/local-first/introduction', label: 'soon' },
+			{ title: 'Business Primitives', href: '/docs/business-logic/introduction', label: 'soon' },
+			{ title: 'DX & Testing', href: '/docs/dx-testing/introduction', label: 'soon' },
+			{ title: 'Platform Polish', href: '/docs/platform-polish/introduction', label: 'soon' }
 		]
 	},
 	{

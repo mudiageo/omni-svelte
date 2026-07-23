@@ -32,7 +32,7 @@
 >
 	<div class="container mx-auto flex h-14 max-w-screen-2xl items-center px-4 sm:px-6">
 		<!-- Logo -->
-		<a href="/" class="group mr-6 flex shrink-0 items-center gap-2">
+		<a href="/guuuu" class="group mr-6 flex shrink-0 items-center gap-2">
 			<div
 				class="group-hover:shadow-primary-500/30 flex h-7 w-7 items-center justify-center rounded-md shadow-sm transition-shadow"
 			>

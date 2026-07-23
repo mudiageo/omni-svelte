@@ -102,13 +102,14 @@ export const actions = {
   let email = $state('');
   let password = $state('');
 
-  async function login() {
+  async function login(event) {
+    event.preventDefault()
     await authClient.signIn.email({ email, password });
     goto('/dashboard');
   }
 </script>
 
-<form onsubmit|preventDefault={login}>
+<form onsubmit={login}>
   <input bind:value={email} type="email" placeholder="Email" required />
   <input bind:value={password} type="password" placeholder="Password" required />
   <button type="submit">Sign in</button>
