@@ -17,53 +17,8 @@
 	import Rss from '@lucide/svelte/icons/rss';
 	import { formatDate } from '$lib/utils.js';
 
-	// Static posts — would come from velite in production
-	const posts = [
-		{
-			title: 'Introducing OmniSvelte: SvelteKit with Superpowers',
-			description:
-				"We're thrilled to announce OmniSvelte — a batteries-included meta-framework built on SvelteKit that ships with everything a production app needs.",
-			date: '2025-06-01',
-			author: 'Mudia',
-			tags: ['announcement', 'release'],
-			slug: 'introducing-omnisvelte',
-			readTime: '5 min read',
-			featured: true
-		},
-		{
-			title: 'Building the Plugin System: Design Decisions',
-			description:
-				"A deep dive into how OmniSvelte's typed, conflict-detecting plugin API was designed — and why we chose definePlugin over a simpler approach.",
-			date: '2025-05-20',
-			author: 'Mudia',
-			tags: ['internals', 'plugins'],
-			slug: 'plugin-system-design',
-			readTime: '8 min read',
-			featured: false
-		},
-		{
-			title: "Remote Functions: Beyond SvelteKit's Experimental API",
-			description:
-				"OmniSvelte maps all 7 SvelteKit remote primitives into typed, ergonomic wrappers. Here's how and why.",
-			date: '2025-05-10',
-			author: 'Mudia',
-			tags: ['remote-functions', 'typescript'],
-			slug: 'remote-functions-deep-dive',
-			readTime: '10 min read',
-			featured: false
-		},
-		{
-			title: 'Paystack + Stripe: Building Country-Based Payment Routing',
-			description:
-				"How OmniSvelte detects a user's country and routes them to the right payment provider — automatically and transparently.",
-			date: '2025-04-28',
-			author: 'Mudia',
-			tags: ['payments', 'africa'],
-			slug: 'payment-routing',
-			readTime: '7 min read',
-			featured: false
-		}
-	];
+	let { data } = $props();
+	const { posts } = data;
 
 	const featured = posts.find((p) => p.featured);
 	const rest = posts.filter((p) => !p.featured);
@@ -128,7 +83,7 @@
 						</span>
 						<span class="flex items-center gap-1.5">
 							<Clock class="h-3.5 w-3.5" />
-							{featured.readTime}
+							5 min read
 						</span>
 					</div>
 					<Button
@@ -169,7 +124,7 @@
 							<span class="flex items-center gap-1"
 								><Calendar class="h-3 w-3" /> {formatDate(post.date)}</span
 							>
-							<span class="flex items-center gap-1"><Clock class="h-3 w-3" /> {post.readTime}</span>
+							<span class="flex items-center gap-1"><Clock class="h-3 w-3" /> 5 min read</span>
 						</div>
 					</CardContent>
 				</Card>

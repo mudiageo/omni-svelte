@@ -6,18 +6,11 @@
 	import Calendar from '@lucide/svelte/icons/calendar';
 	import Clock from '@lucide/svelte/icons/clock';
 	import User from '@lucide/svelte/icons/user';
-	import { page } from '$app/state';
 
-	// In production this comes from velite
-	const post = {
-		title: 'Introducing OmniSvelte: SvelteKit with Superpowers',
-		description:
-			"We're thrilled to announce OmniSvelte — a batteries-included meta-framework built on SvelteKit.",
-		date: '2025-06-01',
-		author: 'Mudia',
-		tags: ['announcement', 'release'],
-		readTime: '5 min read'
-	};
+	import { formatDate } from '$lib/utils.js';
+
+	let { data } = $props();
+	const { post, component: MarkdownComponent } = data;
 </script>
 
 <svelte:head>
@@ -47,19 +40,14 @@
 			<p class="mb-6 text-xl leading-relaxed text-muted-foreground">{post.description}</p>
 			<div class="flex items-center gap-5 text-sm text-muted-foreground">
 				<span class="flex items-center gap-1.5"><User class="h-4 w-4" />{post.author}</span>
-				<span class="flex items-center gap-1.5"><Calendar class="h-4 w-4" />{post.date}</span>
-				<span class="flex items-center gap-1.5"><Clock class="h-4 w-4" />{post.readTime}</span>
+				<span class="flex items-center gap-1.5"><Calendar class="h-4 w-4" />{formatDate(post.date)}</span>
+				<span class="flex items-center gap-1.5"><Clock class="h-4 w-4" />5 min read</span>
 			</div>
 			<Separator class="mt-6" />
 		</header>
 
 		<div class="prose-docs">
-			<p>Full blog post content would be rendered mdsx.</p>
-			<p>
-				This is a placeholder page. In the real site, each blog post file in <code
-					>content/blog/</code
-				> is processed by velite and rendered via the mdsx preprocessor.
-			</p>
+			<MarkdownComponent />
 		</div>
 	</article>
 </div>
