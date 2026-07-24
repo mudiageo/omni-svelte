@@ -8,9 +8,9 @@ import {
 	buildDrizzleConfigContent,
 	generateDrizzleConfig,
 	MARKER
-} from '$pkg/vite/drizzle-config.js';
-import type { SchemaConfig } from '$pkg/schema/types.js';
-import type { OmniConfig } from '$pkg/types.js';
+} from '../../vite/drizzle-config.js';
+import type { SchemaConfig } from '../../schema/types.js';
+import type { OmniConfig } from '../../config/types.js';
 import { readFileSync } from 'fs';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

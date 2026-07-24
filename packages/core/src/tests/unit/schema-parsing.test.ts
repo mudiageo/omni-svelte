@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { RegexSchemaParser, ASTSchemaParser, ParserFactory } from '../../package/schema/parser';
-import type { SchemaConfig } from '../../package/schema/types';
+import { RegexSchemaParser, ASTSchemaParser, ParserFactory } from '../../schema/parser.js';
+import type { SchemaConfig } from '../../schema/types.js';
 import { writeFileSync, mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
 

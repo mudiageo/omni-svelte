@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { field } from '$pkg/schema/field.js';
+import { field } from '../../schema/field.js';
 
 describe('field.* builder API', () => {
 	// ─── Factory methods produce correct types ────────────────────

@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { SchemaParser } from '$pkg/schema/parser.js';
-import { DrizzleGenerator } from '$pkg/schema/generators/drizzle.js';
-import { ZodGenerator } from '$pkg/schema/generators/zod.js';
-import { ModelGenerator } from '$pkg/schema/generators/model.js';
-import type { Schema } from '$pkg/schema/types.js';
+import { SchemaParser } from '../../schema/parser.js';
+import { DrizzleGenerator } from '../../schema/generators/drizzle.js';
+import { ZodGenerator } from '../../schema/generators/zod.js';
+import { ModelGenerator } from '../../schema/generators/model.js';
+import type { Schema } from '../../schema/types.js';
 
 // ─── Test fixtures ──────────────────────────────────────────────
 const mockUserSchema: Schema = {
