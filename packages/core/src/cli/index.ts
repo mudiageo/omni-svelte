@@ -1,281 +1,481 @@
-/**
- * Omni CLI - Command line interface
- *
- * Provides the CLI tooling for schema generation, migrations,
- * code scaffolding, and other developer utilities
- */
+#!/usr/bin/env node
 
-// Types
-export interface CliCommand {
-	name: string;
-	description: string;
-	aliases?: string[];
-	args?: CliArgument[];
-	options?: CliOption[];
-	action: (args: Record<string, any>, options: Record<string, any>) => Promise<void>;
-}
-
-export interface CliArgument {
-	name: string;
-	description: string;
-	required?: boolean;
-	default?: any;
-}
-
-export interface CliOption {
-	name: string;
-	alias?: string;
-	description: string;
-	type: 'string' | 'number' | 'boolean';
-	default?: any;
-	required?: boolean;
-}
-
-// Command registry
-const commands = new Map<string, CliCommand>();
+import { cancel, intro, isCancel, log, outro, select } from '@clack/prompts';
+import { Command } from 'commander';
+import pc from 'picocolors';
+import { existsSync, readFileSync } from 'fs';
+import { handleAddCommand } from './commands/add.js';
+import { handleDbCommand } from './commands/db.js';
+import { handleDevCommand } from './commands/dev.js';
+import { handleDoctorCommand } from './commands/doctor.js';
+import { handleGenerateCommand } from './commands/generate.js';
+import { handleInitCommand } from './commands/init.js';
+import { handleInstallDependencyCommand } from './commands/install-dependency.js';
+import { handleMigrateCommand } from './commands/migrate.js'; // project migration
+import { handleUiCommand } from './commands/ui.js';
 
 /**
- * Register a CLI command
+ * OmniSvelte CLI entry point.
+ * This file configures the Commander.js program and its subcommands.
  */
-export function registerCommand(command: CliCommand): void {
-	commands.set(command.name, command);
-	if (command.aliases) {
-		for (const alias of command.aliases) {
-			commands.set(alias, command);
-		}
-	}
-}
+const program = new Command();
+
+program
+	.name('omni')
+	.description(
+		'OmniSvelte CLI for scaffolding, database workflows, and DX tooling for the OmniSvelte full-stack framework'
+	)
+	.version(getCliVersion(), '-v, --version', 'Show installed CLI version')
+	.showSuggestionAfterError(true)
+	.showHelpAfterError('(run with --help for usage examples)');
+
+program.configureHelp({
+	sortSubcommands: true,
+	subcommandTerm: (command) => `${command.name()} ${command.usage()}`
+});
+
+program.addHelpText(
+	'after',
+	`${pc.bold('\nExamples:')}
+  $ omni init my-app
+  $ omni migrate sveltekit
+  $ omni add stripe
+  $ omni generate schema users --output src/lib/db/schemas
+  $ omni db push --config drizzle.config.ts
+  $ omni db migrate
+  $ omni doctor
+`
+);
+
+program
+	.command('init [name]')
+	.alias('i')
+	.description('Scaffold a new OmniSvelte-ready SvelteKit app')
+	.option('--cwd <path>', 'Create the project from a different directory')
+	.option('--skip-install', 'Skip final dependency installation', false)
+	.option('--package-manager <name>', 'Force package manager (npm|pnpm|yarn|bun|deno|vp)')
+	.option('--omni-pkg <package>', 'Install omni-svelte from a specific package/path (for testing)')
+	.addHelpText('after', `
+${pc.bold('Examples:')}
+  $ omni init my-app
+  $ omni i blog --package-manager pnpm
+  $ omni init --skip-install
+`)
+	.action(async (name, options) => {
+		await runAction(() =>
+			handleInitCommand({
+				name,
+				cwd: options.cwd,
+				skipInstall: options.skipInstall,
+				omniPkg: options.omniPkg,
+				packageManager: options.packageManager
+			})
+		);
+	});
+
+// omni migrate — project-level migration (add OmniSvelte to an existing project, etc.)
+program
+	.command('migrate [type]')
+	.alias('m')
+	.description('Migrate an existing project to OmniSvelte (or between OmniSvelte versions)')
+	.option('--cwd <path>', 'Target project directory', process.cwd())
+	.option('-D, --dev', 'Install omni-svelte as a dev dependency', false)
+	.option('--package-manager <name>', 'Force package manager (npm|pnpm|yarn|bun|deno|vp)')
+	.option('--omni-pkg <package>', 'Install omni-svelte from a specific package/path (for testing)')
+	.addHelpText('after', `
+${pc.bold('Examples:')}
+  $ omni migrate
+  $ omni migrate sveltekit
+  $ omni m sveltekit --package-manager pnpm
+`)
+	.action(async (type, options) => {
+		await runAction(() =>
+			handleMigrateCommand({
+				type,
+				cwd: options.cwd,
+				dev: options.dev,
+				omniPkg: options.omniPkg,
+				packageManager: options.packageManager
+			})
+		);
+	});
+
+// omni add — add OmniSvelte features and plugins
+program
+	.command('add [feature]')
+	.alias('a')
+	.description('Add OmniSvelte features and plugins to your project')
+	.option('--cwd <path>', 'Target project directory', process.cwd())
+	.addHelpText('after', `
+${pc.bold('Examples:')}
+  $ omni add
+  $ omni add stripe
+  $ omni a docker
+`)
+	.action(async (feature, options) => {
+		await runAction(() =>
+			handleAddCommand({
+				feature,
+				cwd: options.cwd
+			})
+		);
+	});
+
+program
+	.command('generate [type] [name]')
+	.alias('g')
+	.description('Generate schema and migration files with interactive fallback')
+	.option('-o, --output <path>', 'Custom output directory')
+	.option('-f, --force', 'Overwrite existing output files without prompting', false)
+	.option('-n, --dry-run', 'Preview what would be generated without writing files', false)
+	.option('--cwd <path>', 'Working directory', process.cwd())
+	.option('--schema-mode <mode>', 'Override OmniConfig.schema.mode')
+	.option('--schema-output-dir <dir>', 'Override OmniConfig.schema.output.directory')
+	.addHelpText('after', `
+${pc.bold('Examples:')}
+  $ omni generate schema User
+  $ omni g migration add_posts_table
+  $ omni generate schema Post --output src/db/schemas
+  $ omni g schema Article --dry-run
+`)
+	.action(async (type, name, options) => {
+		await runAction(() =>
+			handleGenerateCommand({
+				type,
+				name,
+				output: options.output,
+				force: options.force,
+				dryRun: options.dryRun,
+				cwd: options.cwd,
+				schemaMode: options.schemaMode,
+				schemaOutputDir: options.schemaOutputDir
+			})
+		);
+	});
+
+program
+	.command('db [action]')
+	.description('Run Drizzle database tasks (push, pull, generate, migrate, seed, studio)')
+	.option('--config <path>', 'Path to drizzle config file')
+	.option('--script <name>', 'Script name for db seed task', 'db:seed')
+	.option('--cwd <path>', 'Working directory', process.cwd())
+	.option('--db-url <url>', 'Override database connection URL')
+	.addHelpText('after', `
+${pc.bold('Examples:')}
+  $ omni db push
+  $ omni db migrate
+  $ omni db seed --script db:seed
+  $ omni db studio
+  $ omni db:migrate
+`)
+	.action(async (action, options) => {
+		const selectedAction = action ?? (await promptDbAction());
+		if (!selectedAction) return;
+		await runAction(() =>
+			handleDbCommand({
+				action: selectedAction,
+				cwd: options.cwd,
+				config: options.config,
+				script: options.script,
+				dbUrl: options.dbUrl
+			})
+		);
+	});
+
+// omni db:migrate — convenience alias for omni db migrate
+program
+	.command('db:migrate')
+	.description('Alias for omni db migrate — run Drizzle migrations')
+	.option('--config <path>', 'Path to drizzle config file')
+	.option('--cwd <path>', 'Working directory', process.cwd())
+	.option('--db-url <url>', 'Override database connection URL')
+	.action(async (options) => {
+		await runAction(() =>
+			handleDbCommand({
+				action: 'migrate',
+				cwd: options.cwd,
+				config: options.config,
+				dbUrl: options.dbUrl
+			})
+		);
+	});
+
+program
+	.command('ui [action] [components...]')
+	.description('Run shadcn-svelte init/add flows from omni')
+	.option('--cwd <path>', 'Working directory', process.cwd())
+	.option('-y, --yes', 'Skip interactive prompts in shadcn CLI', false)
+	.action(async (action, components, options) => {
+		await runAction(() =>
+			handleUiCommand({
+				action,
+				components,
+				cwd: options.cwd,
+				yes: options.yes
+			})
+		);
+	});
+
+program
+	.command('doctor')
+	.description('Run project health checks and detect package manager')
+	.option('--cwd <path>', 'Working directory', process.cwd())
+	.action(async (options) => {
+		await runAction(() => handleDoctorCommand({ cwd: options.cwd }));
+	});
+
+program
+	.command('install-dependency <packages...>')
+	.alias('installdependency')
+	.description('Install one or more dependencies using detected package manager')
+	.option('--cwd <path>', 'Working directory', process.cwd())
+	.option('-D, --dev', 'Install as dev dependencies', false)
+	.action(async (packages, options) => {
+		await runAction(() =>
+			handleInstallDependencyCommand({ packages, cwd: options.cwd, dev: options.dev })
+		);
+	});
+
+program
+	.command('tinker')
+	.description('Interactive REPL with models pre-loaded (planned)')
+	.action(() => {
+		console.log(pc.yellow('Tinker command is planned and coming soon.'));
+	});
+
+program
+	.command('deploy')
+	.description('Deployment helper (planned)')
+	.option('--env <name>', 'Target environment')
+	.action(() => {
+		console.log(pc.yellow('Deploy command is planned and coming soon.'));
+	});
+
+program
+	.command('docs:generate')
+	.description('Generate API docs from schema + JSDoc (planned)')
+	.action(() => {
+		console.log(pc.yellow('Docs generate command is planned and coming soon.'));
+	});
+
+program
+	.command('docs:serve')
+	.description('Serve generated docs locally (planned)')
+	.action(() => {
+		console.log(pc.yellow('Docs serve command is planned and coming soon.'));
+	});
+
+program
+	.command('debug:routes')
+	.description('List all registered routes (planned)')
+	.action(() => console.log(pc.yellow('Debug routes command is planned.')));
+
+program
+	.command('debug:models')
+	.description('List all models and relationships (planned)')
+	.action(() => console.log(pc.yellow('Debug models command is planned.')));
+
+program
+	.command('debug:permissions')
+	.description('Show permission/role matrix (planned)')
+	.action(() => console.log(pc.yellow('Debug permissions command is planned.')));
+
+program
+	.command('debug:config')
+	.description('Show resolved omni config (planned)')
+	.action(() => console.log(pc.yellow('Debug config command is planned.')));
+
+program
+	.command('cache:clear')
+	.description('Clear application cache (planned)')
+	.action(() => console.log(pc.yellow('Cache clear command is planned.')));
+
+program
+	.command('cache:stats')
+	.description('Show cache statistics (planned)')
+	.action(() => console.log(pc.yellow('Cache stats command is planned.')));
+
+program
+	.command('monitor:queries')
+	.description('Show slow database queries (planned)')
+	.action(() => console.log(pc.yellow('Monitor queries command is planned.')));
+
+program
+	.command('monitor:realtime')
+	.description('Monitor active WebSocket connections (planned)')
+	.action(() => console.log(pc.yellow('Monitor realtime command is planned.')));
+
+program
+	.command('build:production')
+	.description('Optimized production build (planned)')
+	.action(() => {
+		console.log(pc.yellow('Optimized production build is planned.'));
+	});
+
+addDevAlias('serve', 'Run local development server', 'serve');
+addDevAlias('build', 'Build the project', 'build');
+addDevAlias('test', 'Run test suite', 'test');
+addDevAlias('lint', 'Run lint checks', 'lint');
+addDevAlias('format', 'Format project files', 'format');
+
+// Handle Ctrl+C gracefully: show a styled cancel message.
+// Child subprocesses are killed automatically via cleanup:true in execa.
+process.on('SIGINT', () => {
+	cancel('Operation cancelled');
+	process.exit(130);
+});
+
+main().catch((error) => {
+	console.error(pc.red(error instanceof Error ? error.message : String(error)));
+	process.exit(1);
+});
+
 
 /**
- * Run the CLI with the given arguments
+ * Main execution function for the CLI.
+ * If no arguments are provided, it launches the interactive menu.
  */
-export async function run(argv: string[] = process.argv.slice(2)): Promise<void> {
-	const [commandName, ...rest] = argv;
-
-	if (!commandName || commandName === 'help' || commandName === '--help') {
-		printHelp();
+async function main() {
+	if (process.argv.length <= 2) {
+		await showInteractiveMenu();
 		return;
 	}
 
-	const command = commands.get(commandName);
-	if (!command) {
-		console.error(`❌ Unknown command: ${commandName}`);
-		console.log(`Run 'omni help' to see available commands.\n`);
-		process.exit(1);
-	}
-
-	// Parse arguments and options
-	const { args, options } = parseArgs(rest, command);
-	await command.action(args, options);
+	await program.parseAsync(process.argv);
 }
 
 /**
- * Parse CLI arguments and options
+ * Displays an interactive selection menu for standard CLI commands
+ * using @clack/prompts when the CLI is run without arguments.
  */
-function parseArgs(
-	argv: string[],
-	command: CliCommand
-): { args: Record<string, any>; options: Record<string, any> } {
-	const args: Record<string, any> = {};
-	const options: Record<string, any> = {};
-	const positional: string[] = [];
+async function showInteractiveMenu() {
+	intro(pc.bgBlue(pc.white(' OmniSvelte CLI ')));
 
-	for (let i = 0; i < argv.length; i++) {
-		const arg = argv[i];
+	const action = await select({
+		message: 'Select a command',
+		options: [
+			{ value: ['init'], label: 'init — Scaffold a new project' },
+			{ value: ['migrate'], label: 'migrate — Migrate an existing project to OmniSvelte' },
+			{ value: ['add'], label: 'add — Add features and plugins to your project' },
+			{ value: ['generate'], label: 'generate — Create schema or migration' },
+			{ value: ['db'], label: 'db — Run database workflows' },
+			{ value: ['ui'], label: 'ui — Manage shadcn-svelte components' },
+			{ value: ['doctor'], label: 'doctor — Verify project setup' },
+			{ value: ['help'], label: 'help — Show complete command help' },
+			{ value: ['exit'], label: 'exit' }
+		]
+	});
 
-		if (arg.startsWith('--')) {
-			const key = arg.slice(2);
-			const opt = command.options?.find((o) => o.name === key);
-			if (opt?.type === 'boolean') {
-				options[key] = true;
-			} else {
-				options[key] = argv[++i];
-			}
-		} else if (arg.startsWith('-')) {
-			const alias = arg.slice(1);
-			const opt = command.options?.find((o) => o.alias === alias);
-			if (opt) {
-				if (opt.type === 'boolean') {
-					options[opt.name] = true;
-				} else {
-					options[opt.name] = argv[++i];
-				}
-			}
-		} else {
-			positional.push(arg);
-		}
+	if (isCancel(action) || (Array.isArray(action) && action[0] === 'exit')) {
+		cancel('Operation cancelled');
+		return;
 	}
 
-	// Map positional args
-	if (command.args) {
-		command.args.forEach((argDef, index) => {
-			args[argDef.name] = positional[index] ?? argDef.default;
+	await program.parseAsync(action as string[], { from: 'user' });
+	outro(pc.green('Done'));
+}
+
+function addDevAlias(
+	name: string,
+	description: string,
+	action: Parameters<typeof handleDevCommand>[0]['action']
+) {
+	program
+		.command(name)
+		.description(description)
+		.allowUnknownOption(true)
+		.option('--cwd <path>', 'Working directory', process.cwd())
+		.argument('[scriptArgs...]', 'Forwarded script arguments')
+		.action(async (scriptArgs: string[], options) => {
+			await runAction(() => handleDevCommand({ action, cwd: options.cwd, scriptArgs }));
 		});
+}
+
+async function promptDbAction() {
+	const selected = await select({
+		message: 'Select a database action',
+		options: [
+			{ value: 'push', label: 'push — Push schema to database' },
+			{ value: 'pull', label: 'pull — Pull schema from database' },
+			{ value: 'migrate', label: 'migrate — Run migrations' },
+			{ value: 'generate', label: 'generate — Generate migration files' },
+			{ value: 'check', label: 'check — Validate migration state' },
+			{ value: 'seed', label: 'seed — Run seeder script' },
+			{ value: 'studio', label: 'studio — Open Drizzle Studio' },
+			{ value: 'rollback', label: 'rollback — Guidance on rolling back migrations' },
+			{ value: 'fresh', label: 'fresh — Guidance on resetting the database' }
+		]
+	});
+
+	if (isCancel(selected)) {
+		cancel('Operation cancelled');
+		return null;
 	}
 
-	// Apply option defaults
-	if (command.options) {
-		for (const opt of command.options) {
-			if (options[opt.name] === undefined && opt.default !== undefined) {
-				options[opt.name] = opt.default;
-			}
-		}
-	}
-
-	return { args, options };
+	return selected as 'seed' | 'studio' | 'push' | 'pull' | 'generate' | 'check' | 'migrate' | 'rollback' | 'fresh';
 }
 
 /**
- * Print help text
+ * Runs a given CLI action function and handles top-level error catching.
+ * @param {() => Promise<void>} action The async action to execute.
  */
-function printHelp(): void {
-	console.log('\n🚀 Omni CLI\n');
-	console.log('Usage: omni <command> [options]\n');
-	console.log('Commands:');
-
-	const allCommands = new Map<string, CliCommand>();
-	for (const [name, cmd] of commands) {
-		if (cmd.name === name) {
-			// Skip aliases
-			allCommands.set(name, cmd);
-		}
+async function runAction(action: () => Promise<void>) {
+	try {
+		await action();
+		// Non-blocking update check — prints a notice if a newer version is available
+		await checkForUpdates().catch(() => {/* silently ignore network errors */});
+	} catch (error) {
+		console.error(pc.red(error instanceof Error ? error.message : String(error)));
+		process.exitCode = 1;
 	}
-
-	for (const [name, cmd] of allCommands) {
-		const aliases = cmd.aliases ? ` (${cmd.aliases.join(', ')})` : '';
-		console.log(`  ${name.padEnd(20)}${cmd.description}${aliases}`);
-	}
-
-	console.log('\nRun "omni <command> --help" for more information on a command.\n');
 }
 
-// ─── Built-in Commands ───────────────────────────────────────────────────────
+/**
+ * Checks npm registry for a newer version of omni-svelte.
+ * Prints a non-blocking notice if an update is available.
+ * Silently no-ops on any network or parse error.
+ */
+async function checkForUpdates() {
+	const currentVersion = getCliVersion();
+	if (!currentVersion || currentVersion === 'unknown') return;
 
-registerCommand({
-	name: 'generate',
-	description: 'Generate code from schema definitions',
-	aliases: ['g', 'gen'],
-	args: [
-		{
-			name: 'type',
-			description: 'Type to generate (schema, model, migration)',
-			required: true
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), 3000);
+	try {
+		const res = await fetch(
+			'https://registry.npmjs.org/omni-svelte/latest',
+			{ signal: controller.signal, headers: { Accept: 'application/json' } }
+		);
+		const data = await res.json() as { version?: string };
+		const latest = data?.version;
+		if (latest && latest !== currentVersion) {
+			log.info(
+				`Update available: ${pc.dim(currentVersion)} → ${pc.green(latest)}\n` +
+				`Run ${pc.cyan('npm add -g omni-svelte')} to update.`
+			);
 		}
-	],
-	options: [
-		{
-			name: 'output',
-			alias: 'o',
-			description: 'Output directory',
-			type: 'string'
-		},
-		{
-			name: 'force',
-			alias: 'f',
-			description: 'Overwrite existing files',
-			type: 'boolean',
-			default: false
-		}
-	],
-	action: async (args, options) => {
-		console.log(`🔧 Generating ${args.type}...`);
-		console.warn('⚠️  Generate command not yet implemented.');
+	} finally {
+		clearTimeout(timeout);
 	}
-});
+}
 
-registerCommand({
-	name: 'migrate',
-	description: 'Run database migrations',
-	aliases: ['m'],
-	args: [
-		{
-			name: 'action',
-			description: 'Migration action (run, rollback, status, fresh)',
-			default: 'run'
-		}
-	],
-	options: [
-		{
-			name: 'seed',
-			alias: 's',
-			description: 'Run seeders after migration',
-			type: 'boolean',
-			default: false
-		},
-		{
-			name: 'step',
-			description: 'Number of migrations to run/rollback',
-			type: 'number'
-		}
-	],
-	action: async (args, options) => {
-		console.log(`🗄️  Running migration: ${args.action}...`);
-		console.warn('⚠️  Migrate command not yet implemented.');
-	}
-});
+function getCliVersion() {
+	const packageCandidates = [
+		new URL('../../package.json', import.meta.url),
+		new URL('../../../package.json', import.meta.url)
+	];
 
-registerCommand({
-	name: 'make',
-	description: 'Scaffold new files (model, schema, migration, etc.)',
-	args: [
-		{
-			name: 'type',
-			description: 'What to create (model, schema, migration, job, mail)',
-			required: true
-		},
-		{ name: 'name', description: 'Name of the file to create', required: true }
-	],
-	options: [
-		{
-			name: 'directory',
-			alias: 'd',
-			description: 'Target directory',
-			type: 'string'
+	for (const filePath of packageCandidates) {
+		try {
+			const content = readFileSync(filePath, 'utf-8');
+			const pkg = JSON.parse(content) as { version?: string };
+			if (pkg.version) {
+				return pkg.version;
+			}
+		} catch {
+			continue;
 		}
-	],
-	action: async (args, options) => {
-		console.log(`📝 Creating ${args.type}: ${args.name}...`);
-		console.warn('⚠️  Make command not yet implemented.');
 	}
-});
 
-registerCommand({
-	name: 'seed',
-	description: 'Run database seeders',
-	options: [
-		{
-			name: 'class',
-			alias: 'c',
-			description: 'Specific seeder class to run',
-			type: 'string'
-		}
-	],
-	action: async (args, options) => {
-		console.log('🌱 Running seeders...');
-		console.warn('⚠️  Seed command not yet implemented.');
-	}
-});
-
-registerCommand({
-	name: 'dev',
-	description: 'Start the development server with Omni features',
-	options: [
-		{
-			name: 'port',
-			alias: 'p',
-			description: 'Port number',
-			type: 'number',
-			default: 5173
-		},
-		{
-			name: 'host',
-			description: 'Host to bind to',
-			type: 'string',
-			default: 'localhost'
-		}
-	],
-	action: async (args, options) => {
-		console.log(`🚀 Starting Omni dev server on ${options.host}:${options.port}...`);
-		console.warn('⚠️  Dev command not yet implemented.');
-	}
-});
+	return '0.0.0';
+}

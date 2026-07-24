@@ -23,6 +23,7 @@ export const nav: NavItem[] = [
 		title: 'Core',
 		children: [
 			{ title: 'Configuration', slug: 'configuration' },
+			{ title: 'CLI Reference', slug: 'cli' },
 			{ title: 'Database', slug: 'database' },
 			{ title: 'Authentication', slug: 'authentication' },
 			{ title: 'Schema', slug: 'schema' }

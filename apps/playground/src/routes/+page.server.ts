@@ -8,13 +8,15 @@ export const load: PageServerLoad = async ({ locals }) => {
 		const totalPosts = await Post.query().count();
 
 		// Test using locals.query for registered models
-		const recentUsers = await locals.query.model(User)
+		const recentUsers = await locals.query
+			.model(User)
 			.where('active', true)
 			.orderBy('created_at', 'desc')
 			.limit(5)
 			.get();
 
-		const publishedPosts = await locals.query.model(Post)
+		const publishedPosts = await locals.query
+			.model(Post)
 			.where('published', true)
 			.with(['author'])
 			.latest()
