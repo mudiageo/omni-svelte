@@ -7,6 +7,7 @@
 	import { cn } from '$lib/utils.js';
 	import OmniIcon from '$lib/icons/favicon.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import { siteConfig } from '$lib/config.js';
 
 	function isActive(href: string | undefined) {
 		return href ? page.url.pathname === href : false;
@@ -37,7 +38,7 @@
 							</div>
 							<div class="flex flex-col gap-0.5 leading-none">
 								<span class="font-semibold">OmniSvelte</span>
-								<span class="text-xs text-muted-foreground">v0.1.0-alpha</span>
+								<span class="text-xs text-muted-foreground">{siteConfig.version}</span>
 							</div>
 						</a>
 					{/snippet}

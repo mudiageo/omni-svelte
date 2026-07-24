@@ -56,7 +56,7 @@
 	<!-- Featured post -->
 	{#if featured}
 		<SpotlightCard color="rgba(139, 92, 246, 0.08)" size={400} class="mb-10">
-			<a href="/blog/{featured.slug}" class="block p-8">
+			<a href="/{featured.slug}" class="block p-8">
 				<div class="mb-4 flex flex-wrap gap-2">
 					<Badge variant="default" class="border-0 bg-primary text-primary-foreground"
 						>Featured</Badge
@@ -101,7 +101,7 @@
 	<!-- Post grid -->
 	<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 		{#each rest as post}
-			<a href="/blog/{post.slug}" class="group">
+			<a href="/{post.slug}" class="group">
 				<Card
 					class="h-full transition-all duration-200 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 dark:hover:border-primary/50"
 				>

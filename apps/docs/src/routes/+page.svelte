@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { siteConfig } from '$lib/config.js';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import * as Card from '$lib/components/ui/card';
@@ -67,7 +68,7 @@
 
 	const timelineItems = [
 		{
-			date: 'v0.1 · Now',
+			date: 'v0.1.0-alpha · Now',
 			title: 'Core Foundation',
 			description:
 				'Schema codegen, Drizzle models, Better-Auth, virtual modules, Plugin API types, Vite plugin',
@@ -179,7 +180,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 			class="mb-8 inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs text-muted-foreground backdrop-blur"
 		>
 			<StatusDot status="success" pulse size="sm" />
-			<span>v0.1.0-alpha — Database, Auth & Schema generation stable</span>
+			<span>{siteConfig.version} — Database, Auth & Schema generation stable</span>
 		</div>
 
 		<h1 class="mb-6 text-5xl leading-[1.05] font-bold tracking-tight sm:text-6xl md:text-7xl">

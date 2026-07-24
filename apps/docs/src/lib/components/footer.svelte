@@ -4,6 +4,7 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import { Badge } from '$lib/components/ui/badge';
 	import { StatusDot } from '$lib/components/ui/status-dot/index.js';
+	import { siteConfig } from '$lib/config.js';
 
 	const cols = [
 		{
@@ -74,7 +75,7 @@
 					<span>All systems operational</span>
 				</div>
 				<div class="mt-4 flex items-center gap-2">
-					<Badge variant="outline" class="font-mono text-xs">v0.1.0-alpha</Badge>
+					<Badge variant="outline" class="font-mono text-xs">{siteConfig.version}</Badge>
 					<Badge variant="warning" class="text-xs">Alpha</Badge>
 				</div>
 				<div class="mt-5 flex items-center gap-2">
