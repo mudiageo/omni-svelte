@@ -9,9 +9,11 @@ featured: true
 
 # OmniSvelte v0.1: SvelteKit, but with superpowers
 
-Every new SvelteKit project starts the same way: wire up a database client, hand-write your Drizzle schema, bolt on an auth library, duplicate your validation logic between the client and the server, and repeat all of it on the next project. None of that is hard, exactly — it's just the same fifty decisions made over and over, in every app, forever.
+For me, every new SvelteKit project starts the same way: wire up a database client, hand-write your Drizzle schema, bolt on an auth library, set up a UI library, duplicate your validation logic between the client and the server, and repeat all of it on the next project. None of that is hard, exactly — it's just the same fifty decisions made over and over, in every app, forever.
 
-omni-svelte exists to make those fifty decisions once, so you don't have to. **v0.1 is live today**, and it lays the foundation: a schema-driven data layer with a real ORM, first-class auth, and a Vite plugin that wires it all together with zero config.
+I found myself wondering: *what if we had an opinionated framework that handled all of this automatically?*
+
+I've been working on OmniSvelte off and on for some time now (since July 2025, actually), taking pauses here and there, but that core idea has remained the same. This release represents the foundation of my vision for what such a framework could look like. **v0.1 is live today**, bringing that vision to life with a schema-driven data layer, a real ORM, first-class auth, and a Vite plugin that wires it all together with zero config.
 
 This is a foundation release, not the whole vision — more on what's still ahead below.
 
@@ -146,7 +148,7 @@ In the interest of not overselling this release: the plugin system is currently 
 
 ## What's next
 
-v0.2 is focused on the CLI and developer experience: `omni init`, `omni generate`, migrations, seeding, and an interactive REPL. After that: the UI layer, then realtime/email/caching, then the rest of the roadmap through a stable v1.0.
+v0.2 is focused on the CLI and d3veloper experience. We'll be rolling out features like an interactive `omni tinker` REPL, `omni generate remote`, the new `resource()` primitive for powerful remote functions, functional model factories via `createFactory`, and seamless relationship definitions directly inside your schema. After that: the UI layer, then realtime/email/caching, then the rest of the roadmap through a stable v1.0.
 
 If you're building on SvelteKit and tired of wiring up the same data layer every time, give it a spin and tell me what's missing.
 
