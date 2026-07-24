@@ -1,5 +1,12 @@
 # omni-svelte
 
+## 0.1.1
+
+### Patch Changes
+
+- 934ab6c: fix: export Factory and Faker from database entrypoint
+- 03d70b0: fix: remove unpublished `@omni-svelte/shared` dependency from core package to prevent installation errors
+
 ## 0.1.0
 
 ### Minor Changes
