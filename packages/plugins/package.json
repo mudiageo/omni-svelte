@@ -41,7 +41,8 @@
 		"dist"
 	],
 	"dependencies": {
-		"@omni-svelte/shared": "workspace:*"
+		"@omni-svelte/shared": "workspace:*",
+		"@sveltejs/kit": "^3.0.0-next.12"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.2",

@@ -9,3 +9,5 @@ allowBuilds:
   esbuild: true
   prisma: true
   sharp: true
+minimumReleaseAgeExclude:
+  - '@sveltejs/kit@3.0.0-next.12'
