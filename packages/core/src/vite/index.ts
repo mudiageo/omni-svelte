@@ -548,10 +548,41 @@ export function omniSvelte(options: OmniSvelteConfig = {} as OmniSvelteConfig) {
 	const { kit = {}, database, schema, auth, logging, cors, analytics, errorReporting, ...svelteOptions } = options;
 	const omniConfig: OmniConfig = { database, schema, auth, logging, cors, analytics, errorReporting };
 	
+	// Define extended types for experimental flags not yet fully typed in Svelte
+	type ExtendedKitConfig = KitConfig & {
+		experimental?: { remoteFunctions?: boolean; [key: string]: unknown };
+	};
+	type ExtendedSvelteConfig = typeof svelteOptions & {
+		compilerOptions?: { experimental?: { async?: boolean; [key: string]: unknown }; [key: string]: unknown };
+	};
+
+	const svelteKitConfig = kit as ExtendedKitConfig;
+	if (svelteKitConfig.experimental?.remoteFunctions === false) {
+		console.warn('[omni-svelte] Warning: kit.experimental.remoteFunctions is explicitly set to false. Certain features like remote resources will not work.');
+	} else {
+		svelteKitConfig.experimental = {
+			...svelteKitConfig.experimental,
+			remoteFunctions: true
+		};
+	}
+
+	const svelteCompilerConfig = svelteOptions as ExtendedSvelteConfig;
+	if (svelteCompilerConfig.compilerOptions?.experimental?.async === false) {
+		console.warn('[omni-svelte] Warning: compilerOptions.experimental.async is explicitly set to false. Certain features like remote resources may not work as intended.');
+	} else {
+		svelteCompilerConfig.compilerOptions = {
+			...(svelteCompilerConfig.compilerOptions || {}),
+			experimental: {
+				...(svelteCompilerConfig.compilerOptions?.experimental || {}),
+				async: true
+			}
+		};
+	}
+
 	return [
 		sveltekit({
-			...kit,
-			...svelteOptions
+			...svelteKitConfig,
+			...svelteCompilerConfig
 		}),
 		plugin_auth_resolver(omniConfig),
 		plugin_omni_virtual_aliases(omniConfig),
