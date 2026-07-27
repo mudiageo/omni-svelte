@@ -1,5 +1,5 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import type { OmniConfig, SvelteConfig } from '../types.js';
+import type { OmniConfig, OmniSvelteConfig } from '../types.js';
 import type { FSWatcher as ViteFSWatcher, Plugin, ResolvedConfig } from 'vite';
 import type { FSWatcher } from 'chokidar';
 import type { Schema } from '../schema/types.js';
@@ -12,22 +12,9 @@ import { runtime_directory } from '../utils/index.js';
 import { generateAuthConfig } from '../runtime/auth/generator.js';
 import { omniMigrationsPlugin } from './migrations.js';
 
-export async function getOmniConfig(): Promise<OmniConfig | undefined> {
-	// Read svelte.config.js to get omni configuration
-	try {
-		const configPath = resolve(process.cwd(), 'svelte.config.js');
-		if (existsSync(configPath)) {
-			const module = await import(pathToFileURL(configPath) + '?t=' + Date.now());
-			let svelteConfig: SvelteConfig = module.default;
-			return svelteConfig.omni;
-		}
-	} catch (error) {
-		console.warn('Could not read svelte.config.js:', (error as Error).message);
-	}
-}
-export function omni(options = {}): Plugin {
+export function omni(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 	let config: ResolvedConfig;
-	let omniConfig: OmniConfig;
+	
 	let userHooksServer: string | null = null;
 	let userHooksClient: string | null = null;
 	let schemaWatcher: FSWatcher | null = null;
@@ -39,7 +26,7 @@ export function omni(options = {}): Plugin {
 		async configResolved(resolvedConfig) {
 			config = resolvedConfig;
 
-			omniConfig = ((await getOmniConfig()) ?? {}) as OmniConfig;
+			
 
 			// Initialize schema configuration
 			const schemaConfig = await initializeSchemaConfig(omniConfig, config.root);
@@ -142,7 +129,7 @@ export function omni(options = {}): Plugin {
 
 					// Re-initialize schema config if svelte.config.js changed
 					if (file.endsWith('svelte.config.js')) {
-						omniConfig = ((await getOmniConfig()) ?? {}) as OmniConfig;
+						
 						const schemaConfig = await initializeSchemaConfig(omniConfig, config.root);
 						if (schemaConfig) omniConfig.schema = schemaConfig;
 
@@ -191,7 +178,7 @@ export function omni(options = {}): Plugin {
 	}
 }
 
-const plugin_auth_resolver: Plugin = {
+const plugin_auth_resolver = (omniConfig: OmniConfig): Plugin => ({
 	name: 'vite-plugin-omni-auth-resolver',
 	config() {
 		return {
@@ -204,7 +191,7 @@ const plugin_auth_resolver: Plugin = {
 			}
 		};
 	}
-};
+});
 
 /**
  * Virtual module plugin for omni-svelte path aliases.
@@ -220,13 +207,13 @@ const SERVER_ONLY_MODULES = ['$db', '$schema', '$models'];
 
 const VIRTUAL_PREFIX = '\0virtual:omni:';
 
-const plugin_omni_virtual_aliases: Plugin = {
+const plugin_omni_virtual_aliases = (omniConfig: OmniConfig): Plugin => ({
 	name: 'vite-plugin-omni-virtual-aliases',
 
 	async config(userConfig) {
 		// Register sub-path aliases so direct imports like `$models/posts.model` also work,
 		// resolving straight to the configured output directory on disk for IDE navigation.
-		const omniConfig = await getOmniConfig();
+		
 		const root = userConfig.root || process.cwd();
 		const out = omniConfig?.schema?.output;
 
@@ -253,7 +240,7 @@ const plugin_omni_virtual_aliases: Plugin = {
 	},
 
 	async configResolved(resolvedConfig) {
-		const omniConfig = await getOmniConfig();
+		
 		if (!omniConfig?.schema) return;
 
 		const root = resolvedConfig.root;
@@ -338,12 +325,13 @@ const plugin_omni_virtual_aliases: Plugin = {
 		if (!id.startsWith(VIRTUAL_PREFIX)) return;
 
 		const key = id.slice(VIRTUAL_PREFIX.length); // e.g. 'models', 'schema', 'validation', 'db'
-		const omniConfig = await getOmniConfig();
+		
 		const root = process.cwd();
 		const out = omniConfig?.schema?.output;
 
 		if (key === 'db') {
-			return `import { database } from 'omni-svelte/database';\nexport { database as db };\nexport default database;`;
+			const dbConfig = omniConfig?.database || {};
+			return `import { configureDatabase, database } from 'omni-svelte/database';\nconfigureDatabase(${JSON.stringify(dbConfig)});\nexport { database as db };\nexport default database;`;
 		}
 
 		if (key === 'schema') {
@@ -413,13 +401,13 @@ const plugin_omni_virtual_aliases: Plugin = {
 			}
 		}
 	}
-};
+});
 
-const plugin_auth_codegen: Plugin = {
+const plugin_auth_codegen = (omniConfig: OmniConfig): Plugin => ({
 	name: 'vite-plugin-omni-auth-codegen',
 	async configResolved(resolvedConfig) {
 		// Generate Better Auth config internally
-		const omniConfig = await getOmniConfig();
+		
 		if (omniConfig?.auth) await generateAuthConfig(omniConfig.auth);
 	},
 	configureServer(server) {
@@ -428,19 +416,19 @@ const plugin_auth_codegen: Plugin = {
 
 		server.watcher.on('change', async (file) => {
 			if (file.endsWith('svelte.config.js')) {
-				const omniConfig = await getOmniConfig();
+				
 				if (omniConfig?.auth) await generateAuthConfig(omniConfig.auth);
 			}
 		});
 	}
-};
+});
 
-const plugin_auth_schema_sync: Plugin = {
+const plugin_auth_schema_sync = (omniConfig: OmniConfig): Plugin => ({
 	name: 'vite-plugin-omni-auth-schema-sync',
 	async configResolved(resolvedConfig) {
-		const omniConfig = await getOmniConfig();
+		
 	}
-};
+});
 
 //In development use $pkg as import. During build replace with omni-svelte
 const pkg = 'omni-svelte';
@@ -556,18 +544,23 @@ return handler.handleFetch({ event, request, fetch });
 }
 
 // Wrapper function that includes SvelteKit plugin
-export function omniSvelte(options = {}) {
+export function omniSvelte(options: OmniSvelteConfig = {} as OmniSvelteConfig) {
+	const { kit = {}, database, schema, auth, logging, cors, analytics, errorReporting, ...svelteOptions } = options;
+	const omniConfig: OmniConfig = { database, schema, auth, logging, cors, analytics, errorReporting };
+	
 	return [
-		sveltekit(),
-		plugin_auth_resolver,
-		plugin_omni_virtual_aliases,
-		omni(options),
-		plugin_auth_codegen,
+		sveltekit({
+			...kit,
+			...svelteOptions
+		}),
+		plugin_auth_resolver(omniConfig),
+		plugin_omni_virtual_aliases(omniConfig),
+		omni(omniConfig),
+		plugin_auth_codegen(omniConfig),
 		// Run migrations after auth config and schema generation
 		{
 			name: 'omni:migrations-wrapper',
 			async configResolved(resolvedConfig: ResolvedConfig) {
-				const omniConfig = await getOmniConfig();
 				if (omniConfig) {
 					const migrationsPlugin = omniMigrationsPlugin(omniConfig, resolvedConfig.root);
 					const configResolvedHook =
