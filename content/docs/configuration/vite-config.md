@@ -1,21 +1,19 @@
 ---
-title: svelte.config.js
-description: Full reference for the omni config block in svelte.config.js.
+title: vite.config.ts
+description: Full reference for the omniSvelte plugin configuration in vite.config.ts.
 section: Configuration
 order: 1
 ---
 
 # Configuration
 
-All OmniSvelte options live under the `omni` key in `svelte.config.js`. This page covers every available option. Config can also be passed in the vite plugin. 
-
-Note: In SvelteKit 3, `svelte.config.js` would be removed, so the default way to set config would be using the Vite plugin. This would be the recommended way to define config, and we will update this guide as soon as possible
-
+All OmniSvelte options are passed to the `omniSvelte()` plugin in `vite.config.ts`. This page covers every available option. Standard SvelteKit config options can still be passed under the `kit` property.
 
 ## Top-level shape
 
 ```ts
-omni: {
+omniSvelte({
+  kit?:            KitConfig; // standard SvelteKit options
   database?:       DatabaseConfig;
   schema?:         SchemaConfig;
   auth?:           AuthConfig;
@@ -23,7 +21,7 @@ omni: {
   cors?:           { enabled: boolean };
   analytics?:      { enabled: boolean };
   errorReporting?: { enabled: boolean };
-}
+})
 ```
 
 ---
@@ -37,12 +35,12 @@ omni: {
 | `schema` | `string \| null` | `null` | Path to a custom Drizzle schema file |
 
 ```js
-omni: {
+omniSvelte({
   database: {
     enabled: true,
     connection: { url: process.env.DATABASE_URL }
   }
-}
+})
 ```
 
 ---
@@ -63,7 +61,7 @@ Controls how OmniSvelte discovers and generates code from your `.schema.ts` file
 | `dev.generateOnStart` | `boolean` | `true` | Generate on dev server start |
 
 ```js
-omni: {
+omniSvelte({
   schema: {
     input:  { patterns: ['src/**/*.schema.ts'] },
     output: {
@@ -73,7 +71,7 @@ omni: {
     },
     dev: { watch: true, generateOnStart: true }
   }
-}
+})
 ```
 
 ---
@@ -96,7 +94,7 @@ Configures [Better-Auth](https://better-auth.com).
 | `plugins.passkey` | `boolean` | `false` | Enable passkey plugin |
 
 ```js
-omni: {
+omniSvelte({
   auth: {
     enabled: true,
     secret: process.env.BETTER_AUTH_SECRET,
@@ -107,7 +105,7 @@ omni: {
       twoFactor: true
     }
   }
-}
+})
 ```
 
 ---
@@ -115,33 +113,35 @@ omni: {
 ## Full example
 
 ```js
-// svelte.config.js
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { omniSvelte } from 'omni-svelte/vite';
 import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
-const config = {
-  preprocess: vitePreprocess(),
-  kit: { adapter: adapter() },
-  omni: {
-    database: {
-      enabled: true,
-      connection: { url: process.env.DATABASE_URL }
-    },
-    schema: {
-      input:  { patterns: ['src/**/*.schema.ts'] },
-      output: {
-        drizzle: { path: 'src/lib/db/server/schema.ts', format: 'single-file' },
-        zod:     { path: 'src/lib/db/validation',       format: 'per-schema'  },
-        model:   { path: 'src/lib/db/models',           format: 'per-schema'  }
+export default defineConfig({
+  plugins: [
+    omniSvelte({
+      preprocess: vitePreprocess(),
+      kit: { adapter: adapter() },
+      database: {
+        enabled: true,
+        connection: { url: process.env.DATABASE_URL }
+      },
+      schema: {
+        input:  { patterns: ['src/**/*.schema.ts'] },
+        output: {
+          drizzle: { path: 'src/lib/db/server/schema.ts', format: 'single-file' },
+          zod:     { path: 'src/lib/db/validation',       format: 'per-schema'  },
+          model:   { path: 'src/lib/db/models',           format: 'per-schema'  }
+        }
+      },
+      auth: {
+        enabled: true,
+        secret: process.env.BETTER_AUTH_SECRET,
+        emailAndPassword: { enabled: true }
       }
-    },
-    auth: {
-      enabled: true,
-      secret: process.env.BETTER_AUTH_SECRET,
-      emailAndPassword: { enabled: true }
-    }
-  }
-};
-
-export default config;
+    })
+  ]
+});
 ```

@@ -26,7 +26,7 @@ export const docsNav: NavSection[] = [
 	{
 		title: 'Configuration',
 		items: [
-			{ title: 'svelte.config.js', href: '/docs/configuration/svelte-config' },
+			{ title: 'vite.config.ts', href: '/docs/configuration/vite-config' },
 			{ title: 'Environment Variables', href: '/docs/configuration/env-variables' },
 			{ title: 'TypeScript', href: '/docs/configuration/typescript' }
 		]
