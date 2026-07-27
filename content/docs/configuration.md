@@ -1,25 +1,36 @@
 ---
 title: Configuration
-description: Full reference for the omni config block in svelte.config.js.
+description: Full reference for the omniSvelte configuration in vite.config.ts.
 ---
 
 # Configuration
 
-All omni-svelte options live under the `omni` key in `svelte.config.js`. This page covers every available option.
+In SvelteKit 3, configuration is passed directly to the `omniSvelte()` plugin in `vite.config.ts`.
 
 ## Top-level shape
 
 ```ts
-omni: {
-  database?: DatabaseConfig;
-  schema?:   SchemaConfig;
-  auth?:     AuthConfig;
-  logging?:  { enabled: boolean };
-  cors?:     { enabled: boolean };
-  analytics?: { enabled: boolean };
-  errorReporting?: { enabled: boolean };
-}
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { omniSvelte } from 'omni-svelte/vite';
+
+export default defineConfig({
+  plugins: [
+    omniSvelte({
+      database?: DatabaseConfig;
+      schema?: SchemaConfig;
+      auth?: AuthConfig;
+      logging?: { enabled: boolean };
+      cors?: { enabled: boolean };
+      analytics?: { enabled: boolean };
+      errorReporting?: { enabled: boolean };
+      kit?: KitConfig; // SvelteKit plugin options
+    })
+  ]
+});
 ```
+
+Omni-svelte options (`database`, `schema`, `auth`, etc.) are defined at the top level of the object passed to `omniSvelte()`. Standard SvelteKit options can still be configured under the `kit` namespace.
 
 ---
 

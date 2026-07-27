@@ -10,7 +10,7 @@ order: 1
 Complete TypeScript types for the `omniSvelte` Vite plugin.
 
 ```ts
-import type { Config as KitConfig } from '@sveltejs/kit';
+import type { KitConfig } from '@sveltejs/kit';
 
 export type OmniSvelteConfig = OmniConfig & KitConfig;
 
