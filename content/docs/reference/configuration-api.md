@@ -1,16 +1,21 @@
 ---
 title: Configuration API
-description: Full TypeScript type reference for the omni config block in svelte.config.js.
+description: Full TypeScript type reference for the omniSvelte plugin configuration in vite.config.ts.
 section: Reference
 order: 1
 ---
 
 # Configuration API
 
-Complete TypeScript types for the `omni` config key.
+Complete TypeScript types for the `omniSvelte` Vite plugin.
 
 ```ts
+import type { KitConfig } from '@sveltejs/kit';
+
+export type OmniSvelteConfig = OmniConfig & KitConfig;
+
 interface OmniConfig {
+  kit?:            KitConfig; // Standard SvelteKit config options
   database?:       DatabaseConfig;
   schema?:         SchemaConfig;
   auth?:           AuthConfig;

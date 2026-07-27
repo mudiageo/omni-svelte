@@ -8,7 +8,13 @@ import { redirect, type RequestEvent } from '@sveltejs/kit';
 import { getAuthSchema } from './schema-generator.js';
 import { validateAuthSchema, logValidationResults } from './schema-validator.js';
 
-const db = getDatabase();
+// We wrap the db in a lazy Proxy so that we don't trigger "Database not initialized"
+// errors at top-level module evaluation time (before SvelteKit hooks run or virtual alias configures DB).
+const db = new Proxy({} as ReturnType<typeof getDatabase>, {
+	get(_target, prop, receiver) {
+		return Reflect.get(getDatabase(), prop, receiver);
+	}
+});
 const isDev = process.env.NODE_ENV !== 'production';
 const projectRoot = process.cwd();
 
