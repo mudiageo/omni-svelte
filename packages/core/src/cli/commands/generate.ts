@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { basename, join, resolve, sep } from 'path';
 import { findProjectRoot, isSvelteKitProject } from '../utils/project.js';
 
-export type GeneratorType = 'schema' | 'migration' | 'resource' | 'auth-page' | 'email';
+export type GeneratorType = 'schema' | 'migration' | 'resource' | 'remote' | 'auth-page' | 'email';
 
 export interface GenerateCommandOptions {
 	schemaMode?: string;
@@ -15,6 +15,9 @@ export interface GenerateCommandOptions {
 	force?: boolean;
 	dryRun?: boolean;
 	cwd?: string;
+	only?: string;
+	with?: string;
+	noAuth?: boolean;
 }
 
 export async function handleGenerateCommand(options: GenerateCommandOptions): Promise<void> {
@@ -46,6 +49,7 @@ export async function handleGenerateCommand(options: GenerateCommandOptions): Pr
 				{ value: 'schema', label: 'schema — Generate a schema' },
 				{ value: 'migration', label: 'migration — Create a migration' },
 				{ value: 'resource', label: 'resource — Scaffold a new resource' },
+				{ value: 'remote', label: 'remote — Scaffold a remote functions file' },
 				{ value: 'auth-page', label: 'auth-page — Generate an auth page' },
 				{ value: 'email', label: 'email — Create an email template' }
 			]
@@ -86,6 +90,9 @@ export async function handleGenerateCommand(options: GenerateCommandOptions): Pr
 			break;
 		case 'migration':
 			await generateMigration(name, cwd, options.output, Boolean(options.force), Boolean(options.dryRun));
+			break;
+		case 'remote':
+			await generateRemote(name, cwd, options);
 			break;
 		case 'resource':
 			log.warn('Resource generator is planned and coming soon.');
@@ -241,4 +248,73 @@ function assertWithinDir(filePath: string, dirPath: string): void {
 	if (!resolvedFile.startsWith(resolvedDir + sep) && resolvedFile !== resolvedDir) {
 		throw new Error(`Path traversal detected: ${filePath} escapes ${dirPath}`);
 	}
+}
+
+async function generateRemote(name: string, cwd: string, options: GenerateCommandOptions) {
+	const safeName = sanitizeName(name);
+	// Capitalize first letter for ModelName
+	const ModelName = safeName.charAt(0).toUpperCase() + safeName.slice(1);
+	const pluralName = safeName.toLowerCase() + 's';
+	const singularName = safeName.toLowerCase();
+	const modelFileName = toSnakeCase(safeName) + '.schema.js';
+	
+	const targetDir = options.output ? join(cwd, resolve(options.output, '..')) : join(cwd, 'src/routes');
+	const targetFile = options.output ? join(cwd, options.output) : join(targetDir, `${singularName}.remote.ts`);
+
+	assertWithinDir(targetFile, cwd);
+
+	let relationsList = '';
+	if (options.with) {
+		relationsList = options.with.split(',').map((s: string) => `'${s.trim()}'`).join(', ');
+	}
+
+	let onlyBlock = '';
+	if (options.only) {
+		onlyBlock = `\n\tonly: [${options.only.split(',').map((s: string) => `'${s.trim()}'`).join(', ')}],`;
+	}
+
+	let authBlock = '';
+	if (!options.noAuth) {
+		authBlock = `\n\tauthorize: ({ user, operation }) => {
+\t\t// TODO: replace with real authorization logic
+\t\tif (operation === 'list' || operation === 'get') return true;
+\t\treturn Boolean(user);
+\t}`;
+	}
+
+	const content = `import { resource } from 'omni-svelte/remote';
+import { ${ModelName} } from '$models/${modelFileName}';
+
+export const {
+\tlist: ${pluralName},
+\tget: ${singularName},
+\tcreate: create${ModelName},
+\tupdate: update${ModelName},
+\tremove: delete${ModelName}
+} = resource(${ModelName}, {${onlyBlock}${relationsList ? `\n\twith: [${relationsList}],` : ''}
+\t// mutationMode: 'form', // Use 'command' for non-form endpoints
+\t// listQuery: (q, input) => q, // Hook to apply custom filters to the list query${authBlock}
+});
+`;
+
+	if (options.dryRun) {
+		outro(`${pc.cyan('[dry-run]')} Would create: ${pc.bold(targetFile)}\n\n${pc.dim(content)}`);
+		return;
+	}
+
+	if (existsSync(targetFile) && !options.force) {
+		const shouldOverwrite = await confirm({
+			message: `${pc.yellow(targetFile)} already exists. Overwrite?`,
+			initialValue: false
+		});
+		if (isCancel(shouldOverwrite) || !shouldOverwrite) {
+			cancel('Aborted. Use --force to overwrite without prompting.');
+			process.exitCode = 1;
+			return;
+		}
+	}
+
+	ensureDir(targetDir);
+	writeFileSync(targetFile, content);
+	outro(`${pc.green('✔')} Remote functions created at ${pc.dim(targetFile)}`);
 }

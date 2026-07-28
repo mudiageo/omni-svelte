@@ -251,7 +251,13 @@ export abstract class Model {
 
 		// Include loaded relations
 		for (const [key, value] of Object.entries(this.relations)) {
-			attributes[key] = value;
+			if (Array.isArray(value)) {
+				attributes[key] = value.map((v) => (v && typeof v.toJSON === 'function' ? v.toJSON() : v));
+			} else if (value && typeof value.toJSON === 'function') {
+				attributes[key] = value.toJSON();
+			} else {
+				attributes[key] = value;
+			}
 		}
 
 		return attributes;
