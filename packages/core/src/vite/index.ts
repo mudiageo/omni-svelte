@@ -11,8 +11,65 @@ import { generateDrizzleConfig } from './drizzle-config.js';
 import { runtime_directory } from '../utils/index.js';
 import { generateAuthConfig } from '../runtime/auth/generator.js';
 import { omniMigrationsPlugin } from './migrations.js';
+import type { KitConfig } from '@sveltejs/kit';
 
-export function omni(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
+/**
+ * Returns the omni-svelte Vite plugins **without** injecting `sveltekit()`.
+ *
+ * Use this when you want to manage `sveltekit()` yourself — for example when
+ * using a custom fork, a different SvelteKit version, or when you need to control
+ * plugin ordering precisely.
+ *
+ * ```ts
+ * // vite.config.ts
+ * import { sveltekit } from '@sveltejs/kit/vite';
+ * import { omni } from 'omni-svelte/vite';
+ *
+ * export default defineConfig({
+ *   plugins: [
+ *     sveltekit(), // fully under your control
+ *     ...omni({ database: { ... }, schema: { ... } })
+ *   ]
+ * });
+ * ```
+ *
+ * > **Note:** When using `omni()` directly you are responsible for enabling
+ * > `kit.experimental.remoteFunctions` and `compilerOptions.experimental.async`
+ * > in your SvelteKit config if you want remote functions to work.
+ */
+export function omni(omniConfig: OmniConfig = {} as OmniConfig): Plugin[] {
+	return [
+		omniCorePlugin(omniConfig),
+		plugin_auth_resolver(omniConfig),
+		plugin_omni_virtual_aliases(omniConfig),
+		plugin_auth_codegen(omniConfig),
+		{
+			name: 'omni:migrations-wrapper',
+			async configResolved(resolvedConfig: ResolvedConfig) {
+				if (omniConfig) {
+					const migrationsPlugin = omniMigrationsPlugin(omniConfig, resolvedConfig.root);
+					const configResolvedHook =
+						typeof migrationsPlugin.configResolved === 'function'
+							? migrationsPlugin.configResolved
+							: (migrationsPlugin.configResolved as any)?.handler;
+					if (configResolvedHook) await configResolvedHook.call(this, resolvedConfig);
+
+					const buildStartHook =
+						typeof migrationsPlugin.buildStart === 'function'
+							? migrationsPlugin.buildStart
+							: (migrationsPlugin.buildStart as any)?.handler;
+					if (buildStartHook) await buildStartHook.call(this, {});
+				}
+			}
+		}
+	];
+}
+
+/**
+ * Internal plugin that was previously exported as `omni()`. Renamed to
+ * `omniCorePlugin` to distinguish it from the public `omni()` array helper.
+ */
+function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 	let config: ResolvedConfig;
 	
 	let userHooksServer: string | null = null;
@@ -543,12 +600,8 @@ return handler.handleFetch({ event, request, fetch });
 	return `${imports.join('\n')}\n${userHooksImport}\n\n${hookFunctions}`;
 }
 
-// Wrapper function that includes SvelteKit plugin
-export function omniSvelte(options: OmniSvelteConfig = {} as OmniSvelteConfig) {
-	const { kit = {}, database, schema, auth, logging, cors, analytics, errorReporting, ...svelteOptions } = options;
-	const omniConfig: OmniConfig = { database, schema, auth, logging, cors, analytics, errorReporting };
-	
-	// Define extended types for experimental flags not yet fully typed in Svelte
+function applyExperimentalConfig(options: OmniSvelteConfig) {
+	const { kit = {}, ...svelteOptions } = options;
 	type ExtendedKitConfig = KitConfig & {
 		experimental?: { remoteFunctions?: boolean; [key: string]: unknown };
 	};
@@ -578,37 +631,47 @@ export function omniSvelte(options: OmniSvelteConfig = {} as OmniSvelteConfig) {
 			}
 		};
 	}
+	return { svelteKitConfig, svelteCompilerConfig };
+}
+
+/**
+ * The full omni-svelte Vite plugin. Includes `sveltekit()` with experimental
+ * remote functions enabled automatically, plus all omni-svelte features.
+ *
+ * This is the **recommended** entry point for most projects.
+ *
+ * ```ts
+ * // vite.config.ts
+ * import { omniSvelte } from 'omni-svelte/vite';
+ *
+ * export default defineConfig({
+ *   plugins: [
+ *     ...omniSvelte({
+ *       database: { ... },
+ *       schema: { ... },
+ *       kit: { /* SvelteKit options *\/ }
+ *     })
+ *   ]
+ * });
+ * ```
+ *
+ * If you need to manage `sveltekit()` yourself, use the lower-level `omni()`
+ * export instead.
+ */
+export function omniSvelte(options: OmniSvelteConfig = {} as OmniSvelteConfig) {
+	const { database, schema, auth, logging, cors, analytics, errorReporting, ...rest } = options;
+	const omniConfig: OmniConfig = { database, schema, auth, logging, cors, analytics, errorReporting };
+	
+	const { svelteKitConfig, svelteCompilerConfig } = applyExperimentalConfig(options);
 
 	return [
 		sveltekit({
 			...svelteKitConfig,
 			...svelteCompilerConfig
 		}),
-		plugin_auth_resolver(omniConfig),
-		plugin_omni_virtual_aliases(omniConfig),
-		omni(omniConfig),
-		plugin_auth_codegen(omniConfig),
-		// Run migrations after auth config and schema generation
-		{
-			name: 'omni:migrations-wrapper',
-			async configResolved(resolvedConfig: ResolvedConfig) {
-				if (omniConfig) {
-					const migrationsPlugin = omniMigrationsPlugin(omniConfig, resolvedConfig.root);
-					const configResolvedHook =
-						typeof migrationsPlugin.configResolved === 'function'
-							? migrationsPlugin.configResolved
-							: (migrationsPlugin.configResolved as any)?.handler;
-					if (configResolvedHook) await configResolvedHook.call(this, resolvedConfig);
-
-					const buildStartHook =
-						typeof migrationsPlugin.buildStart === 'function'
-							? migrationsPlugin.buildStart
-							: (migrationsPlugin.buildStart as any)?.handler;
-					if (buildStartHook) await buildStartHook.call(this, {});
-				}
-			}
-		}
+		...omni(omniConfig)
 	];
 }
+
 // Export migrations functionality for manual use
 export { runMigrations } from './migrations.js';
