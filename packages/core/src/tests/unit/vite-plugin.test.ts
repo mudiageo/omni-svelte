@@ -1,24 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
-import { omniSvelte } from '../../vite/index';
+import { omniSvelte, omni } from '../../vite/index';
 
 // mock sveltekit to prevent it from trying to do real vite resolution
 vi.mock('@sveltejs/kit/vite', () => ({
 	sveltekit: vi.fn((opts) => ({ name: 'sveltekit', options: opts }))
-}));
-
-// mock auth and migrations plugins which might rely on fs or other stuff
-vi.mock('../../vite/plugins/auth', () => ({
-	plugin_auth_resolver: vi.fn(() => ({ name: 'omni:auth-resolver' })),
-	plugin_auth_codegen: vi.fn(() => ({ name: 'omni:auth-codegen' }))
-}));
-vi.mock('../../vite/plugins/migrations', () => ({
-	omniMigrationsPlugin: vi.fn(() => ({ name: 'omni:migrations' }))
-}));
-vi.mock('../../vite/plugins/virtual-modules', () => ({
-	plugin_omni_virtual_aliases: vi.fn(() => ({ name: 'omni:virtual-aliases' }))
-}));
-vi.mock('../../vite/plugins/core', () => ({
-	omni: vi.fn(() => ({ name: 'omni:core' }))
 }));
 
 describe('omniSvelte Vite plugin', () => {
@@ -53,5 +38,26 @@ describe('omniSvelte Vite plugin', () => {
 		expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('compilerOptions.experimental.async is explicitly set to false'));
 		
 		warnSpy.mockRestore();
+	});
+
+	it('includes omni core plugins', () => {
+		const plugins = omniSvelte();
+		expect(plugins.find((p: any) => p.name === 'omni-svelte')).toBeDefined();
+		expect(plugins.find((p: any) => p.name === 'vite-plugin-omni-virtual-aliases')).toBeDefined();
+	});
+});
+
+describe('omni Vite plugin (standalone)', () => {
+	it('does not inject sveltekit', () => {
+		const plugins = omni();
+		expect(plugins.find((p: any) => p.name === 'sveltekit')).toBeUndefined();
+	});
+
+	it('returns an array of core omni plugins', () => {
+		const plugins = omni();
+		expect(Array.isArray(plugins)).toBe(true);
+		expect(plugins.length).toBeGreaterThan(0);
+		expect(plugins.find((p: any) => p.name === 'omni-svelte')).toBeDefined();
+		expect(plugins.find((p: any) => p.name === 'vite-plugin-omni-virtual-aliases')).toBeDefined();
 	});
 });

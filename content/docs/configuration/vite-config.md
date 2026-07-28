@@ -110,6 +110,36 @@ omniSvelte({
 
 ---
 
+## Standalone Plugin (`omni`)
+
+By default, `omniSvelte()` wraps and invokes the official `@sveltejs/kit/vite` plugin for you. If you need full control over the SvelteKit plugin (e.g., using a custom fork or strictly controlling plugin order), you can use the `omni()` export instead. 
+
+This returns an array of Omni plugins *without* injecting SvelteKit.
+
+```js
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { sveltekit } from '@sveltejs/kit/vite';
+import { omni } from 'omni-svelte/vite';
+
+export default defineConfig({
+  plugins: [
+    sveltekit({
+      experimental: { remoteFunctions: true },
+      compilerOptions: { experimental: { async: true } }
+    }), // fully under your control
+    ...omni({
+      database: { enabled: true },
+      schema: { /* ... */ }
+    })
+  ]
+});
+```
+
+> **Note**: When using `omni()` directly, you are responsible for enabling `kit.experimental.remoteFunctions` and `compilerOptions.experimental.async` directly via the options passed to the `sveltekit()` Vite plugin if you want remote functions to work properly.
+
+---
+
 ## Full example
 
 ```js
