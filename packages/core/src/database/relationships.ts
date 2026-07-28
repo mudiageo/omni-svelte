@@ -1,6 +1,7 @@
 import { eq, inArray } from 'drizzle-orm';
 import { getDatabase } from './database.js';
 import type { Model } from './model.js';
+import { getModel } from './hooks.js';
 
 export interface Relationship {
 	type: 'belongsTo' | 'hasMany' | 'hasOne' | 'manyToMany';
@@ -25,6 +26,13 @@ export class RelationshipLoader {
 
 		if (!relationship) {
 			throw new Error(`Relationship ${relationName} not found on ${modelClass.name}`);
+		}
+
+		if (!relationship.related && relationship.model) {
+			relationship.related = getModel(relationship.model);
+			if (!relationship.related) {
+				throw new Error(`Related model ${relationship.model} not found in registry`);
+			}
 		}
 
 		switch (relationship.type) {
@@ -80,13 +88,15 @@ export class RelationshipLoader {
 
 		if (foreignKeys.length === 0) return;
 
+		const ownerKey = relationship.ownerKey || relationship.localKey || 'id';
+
 		const relatedModels = await db
 			.select()
 			.from(relationship.related.table)
-			.where(inArray(relationship.related.table[relationship.ownerKey], foreignKeys));
+			.where(inArray(relationship.related.table[ownerKey], foreignKeys));
 
 		const relatedMap = relatedModels.reduce((acc, model) => {
-			acc[model[relationship.ownerKey]] = new relationship.related(model);
+			acc[model[ownerKey]] = new relationship.related(model);
 			return acc;
 		}, {});
 

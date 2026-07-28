@@ -24,6 +24,10 @@ const modelRegistry = new Map<string, typeof Model>();
 export const registerModel = (name: string, modelClass: typeof Model) => {
 	modelRegistry.set(name, modelClass);
 };
+
+export const getModel = (name: string): typeof Model | undefined => {
+	return modelRegistry.get(name);
+};
 export const initDb = (config: DatabaseConfig) => {
 	// Initialize database connection
 	if (configureDatabase(config)) console.log('Database initialised');
