@@ -19,6 +19,7 @@ function generateCreateSchema(schema: Schema) {
 	Object.entries(schema.fields).forEach(([fieldName, field]) => {
 		if (field.computed) return; // Skip computed fields
 		if (field.isAuthField) return; // Skip auth-managed fields - validation handled by auth system
+		if (field.primary) return; // Skip primary key fields
 
 		const zodField = generateZodField(field);
 		if (zodField) {
