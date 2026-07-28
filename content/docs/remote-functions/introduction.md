@@ -13,27 +13,9 @@ OmniSvelte leverages SvelteKit's experimental Remote Functions (`query`, `form`,
 
 ## `formSchema()`
 
-Derives a Standard-Schema-compatible Zod object and per-field input metadata directly from a model's `defineSchema()` definition.
+Derives a Standard-Schema-compatible Zod object and per-field input metadata directly from a model's `defineSchema()` definition. 
 
-```ts
-import { formSchema } from 'omni-svelte/remote';
-import { Post } from '$models';
-
-// Derive form schema with specific fields
-export const postFormSchema = formSchema(Post.schema, {
-  pick: ['title', 'content'],
-  partial: false
-});
-```
-
-### Options
-
-| Option | Type | Description |
-| --- | --- | --- |
-| `pick` | `string[]` | Only include these field names |
-| `omit` | `string[]` | Exclude these field names |
-| `partial` | `boolean` | Wrap included fields in `.optional()` (e.g. for update forms) |
-| `overrides` | `Record<string, ZodTypeAny>` | Override inferred Zod type for specific fields (required for relationship fields in `pick`) |
+For options and full usage — see the dedicated [Form Schema API](./form-schema) page.
 
 ---
 
