@@ -31,6 +31,27 @@ exports[`CLI migrate command > migrate --cwd with missing package.json shows sty
 └  No package.json found in <CWD>"
 `;
 
+exports[`CLI migrate command > migrate --cwd with missing package.json shows styled cancel on stdout and exits non-zero 1`] = `
+"Usage: omni migrate|m [options] [type]
+
+Migrate an existing project to OmniSvelte (or between OmniSvelte versions)
+
+Options:
+  --cwd <path>              Target project directory (default:
+                            "<CWD>")
+  -D, --dev                 Install omni-svelte as a dev dependency (default:
+                            false)
+  --package-manager <name>  Force package manager (npm|pnpm|yarn|bun|deno|vp)
+  --omni-pkg <package>      Install omni-svelte from a specific package/path
+                            (for testing)
+  -h, --help                display help for command
+
+Examples:
+  $ omni migrate
+  $ omni migrate sveltekit
+  $ omni m sveltekit --package-manager pnpm"
+`;
+
 exports[`CLI migrate command > migrate --help output matches snapshot 1`] = `
 "Usage: omni migrate|m [options] [type]
 
@@ -50,6 +71,13 @@ Examples:
   $ omni migrate
   $ omni migrate sveltekit
   $ omni m sveltekit --package-manager pnpm"
+`;
+
+exports[`CLI migrate command > migrate with --package-manager flag skips interactive PM prompt and proceeds to install > migrate missing pkg.json stderr 1`] = `""`;
+
+exports[`CLI migrate command > migrate with --package-manager flag skips interactive PM prompt and proceeds to install > migrate missing pkg.json stdout 1`] = `
+"┌   OmniSvelte Migrate
+└  No package.json found in <CWD>"
 `;
 
 exports[`CLI migrate command > migrate with unknown option exits 1 and shows error 1`] = `

@@ -93,6 +93,7 @@ omni g migration add_posts_table --output src/lib/db/migrations
 
 - `schema` — Generates a `defineSchema` file in `src/lib/db/schemas/`.
 - `migration` — Generates a timestamped migration stub in `migrations/`.
+- `remote` — Scaffolds a `.remote.ts` file for a model using `resource()`.
 - `resource` _(planned)_ — Full CRUD resource scaffold.
 - `auth-page` _(planned)_ — Authentication page scaffold.
 - `email` _(planned)_ — Email template scaffold.
@@ -101,6 +102,9 @@ omni g migration add_posts_table --output src/lib/db/migrations
 
 - `-o, --output <path>`: Custom output directory (relative to `--cwd`).
 - `-f, --force`: Overwrite existing output files.
+- `--only <ops>`: Comma-separated subset of operations to generate (e.g. `list,get`).
+- `--with <relations>`: Comma-separated relationships to eager-load.
+- `--no-auth`: Skip generating authorization stub in the remote file.
 - `--cwd <path>`: Working directory (defaults to current directory).
 - `--schema-mode <mode>`: Override `OmniConfig.schema.mode`.
 - `--schema-output-dir <dir>`: Override `OmniConfig.schema.output.directory`.
