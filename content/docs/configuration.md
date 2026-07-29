@@ -5,6 +5,8 @@ description: Full reference for the omniSvelte configuration in vite.config.ts.
 
 # Configuration
 
+> **Breaking change in v0.2:** Configuration moved from `svelte.config.js` to `vite.config.ts`. If you were setting `omni` options inside `svelte.config.js`, move them to the `omniSvelte()` plugin call instead. SvelteKit options now go under the `kit` namespace inside `omniSvelte()`.
+
 In SvelteKit 3, configuration is passed directly to the `omniSvelte()` plugin in `vite.config.ts`.
 
 ## Top-level shape

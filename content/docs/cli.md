@@ -7,6 +7,9 @@ description: Documentation for the OmniSvelte Command Line Interface (CLI)
 
 The `omni` command-line interface provides tools to bootstrap, configure, generate code, and manage database workflows for your OmniSvelte project.
 
+> **Breaking change in v0.2:** CLI commands were restructured. `omni add` is now for adding features/plugins (not for migrating projects). Use `omni migrate sveltekit` instead. Database migrations moved from `omni migrate` to `omni db migrate`.
+
+
 ## Installation
 
 You can run the CLI directly using your preferred package manager:

@@ -2,7 +2,7 @@
 'omni-svelte': minor
 ---
 
-Add Vite+ (vp) and Deno package manager support to the CLI.
+feat(cli): add Vite+ (vp) and Deno package manager support
 
 - Extended `PackageManager` type with `'deno'` and `'vp'`
 - Added command mappings for both managers (install, add, run/task, exec/dlx)

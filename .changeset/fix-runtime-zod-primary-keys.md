@@ -2,4 +2,4 @@
 "omni-svelte": patch
 ---
 
-fix: exclude primary key from runtime zod create schema generation to prevent validation errors on insert
+fix: exclude primary key from Zod create schema
