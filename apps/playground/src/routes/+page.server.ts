@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { User, Post } from '$lib/schema';
+import { User, Post } from '#lib/schema';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	try {

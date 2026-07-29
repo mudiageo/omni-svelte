@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import { User } from '$lib/schema.js';
+import { User } from '#lib/schema.js';
 import { redirect, fail, isRedirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async () => {

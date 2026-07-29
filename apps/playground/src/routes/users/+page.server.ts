@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import { User } from '$lib/schema';
+import { User } from '#lib/schema';
 import { fail } from '@sveltejs/kit';
 import { parsePagination } from 'omni-svelte';
 

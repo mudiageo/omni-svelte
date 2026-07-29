@@ -54,5 +54,9 @@
 		"drizzle-orm": "^0.40.1",
 		"omni-svelte": "workspace:*",
 		"postgres": "^3.4.5"
-	}
+	},
+  "imports": { 
+    "#lib": "./src/lib/index.js", 
+    "#lib/*": "./src/lib/*" 
+  }
 }

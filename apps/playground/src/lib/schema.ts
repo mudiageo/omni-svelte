@@ -115,6 +115,16 @@ export const postSchema = defineSchema(
 				message: 'User ID must be an integer and positive'
 			}
 		},
+		author: {
+			type: 'belongsTo',
+			computed: true,
+			relationship: {
+				type: 'belongsTo',
+				model: 'users',
+				foreignKey: 'user_id',
+				localKey: 'id'
+			}
+		},
 		published: {
 			type: 'boolean'
 		}
