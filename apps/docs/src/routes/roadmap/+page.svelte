@@ -46,13 +46,16 @@
 		{
 			phase: 'Phase 2',
 			version: 'v0.2',
-			title: 'CLI & Developer Experience',
-			status: 'progress',
+			title: 'CLI & Remote Functions',
+			status: 'done',
 			color: 'rgba(16, 185, 129, 0.1)',
 			items: [
-				{ title: 'omni generate remote', status: 'progress' },
-				{ title: 'Schema → remote-form binding', status: 'progress' },
-				{ title: 'Auth session via query.live', status: 'progress' }
+				{ title: 'resource(Model) for CRUD generation', status: 'done' },
+				{ title: 'formSchema() — schema → Zod binding', status: 'done' },
+				{ title: 'omni generate remote', status: 'done' },
+				{ title: 'fromURL() & getModel() helpers', status: 'done' },
+				{ title: 'CLI revamp (migrate, db, vp/deno support)', status: 'done' },
+				{ title: 'Config moved to vite.config.ts', status: 'done' }
 			]
 		},
 		{
@@ -62,9 +65,9 @@
 			status: 'planned',
 			color: 'rgba(245, 158, 11, 0.1)',
 			items: [
-				{ title: 'resource(Model) for CRUD generation', status: 'planned' },
-				{ title: 'omni generate resource UI scaffold', status: 'planned' },
-				{ title: 'shadcn-svelte integration', status: 'planned' }
+				{ title: 'omni generate resource — full CRUD UI scaffold', status: 'planned' },
+				{ title: 'shadcn-svelte integration', status: 'planned' },
+				{ title: 'Accessible form components with Zod binding', status: 'planned' }
 			]
 		},
 		{

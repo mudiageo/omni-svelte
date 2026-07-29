@@ -86,38 +86,29 @@ npx omni migrate sveltekit
 
 ## Quick start
 
-**`vite.config.ts`**
-
 ```ts
-import { omniSvelte } from 'omni-svelte/vite';
+// vite.config.ts
 import { defineConfig } from 'vite';
+import { omniSvelte } from 'omni-svelte/vite';
 
-export default defineConfig({ plugins: [omniSvelte()] });
-```
-
-**`svelte.config.js`**
-
-```js
-import adapter from '@sveltejs/adapter-auto';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
-
-const config = {
-	preprocess: vitePreprocess(),
-	kit: { adapter: adapter() },
-	omni: {
-		database: {
-			enabled: true,
-			connection: { url: process.env.DATABASE_URL }
-		},
-		auth: {
-			enabled: true,
-			secret: process.env.BETTER_AUTH_SECRET,
-			emailAndPassword: { enabled: true }
-		}
-	}
-};
-
-export default config;
+export default defineConfig({
+  plugins: [
+    omniSvelte({
+      database: {
+        enabled: true,
+        connection: { url: process.env.DATABASE_URL }
+      },
+      auth: {
+        enabled: true,
+        secret: process.env.BETTER_AUTH_SECRET,
+        emailAndPassword: { enabled: true }
+      },
+      kit: {
+        // SvelteKit options go here
+      }
+    })
+  ]
+});
 ```
 
 ---
@@ -387,29 +378,28 @@ const myPlugin: OmniPlugin = {
 - [x] `$auth/server`, `$auth/client`, `$db`, `$models/*` virtual modules
 - [x] Plugin API types (`OmniPlugin` interface with all lifecycle hooks)
 
-### v0.2 — CLI & Developer Experience
+### v0.2 — CLI & Remote Functions _(shipped)_
 
-- [ ] `createFactory` helper — functional alternative to class-based `Factory`
-- [ ] Relationship definitions in `defineSchema` (auto-generate `with()` loaders)
-- [x] `npx omni init` — scaffold new projects interactively
-- [x] `omni migrate` — migrate existing SvelteKit projects to OmniSvelte
-- [x] `omni generate` — scaffold CRUD resources, models, schemas, UI forms
-- [x] `omni db push|pull|generate|migrate|rollback|fresh|check|studio|seed` database commands
-- [x] `omni ui init|add` — shadcn-svelte integration
-- [x] `omni doctor` — project health checks
-- [x] `omni install-dependency` — package manager-aware dependency installer
-- [x] `omni serve|build|test|lint|format` — dev script aliases
-- [ ] `omni tinker` — interactive REPL with models pre-loaded
-- [ ] Plugin CLI command registration (`omni <plugin>:<cmd>`)
-- [ ] `omni debug:routes|models|config` diagnostic commands
+- [x] `omni generate remote` — scaffold `.remote.ts` files from a Model
+- [x] `resource()` — auto-generate CRUD remote functions (list, get, create, update, remove)
+- [x] `formSchema()` — derive Zod object schemas from model definitions
+- [x] `fromURL()` — sync URL query params with remote list queries
+- [x] `getModel()` — retrieve model classes dynamically by name
+- [x] Full CLI revamp: `omni migrate`, `omni db`, `omni add`, vp/Deno support, `--package-manager` flag
+- [x] **Breaking:** OmniSvelte configuration moved from `svelte.config.js` to `omniSvelte()` in `vite.config.ts`
+- [x] Auto-enable experimental `remoteFunctions` and async compiler flags
+- [x] Standalone `omni()` Vite plugin export
 
 ### v0.3 — UI & Forms
 
+- [ ] `omni generate resource` — full CRUD UI scaffold
 - [ ] shadcn-svelte component integration
 - [ ] Accessible form components with Zod validation binding
 - [ ] Pre-built page layouts (auth, dashboard, docs, marketing)
-- [ ] `omni generate resource` full CRUD UI scaffold
-- [ ] UI component registration via plugin API
+- [ ] `createFactory` helper — functional alternative to class-based `Factory`
+- [ ] Relationship definitions in `defineSchema` (auto-generate `with()` loaders)
+- [ ] Auth session via `query.live` (replaces client-side Proxy in `client.svelte.ts`)
+- [ ] `omni tinker` — interactive REPL with models pre-loaded
 
 ### v0.4 — Realtime, Email & Caching
 

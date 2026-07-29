@@ -37,7 +37,7 @@ Most features below are combinations of a small set of building blocks. Get thes
 
 | Code | Primitive | Status | Notes |
 |---|---|---|---|
-| `RF` | SvelteKit Remote Functions (`query`, `form`, `command`, `prerender`, `query.live`, `query.batch`) | ⬜ Unused | Experimental upstream API (Svelte/SvelteKit flag it as subject to breaking changes without notice) — treat as a dependency risk, not just a feature |
+| `RF` | SvelteKit Remote Functions (`query`, `form`, `command`, `prerender`, `query.live`, `query.batch`) | ✅ | Integrated in v0.2 via `resource()`, `formSchema()`, and `fromURL()` helpers |
 | `MODEL` | `Model` ActiveRecord base class + `QueryBuilder` | ✅ | Solid foundation; most new ORM features extend this |
 | `HOOKS` | Model lifecycle hooks (`creating`/`created`/`updating`/`updated`) | ✅ | Underused — currently no consumer wires anything real into them |
 | `SCHEMA` | `defineSchema`/`fields()` + generators (Drizzle, Zod, model) | ✅ | Single source of truth; should feed forms, docs, and SDKs, not just the DB |
@@ -69,11 +69,13 @@ Most features below are combinations of a small set of building blocks. Get thes
 
 | Feature | Status | Value | Effort | Primitives | Unlocks |
 |---|---|---|---|---|---|
-| `resource(Model)` — auto-generates `query`/`form`/`command` CRUD from a Model definition | 🆕 | High | L | `RF`, `MODEL`, `SCHEMA` | Zero-boilerplate CRUD APIs; backend for the v0.3 admin/CRUD UI scaffold |
-| Hook-driven single-flight invalidation (`creating`/`updated`/`deleted` hooks call `refresh()`/`set()`) | 🆕 | High | M | `RF`, `HOOKS` | Mutations through the ORM auto-refresh the right cached queries with no manual invalidation code |
-| Schema → remote-form auto-binding (`SCHEMA` output feeds `form.fields.x.as(...)`) | 🆕 | Medium | M | `RF`, `SCHEMA` | One schema definition drives DB columns, server validation, *and* client form fields |
-| `omni generate remote` — scaffold `<model>.remote.ts` from a `Model` | 🆕 | Medium | S | `CLI`, `RF` | Lowers the activation energy for adopting remote functions at all |
-| Auth session as `query.live` (replacing the client-side `Proxy` hack in `client.svelte.ts`) | 🆕 | Medium | M | `RF`, `AUTH` | SSR-safe reactive session state without the current workaround |
+| `resource(Model)` — auto-generates `query`/`form`/`command` CRUD from a Model definition | ✅ | High | L | `RF`, `MODEL`, `SCHEMA` | Zero-boilerplate CRUD APIs; backend for the v0.3 admin/CRUD UI scaffold |
+| `formSchema()` — derive a Zod object schema from a Model definition | ✅ | Medium | S | `RF`, `SCHEMA` | One schema definition drives DB columns, server validation, *and* client form fields |
+| `fromURL()` — sync URL query params with remote list queries | ✅ | Medium | XS | `RF` | Stateful list pages with URL-driven pagination/filtering without boilerplate |
+| `getModel()` — retrieve a model class by name from the registry | ✅ | Low | XS | `MODEL` | Dynamic model access for generic utilities and plugins |
+| `omni generate remote` — scaffold `<model>.remote.ts` from a `Model` | ✅ | Medium | S | `CLI`, `RF` | Lowers the activation energy for adopting remote functions at all |
+| Hook-driven single-flight invalidation (`creating`/`updated`/`deleted` hooks call `refresh()`/`set()`) | ⬜ | High | M | `RF`, `HOOKS` | Mutations through the ORM auto-refresh the right cached queries with no manual invalidation code |
+| Auth session as `query.live` (replacing the client-side `Proxy` hack in `client.svelte.ts`) | ⬜ | Medium | M | `RF`, `AUTH` | SSR-safe reactive session state without the current workaround |
 
 ### C. Auth & Authorization
 
@@ -237,9 +239,9 @@ Estimates assume continued **part-time, largely solo** development alongside cou
 | Version | Theme | Target | Headline additions from this conversation |
 |---|---|---|---|
 | **v0.1 — Foundation** | *Done* | — | (no change — already shipped) |
-| **v0.2 — CLI & Developer Experience** | In progress | Q3 2026 | `omni generate remote`, schema→remote-form binding, auth-session `query.live` refinement |
-| **v0.3 — UI & Forms** | Next | Q4 2026 | `resource(Model)` as the backend powering `omni generate resource` |
-| **v0.4 — Realtime, Email & Caching** | Planned | Q4 2026–Q1 2027 | `query.live` as the lightweight realtime primitive; `remember()`-on-`query` caching |
+| **v0.2 — CLI & Remote Functions** | *Done* | Q3 2026 | `resource(Model)`, `formSchema()`, `fromURL()`, `getModel()`, `omni generate remote`, CLI revamp, config migration to `vite.config.ts` |
+| **v0.3 — UI & Forms** | Next | Q4 2026 | `omni generate resource` full CRUD UI scaffold, shadcn-svelte integration, accessible form components |
+| **v0.4 — Realtime, Email & Caching** | Planned | Q4 2026–Q1 2027 | Auth session via `query.live`, `query.live` as the lightweight realtime primitive; `remember()`-on-`query` caching |
 | **v0.5 — Jobs, Storage & Monitoring** | Planned | Q1 2027 | Notification persistence + live feed, dev inspector, feature flags |
 | **v0.6 — Payments & Multi-tenancy** | Planned | Q2 2027 | Paystack/Flutterwave plugins, generic webhooks module, RBAC/policy layer |
 | **v0.7 — Deployment & Docs** | Planned | Q2 2027 | SEO automation, public API/SDK generator, HTTP cache headers |
@@ -273,8 +275,9 @@ Value was scored by how directly a feature removes *repetitive, non-business-log
 
 ## 7. Immediate next actions
 
-1. Fix the `OmniPlugin` broken import (§0) — highest leverage-to-effort ratio on this entire document, unblocks the whole plugin track.
-2. Build `resource(Model)` for remote-function CRUD generation — the single primitive most other items depend on.
-3. Implement one real cache driver (Redis) and one real storage driver (S3) — closes the gap between "the API exists" and "it actually works," and unblocks file uploads and durable caching simultaneously.
-4. Ship the `Money` value type and Paystack/Flutterwave plugin groundwork — small effort, directly removes work you're currently repeating across ReelView/LexAI.
-5. Write the remote-function test harness before building much more on `RF` — given the experimental-API risk above, you want a safety net in place early, not after v0.9.
+1. ✅ Fix the `OmniPlugin` broken import (§0) — highest leverage-to-effort ratio on this entire document, unblocks the whole plugin track.
+2. ✅ Build `resource(Model)` for remote-function CRUD generation.
+3. Build `omni generate resource` full CRUD UI scaffold — the most visible v0.3 milestone.
+4. Implement one real cache driver (Redis) and one real storage driver (S3) — closes the gap between "the API exists" and "it actually works."
+5. Ship the `Money` value type and Paystack/Flutterwave plugin groundwork.
+6. Write the remote-function test harness before building much more on `RF` — given the experimental-API risk above, you want a safety net in place early, not after v0.9.
