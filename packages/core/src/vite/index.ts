@@ -662,7 +662,7 @@ export function omniSvelte(options: OmniSvelteConfig = {} as OmniSvelteConfig) {
 	const { database, schema, auth, logging, cors, analytics, errorReporting, ...rest } = options;
 	const omniConfig: OmniConfig = { database, schema, auth, logging, cors, analytics, errorReporting };
 	
-	const { svelteKitConfig, svelteCompilerConfig } = applyExperimentalConfig(options);
+	const { svelteKitConfig, svelteCompilerConfig } = applyExperimentalConfig(rest as OmniSvelteConfig);
 
 	return [
 		sveltekit({

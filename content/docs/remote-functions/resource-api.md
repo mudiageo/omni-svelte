@@ -271,5 +271,8 @@ Returning `false` throws a `403 Forbidden` error automatically.
 | `authorize` | `(ctx) => boolean \| Promise<boolean>` | — | Access control callback |
 | `mutationMode` | `'form' \| 'command' \| { create?; update? }` | `'form'` | How `create`/`update` are generated |
 | `listQuery` | `(q, input) => q` | — | Hook to customize the `list` SQL query |
-| `names` | `Record<OperationName, string>` | — | Rename the generated export keys |
 | `live` | `OperationName[]` | `[]` | Mark operations as real-time subscriptions |
+
+---
+
+

@@ -21,7 +21,6 @@ export interface ResourceOptions<M> {
 	with?: string[];
 	pagination?: { perPage?: number; strategy?: 'offset' | 'cursor' };
 	authorize?: (ctx: AuthorizeContext<M>) => boolean | Promise<boolean>;
-	names?: Partial<Record<OperationName, string>>;
 	live?: OperationName[];
 	/**
 	 * Controls how `create` and `update` mutations are generated.
@@ -85,20 +84,8 @@ function getMutationMode(op: 'create' | 'update', options?: ResourceOptions<any>
 export function resource<M extends any>(
 	model: M,
 	options?: ResourceOptions<M>
-): ResourceExports<M> & Record<string, any> {
-	const exports: Record<string, any> = {};
-
-	// Helper to resolve name
-	const getName = (op: OperationName) => options?.names?.[op] || op;
-
-	// Stub out the authorize checker (requires access to user via context, wait, 
-	// $app/server functions execute in context where locals might be accessible?
-	// The SvelteKit 3 remote functions receive context implicitly?
-	// Actually, in SvelteKit 3 remote functions, we don't have access to the RequestEvent directly 
-	// unless we use `getRequestEvent()` from some server module, but auth is handled via 
-	// importing auth function. The spec says `user: unknown | null` from existing auth primitive.
-	// For now, we will assume authorize is called with user: null if we don't have a global getUser hook,
-	// or we pass the RequestEvent if SvelteKit provides it. We will leave it as null for now unless provided by context.
+) {
+	// Stub out the authorize checker
 	const checkAuth = async (operation: OperationName, input?: any) => {
 		if (options?.authorize) {
 			const ctx: AuthorizeContext<M> = { user: null, operation, model, input };
@@ -107,9 +94,12 @@ export function resource<M extends any>(
 		}
 	};
 
-	if (shouldInclude('list', options)) {
+	const createMode = getMutationMode('create', options);
+	const updateMode = getMutationMode('update', options);
+
+	const listFn = shouldInclude('list', options) ? (() => {
 		const isLive = options?.live?.includes('list');
-		const listFn = isLive ? (query as any).live : query;
+		const fn = isLive ? (query as any).live : query;
 
 		const listInputSchema = z.object({
 			page: z.number().int().positive().optional(),
@@ -118,7 +108,7 @@ export function resource<M extends any>(
 			filters: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional()
 		});
 
-		exports[getName('list')] = listFn(listInputSchema, async (input: ListInput) => {
+		return fn(listInputSchema, async (input: ListInput) => {
 			await checkAuth('list', input);
 			let q = model.query();
 			if (options?.with) {
@@ -127,12 +117,10 @@ export function resource<M extends any>(
 				}
 			}
 
-			// Apply search
 			if (input?.search && typeof q.search === 'function') {
 				q = q.search(input.search);
 			}
 
-			// Apply filters as where clauses
 			if (input?.filters) {
 				for (const [key, value] of Object.entries(input.filters)) {
 					if (value !== null && value !== undefined) {
@@ -141,7 +129,6 @@ export function resource<M extends any>(
 				}
 			}
 
-			// Allow custom query hook
 			if (options?.listQuery) {
 				q = options.listQuery(q, input ?? {});
 			}
@@ -150,13 +137,13 @@ export function resource<M extends any>(
 			const page = input?.page ?? 1;
 			return await q.paginate(perPage, page);
 		});
-	}
+	})() : undefined;
 
-	if (shouldInclude('get', options)) {
+	const getFn = shouldInclude('get', options) ? (() => {
 		const isLive = options?.live?.includes('get');
-		const getFn = isLive ? (query as any).live : query;
+		const fn = isLive ? (query as any).live : query;
 
-		exports[getName('get')] = getFn(z.union([z.string(), z.number()]), async (id: string | number) => {
+		return fn(z.union([z.string(), z.number()]), async (id: string | number) => {
 			await checkAuth('get', id);
 			let q = model.query().where('id', id);
 			if (options?.with) {
@@ -168,29 +155,25 @@ export function resource<M extends any>(
 			if (!record) throw error(404, 'Not found');
 			return record;
 		});
-	}
+	})() : undefined;
 
-	if (shouldInclude('create', options)) {
+	const createFn = shouldInclude('create', options) ? (() => {
 		const fillable = options?.fillable?.create || (model as any).fillable;
 		const fSchema = formSchema((model as any).validation.create, fillable === 'auto' ? undefined : { pick: fillable });
-		const createMode = getMutationMode('create', options);
 		const createHandler = async (data: any) => {
 			await checkAuth('create', data);
 			const record = await model.create(data);
 			
-			// Refresh list (Single-flight mutation)
-			if (exports[getName('list')] && typeof exports[getName('list')].refresh === 'function') {
-				exports[getName('list')].refresh();
+			if (listFn && typeof (listFn as any).refresh === 'function') {
+				(listFn as any).refresh();
 			}
 
 			return { success: true, record };
 		};
-		exports[getName('create')] = createMode === 'command'
-			? command(fSchema, createHandler)
-			: form(fSchema, createHandler);
-	}
+		return createMode === 'command' ? command(fSchema, createHandler) : form(fSchema, createHandler);
+	})() : undefined;
 
-	if (shouldInclude('update', options)) {
+	const updateFn = shouldInclude('update', options) ? (() => {
 		const fillable = options?.fillable?.update || (model as any).fillable;
 		const baseFSchema = formSchema((model as any).validation.update || (model as any).validation.create, fillable === 'auto' ? { partial: true } : { pick: fillable, partial: true });
 		
@@ -198,40 +181,43 @@ export function resource<M extends any>(
 			...baseFSchema.shape,
 			id: z.union([z.string(), z.number()])
 		});
-		const updateMode = getMutationMode('update', options);
 		const updateHandler = async (data: any) => {
 			await checkAuth('update', data);
 			const { id, ...updateData } = data;
 			const record = await model.update(id, updateData);
 			
-			// Refresh list and get (Single-flight mutation)
-			if (exports[getName('list')] && typeof exports[getName('list')].refresh === 'function') {
-				exports[getName('list')].refresh();
+			if (listFn && typeof (listFn as any).refresh === 'function') {
+				(listFn as any).refresh();
 			}
-			if (exports[getName('get')] && typeof exports[getName('get')].refresh === 'function') {
-				exports[getName('get')].refresh(id);
+			if (getFn && typeof (getFn as any).refresh === 'function') {
+				(getFn as any).refresh(id);
 			}
 
 			return { success: true, record };
 		};
-		exports[getName('update')] = updateMode === 'command'
-			? command(updateSchema, updateHandler)
-			: form(updateSchema, updateHandler);
-	}
+		return updateMode === 'command' ? command(updateSchema, updateHandler) : form(updateSchema, updateHandler);
+	})() : undefined;
 
-	if (shouldInclude('remove', options)) {
-		exports[getName('remove')] = command(z.union([z.string(), z.number()]), async (id: string | number) => {
+	const removeFn = shouldInclude('remove', options) ? (() => {
+		return command(z.union([z.string(), z.number()]), async (id: string | number) => {
 			await checkAuth('remove', id);
 			await model.delete(id);
 			
-			// Refresh list to remove deleted item from cache (Single-flight mutation)
-			if (exports[getName('list')] && typeof exports[getName('list')].refresh === 'function') {
-				exports[getName('list')].refresh();
+			if (listFn && typeof (listFn as any).refresh === 'function') {
+				(listFn as any).refresh();
 			}
 			
 			return { success: true };
 		});
-	}
+	})() : undefined;
 
-	return exports as ResourceExports<M>;
+	const defaultExports = {
+		...(listFn && { list: listFn }),
+		...(getFn && { get: getFn }),
+		...(createFn && { create: createFn }),
+		...(updateFn && { update: updateFn }),
+		...(removeFn && { remove: removeFn })
+	};
+
+	return defaultExports;
 }
