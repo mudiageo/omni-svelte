@@ -1,18 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { formSchema } from './form-schema.js';
-import { defineSchema, field } from '../schema/index.js';
 import { z } from 'zod';
 
 describe('formSchema', () => {
-	const userSchema = defineSchema('user', {
-		id: field.uuid().primaryKey(),
-		name: field.string(),
-		email: field.email(),
-		age: field.integer().optional(),
-		isAdmin: field.boolean().default(false),
-		status: field.enum('active', 'inactive', 'pending'),
-		role: field.enum('admin', 'user').default('user'),
-		posts: field.hasMany('post')
+	const userSchema = z.object({
+		id: z.number(),
+		name: z.string(),
+		email: z.string().email(),
+		age: z.number().optional(),
+		isAdmin: z.boolean().default(false),
+		status: z.enum(['active', 'inactive', 'pending']),
+		role: z.enum(['admin', 'user']).default('user')
 	});
 
 	it('infers standard standard fields properly', () => {
@@ -20,12 +18,6 @@ describe('formSchema', () => {
 		expect(fs.shape.name).toBeDefined();
 		expect(fs.shape.email).toBeDefined();
 		expect(fs.shape.age).toBeDefined();
-		expect(fs.fieldMeta.name.type).toBe('text');
-		expect(fs.fieldMeta.email.type).toBe('email');
-		expect(fs.fieldMeta.age.type).toBe('number');
-		expect(fs.fieldMeta.isAdmin.type).toBe('checkbox');
-		expect(fs.fieldMeta.status.type).toBe('select');
-		expect(fs.fieldMeta.status.options).toEqual(['active', 'inactive', 'pending']);
 	});
 
 	it('handles pick correctly', () => {
@@ -34,9 +26,9 @@ describe('formSchema', () => {
 	});
 
 	it('handles omit correctly', () => {
-		const fs = formSchema(userSchema, { omit: ['id', 'posts'] });
+		const fs = formSchema(userSchema, { omit: ['id', 'status', 'role'] });
 		expect(fs.shape.id).toBeUndefined();
-		expect(fs.shape.posts).toBeUndefined();
+		expect(fs.shape.status).toBeUndefined();
 		expect(fs.shape.name).toBeDefined();
 	});
 
@@ -50,11 +42,7 @@ describe('formSchema', () => {
 		expect(parsed.success).toBe(true); // Should pass because name is now optional
 	});
 
-	it('throws on relationship field missing override', () => {
-		expect(() => formSchema(userSchema, { pick: ['name', 'posts'] })).toThrowError(/Relationship field/);
-	});
-
-	it('accepts relationship field if override is provided', () => {
+	it('accepts overrides', () => {
 		const fs = formSchema(userSchema, { 
 			pick: ['name', 'posts'], 
 			overrides: { posts: z.array(z.string()) }

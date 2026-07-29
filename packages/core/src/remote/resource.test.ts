@@ -1,16 +1,18 @@
 import { describe, it, expect, vi } from 'vitest';
 import { resource } from './resource.js';
+import { z } from 'zod';
 import { Model } from '../database/model.js';
 import { defineSchema, field } from '../schema/index.js';
 
 describe('resource', () => {
 	const userSchema = defineSchema('user', {
-		id: field.uuid().primaryKey(),
+		id: field.serial().primaryKey(),
 		name: field.string()
 	});
 
 	class User extends Model {
 		static schema = userSchema;
+		static validation = { create: z.object({}), update: z.object({}) };
 		// Mock query builder methods
 		static query() {
 			return {

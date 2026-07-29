@@ -47,6 +47,19 @@ export function formSchema<T extends z.ZodRawShape>(
 		shape[key] = zodField;
 	}
 
+	if (options?.overrides) {
+		for (const [key, overrideField] of Object.entries(options.overrides)) {
+			if (!baseShape[key]) {
+				if (options?.pick && !options.pick.includes(key)) continue;
+				if (options?.omit && options.omit.includes(key)) continue;
+				
+				let zodField = overrideField;
+				if (options?.partial) zodField = zodField.optional();
+				shape[key] = zodField;
+			}
+		}
+	}
+
 	if (options?.pick) {
 		for (const key of options.pick) {
 			if (!baseShape[key] && (!options.overrides || !options.overrides[key])) {
