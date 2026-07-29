@@ -23,25 +23,25 @@
 
 	function handleSearch(e: SubmitEvent) {
 		e.preventDefault();
-		const params = new URLSearchParams(page.url.searchParams);
+		const url = new URL(page.url);
 		if (searchValue) {
-			params.set('search', searchValue);
+			url.searchParams.set('search', searchValue);
 		} else {
-			params.delete('search');
+			url.searchParams.delete('search');
 		}
 		if (statusValue) {
-			params.set('published', statusValue);
+			url.searchParams.set('published', statusValue);
 		} else {
-			params.delete('published');
+			url.searchParams.delete('published');
 		}
-		params.delete('page');
-		goto(`?${params.toString()}`);
+		url.searchParams.delete('page');
+		goto(url.search);
 	}
 
 	function goToPage(pageNum: number) {
-		const params = new URLSearchParams(page.url.searchParams);
-		params.set('page', pageNum.toString());
-		goto(`?${params.toString()}`);
+		const url = new URL(page.url);
+		url.searchParams.set('page', pageNum.toString());
+		goto(url.search);
 	}
 </script>
 

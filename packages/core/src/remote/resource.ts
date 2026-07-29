@@ -76,14 +76,16 @@ function getMutationMode(op: 'create' | 'update', options?: ResourceOptions<any>
  * Generates a standard set of SvelteKit remote functions (query, form, command) for a Model.
  * This provides CRUD endpoints (list, get, create, update, remove) with pagination,
  * eager-loading, authorization, and single-flight cache invalidation built-in.
- *
  * @param model The OmniSvelte model class
  * @param options Configuration options for the generated resource
  * @returns An object containing the generated remote functions
  */
-export function resource<M extends any>(
+export function resource<
+	M extends any,
+	O extends ResourceOptions<M> = {}
+>(
 	model: M,
-	options?: ResourceOptions<M>
+	options?: O
 ) {
 	// Stub out the authorize checker
 	const checkAuth = async (operation: OperationName, input?: any) => {
@@ -219,5 +221,28 @@ export function resource<M extends any>(
 		...(removeFn && { remove: removeFn })
 	};
 
-	return defaultExports;
+	type CreateFn = typeof createFn;
+	type CreateForm = Extract<CreateFn, { for: any }>;
+	type CreateCommand = Exclude<CreateFn, { for: any } | undefined>;
+
+	type UpdateFn = typeof updateFn;
+	type UpdateForm = Extract<UpdateFn, { for: any }>;
+	type UpdateCommand = Exclude<UpdateFn, { for: any } | undefined>;
+
+	type NarrowedCreate = O['mutationMode'] extends 'command'
+		? CreateCommand
+		: O['mutationMode'] extends { create: 'command' }
+		? CreateCommand
+		: CreateForm;
+
+	type NarrowedUpdate = O['mutationMode'] extends 'command'
+		? UpdateCommand
+		: O['mutationMode'] extends { update: 'command' }
+		? UpdateCommand
+		: UpdateForm;
+
+	return defaultExports as Omit<typeof defaultExports, 'create' | 'update'> & {
+		create: typeof createFn extends undefined ? undefined : NarrowedCreate;
+		update: typeof updateFn extends undefined ? undefined : NarrowedUpdate;
+	};
 }

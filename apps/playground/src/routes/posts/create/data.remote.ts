@@ -16,7 +16,7 @@ z.object({
   title: z.string().min(3, "Title must be at least 3 characters long"),
   content: z.string().min(10, "Content must be at least 10 characters long"),
   user_id: z.string().transform((val) => parseInt(val, 10)),
-  published: z.boolean().default(false).optional()
+  published: z.boolean().optional()
 }),
 	async (data) => {
 		// Verify user exists

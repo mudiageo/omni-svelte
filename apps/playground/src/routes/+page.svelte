@@ -4,9 +4,9 @@
 
 	export let data;
 	function goToPage(pageNum: number) {
-		const params = new URLSearchParams(page.url.searchParams);
-		params.set('page', pageNum.toString());
-		goto(`?${params.toString()}`);
+		const url = new URL(page.url);
+		url.searchParams.set('page', pageNum.toString());
+		goto(url.search);
 	}
 </script>
 
