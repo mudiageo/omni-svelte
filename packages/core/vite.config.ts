@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, configDefaults } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import { omniSvelte } from './src/vite/index.ts';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
@@ -13,6 +13,12 @@ export default defineConfig({
 				alias: {
 					$pkg: 'src',
 					'omni-svelte': 'src'
+				},
+				experimental: {
+					// Disable remoteFunctions for the core package build to bypass a SvelteKit bug 
+					// where it erroneously tries to parse `jose/dist/.../remote.js` (a dependency of better-auth)
+					// as a SvelteKit remote function container.
+					remoteFunctions: false
 				}
 			},
 			database: {
@@ -81,6 +87,8 @@ export default defineConfig({
 		})
 	],
 	test: {
+		exclude: [...configDefaults.exclude, '**/.svelte-kit/**', '**/dist/**'],
+		testTimeout: 15000,
 		projects: [
 			{
 				extends: './vite.config.ts',
@@ -92,7 +100,7 @@ export default defineConfig({
 						instances: [{ browser: 'chromium', headless: true }]
 					},
 					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
-					exclude: ['src/lib/server/**']
+					exclude: ['src/lib/server/**', '**/.svelte-kit/**', '**/dist/**']
 				}
 			},
 			{
@@ -101,7 +109,7 @@ export default defineConfig({
 					name: 'server',
 					environment: 'node',
 					include: ['src/**/*.{test,spec}.{js,ts}'],
-					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}', '**/.svelte-kit/**', '**/dist/**']
 				}
 			}
 		]
