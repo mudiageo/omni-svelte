@@ -55,8 +55,8 @@
 		"omni-svelte": "workspace:*",
 		"postgres": "^3.4.5"
 	},
-  "imports": { 
-    "#lib": "./src/lib/index.js", 
-    "#lib/*": "./src/lib/*" 
-  }
+	"imports": {
+		"#lib": "./src/lib/index.js",
+		"#lib/*": "./src/lib/*"
+	}
 }
