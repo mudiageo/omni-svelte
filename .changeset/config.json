@@ -1,6 +1,6 @@
 {
 	"$schema": "https://unpkg.com/@changesets/config/schema.json",
-	"changelog": ["@changesets/changelog-github", { "repo": "mudiageo/omnisvelte" }],
+	"changelog": ["@changesets/changelog-github", { "repo": "mudiageo/omni-svelte" }],
 	"commit": false,
 	"fixed": [],
 	"linked": [["omni-svelte", "@omni-svelte/shared", "@omni-svelte/plugins"]],
