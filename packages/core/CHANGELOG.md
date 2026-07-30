@@ -1,5 +1,47 @@
 # omni-svelte
 
+## 0.2.0
+
+### Minor Changes
+
+- feat(cli): add `--package-manager` flag to the `add` command ([#12](https://github.com/mudiageo/omni-svelte/pull/12))
+
+- feat(cli): add Vite+ (vp) and Deno package manager support ([#12](https://github.com/mudiageo/omni-svelte/pull/12))
+
+- feat: auto-enable experimental remoteFunctions and async compiler flags ([#22](https://github.com/mudiageo/omni-svelte/pull/22))
+
+- breaking: move configuration from svelte.config.js to `omniSvelte()` in vite.config.ts with SvelteKit options under the `kit` namespace ([#21](https://github.com/mudiageo/omni-svelte/pull/21))
+
+- chore(deps): bump deps to @sveltejs/kit@3.0.0-next.11, svelte@5.56.7, vite@8.1.5, and @sveltejs/vite-plugin-svelte@7.2.0 ([`ccc20a6`](https://github.com/mudiageo/omni-svelte/commit/ccc20a6128e81a6b629bf7c9fc5ef1da5e93ed36))
+
+- breaking: restructure CLI commands — `omni add` repurposed, `omni migrate` moved to `omni db migrate` ([#12](https://github.com/mudiageo/omni-svelte/pull/12))
+
+  > **Migration guide:** See [CLI reference](/docs/cli) for the updated command structure.
+
+- feat: add `omni generate remote` CLI command to scaffold remote function files ([#24](https://github.com/mudiageo/omni-svelte/pull/24))
+
+- feat: add `formSchema()` helper to derive Zod object schemas from model definitions ([#24](https://github.com/mudiageo/omni-svelte/pull/24))
+
+- feat: add `fromURL` helper for syncing URL query parameters with remote list queries. ([#24](https://github.com/mudiageo/omni-svelte/pull/24))
+
+- feat: add `getModel` utility to retrieve model classes dynamically by name from the registry ([#24](https://github.com/mudiageo/omni-svelte/pull/24))
+
+- feat: export standalone `omni()` Vite plugin ([#23](https://github.com/mudiageo/omni-svelte/pull/23))
+
+- feat: add `resource()` function to auto-generate remote functions (list, get, create, update, remove) ([#24](https://github.com/mudiageo/omni-svelte/pull/24))
+
+- feat(cli): add full `omni` CLI command suite ([#11](https://github.com/mudiageo/omni-svelte/pull/11))
+
+### Patch Changes
+
+- fix: wrap database export in a lazy proxy to prevent top-level initialization errors in some contexts ([#21](https://github.com/mudiageo/omni-svelte/pull/21))
+
+- fix: add recursive `toJSON` method to BaseRecord to fix serialization for Date, JSON, and relationship fields. ([#24](https://github.com/mudiageo/omni-svelte/pull/24))
+
+- fix: add string-based model resolution for relationships to prevent circular dependency issues between models, and add fallback to `ownerKey` / `localKey` during relation loading. ([#24](https://github.com/mudiageo/omni-svelte/pull/24))
+
+- fix: exclude primary key from Zod create schema ([`0582b4a`](https://github.com/mudiageo/omni-svelte/commit/0582b4a92dc1a26b225dc97b0429d456414ad03e))
+
 ## 0.1.1
 
 ### Patch Changes
