@@ -22,8 +22,10 @@ export default defineConfig({
 		sveltekit({
 			adapter: adapter(),
 			alias: {
-				$content: '../../content',
-				$velite: './.velite'
+				'#lib': path.resolve(__dirname, 'src/lib'),
+				'#lib/*': path.resolve(__dirname, 'src/lib/*'),
+				$content: path.resolve(__dirname, '../../content'),
+				$velite: path.resolve(__dirname, './.velite')
 			},
 			prerender: {
 				handleMissingId: (details) => {
@@ -40,6 +42,12 @@ export default defineConfig({
 			extensions: ['.svelte', '.md']
 		})
 	],
+	resolve: {
+		alias: {
+			'#lib': path.resolve(__dirname, 'src/lib'),
+			'#lib/*': path.resolve(__dirname, 'src/lib/*')
+		}
+	},
 	server: {
 		fs: {
 			allow: [veliteDirPath, contentDirPath, packagesDirPath]
