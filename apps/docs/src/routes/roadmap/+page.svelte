@@ -1,24 +1,24 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.js';
 	import {
 		Card,
 		CardContent,
 		CardHeader,
 		CardTitle,
 		CardDescription
-	} from '$lib/components/ui/card/index.js';
-	import { Separator } from '$lib/components/ui/separator';
-	import { StatusDot } from '$lib/components/ui/status-dot';
-	import Timeline from '$lib/components/ui/timeline/index.svelte';
+	} from '#lib/components/ui/card/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { StatusDot } from '#lib/components/ui/status-dot/index.js';
+	import Timeline from '#lib/components/ui/timeline/index.svelte';
 
-	import { SpotlightCard } from '$lib/components/ui/spotlight-card';
+	import { SpotlightCard } from '#lib/components/ui/spotlight-card/index.js';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 	import Circle from '@lucide/svelte/icons/circle';
 	import Clock from '@lucide/svelte/icons/clock';
 	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
-	import Github from '$lib/icons/github.svelte';
+	import Github from '#lib/icons/github.svelte';
 
 	type Status = 'done' | 'progress' | 'planned' | 'exploring';
 

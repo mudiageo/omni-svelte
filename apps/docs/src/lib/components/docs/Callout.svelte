@@ -2,7 +2,15 @@
 	import { AlertTriangle, Info, CheckCircle2, XCircle } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 
-	let { type = 'info', title, children }: { type?: 'info' | 'warning' | 'success' | 'error', title?: string, children: Snippet } = $props();
+	let {
+		type = 'info',
+		title,
+		children
+	}: {
+		type?: 'info' | 'warning' | 'success' | 'error';
+		title?: string;
+		children: Snippet;
+	} = $props();
 
 	const variants = {
 		info: 'bg-blue-500/10 text-blue-900 border-blue-500/20 dark:text-blue-200',
@@ -29,7 +37,7 @@
 		{#if title}
 			<h5 class="font-semibold">{title}</h5>
 		{/if}
-		<div class="text-sm opacity-90 prose-p:my-0 prose-p:leading-relaxed">
+		<div class="prose-p:my-0 prose-p:leading-relaxed text-sm opacity-90">
 			{@render children()}
 		</div>
 	</div>

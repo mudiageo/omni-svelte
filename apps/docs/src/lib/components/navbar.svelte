@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { toggleMode } from 'mode-watcher';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { ShinyButton } from '$lib/components/ui/shiny-button';
-	import { cn } from '$lib/utils.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { ShinyButton } from '#lib/components/ui/shiny-button/index.js';
+	import { cn } from '#lib/utils.js';
 
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
 	import Menu from '@lucide/svelte/icons/menu';
 	import X from '@lucide/svelte/icons/x';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
-	import { Github, OmniIcon } from '$lib/icons';
+	import { Github, OmniIcon } from '#lib/icons/index.js';
 
 	let menuOpen = $state(false);
 

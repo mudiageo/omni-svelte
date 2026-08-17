@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import DocsSidebar from '$lib/components/docs/docs-sidebar.svelte';
+	import * as Sidebar from '#lib/components/ui/sidebar/index.js';
+	import * as Breadcrumb from '#lib/components/ui/breadcrumb/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import DocsSidebar from '#lib/components/docs/docs-sidebar.svelte';
 
 	let { children } = $props();
 </script>

@@ -2,8 +2,8 @@
 	import Copy from '@lucide/svelte/icons/copy';
 	import Check from '@lucide/svelte/icons/check';
 	import Terminal from '@lucide/svelte/icons/terminal';
-	import { cn } from '$lib/utils.js';
-	import { Button } from '$lib/components/ui/button';
+	import { cn } from '#lib/utils.js';
+	import { Button } from '#lib/components/ui/button/index.js';
 
 	let {
 		children,

@@ -1,10 +1,10 @@
 <script lang="ts">
 	import Globe from '@lucide/svelte/icons/globe';
-	import { Github, OmniIcon } from '$lib/icons';
-	import { Separator } from '$lib/components/ui/separator';
-	import { Badge } from '$lib/components/ui/badge';
-	import { StatusDot } from '$lib/components/ui/status-dot/index.js';
-	import { siteConfig } from '$lib/config.js';
+	import { Github, OmniIcon } from '#lib/icons/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.js';
+	import { StatusDot } from '#lib/components/ui/status-dot/index.js';
+	import { siteConfig } from '#lib/config.js';
 
 	const cols = [
 		{

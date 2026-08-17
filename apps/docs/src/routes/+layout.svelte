@@ -1,10 +1,10 @@
 <script lang="ts">
 	import './layout.css';
-	import TailwindIndicator from '$lib/components/tailwind-indicator.svelte';
+	import TailwindIndicator from '#lib/components/tailwind-indicator.svelte';
 	import { ModeWatcher } from 'mode-watcher';
-	import Navbar from '$lib/components/navbar.svelte';
-	import Footer from '$lib/components/footer.svelte';
-	import Banner from '$lib/components/banner.svelte';
+	import Navbar from '#lib/components/navbar.svelte';
+	import Footer from '#lib/components/footer.svelte';
+	import Banner from '#lib/components/banner.svelte';
 	import { page } from '$app/state';
 
 	let { children } = $props();

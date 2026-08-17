@@ -1,20 +1,20 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.js';
 	import {
 		Card,
 		CardContent,
 		CardHeader,
 		CardTitle,
 		CardDescription
-	} from '$lib/components/ui/card/index.js';
-	import { Separator } from '$lib/components/ui/separator';
-	import { SpotlightCard } from '$lib/components/ui/spotlight-card';
-	import { StatusDot } from '$lib/components/ui/status-dot/index.js';
-	import { ShinyButton } from '$lib/components/ui/shiny-button';
+	} from '#lib/components/ui/card/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { SpotlightCard } from '#lib/components/ui/spotlight-card/index.js';
+	import { StatusDot } from '#lib/components/ui/status-dot/index.js';
+	import { ShinyButton } from '#lib/components/ui/shiny-button/index.js';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
-	import Github from '$lib/icons/github.svelte'; //@TODO get raw svg
+	import Github from '#lib/icons/github.svelte'; //@TODO get raw svg
 	import Globe from '@lucide/svelte/icons/globe';
 	import Plus from '@lucide/svelte/icons/plus';
 

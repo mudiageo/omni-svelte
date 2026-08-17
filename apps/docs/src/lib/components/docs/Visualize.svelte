@@ -2,7 +2,9 @@
 	import { Database, Server, Smartphone, ArrowRight } from '@lucide/svelte';
 </script>
 
-<div class="my-6 flex flex-col items-center gap-4 rounded-xl border bg-muted/20 p-8 sm:flex-row sm:justify-center">
+<div
+	class="my-6 flex flex-col items-center gap-4 rounded-xl border bg-muted/20 p-8 sm:flex-row sm:justify-center"
+>
 	<div class="flex flex-col items-center gap-2 rounded-lg border bg-background p-4 shadow-sm">
 		<Smartphone class="h-6 w-6 text-primary" />
 		<span class="text-xs font-semibold">Client (SvelteKit)</span>

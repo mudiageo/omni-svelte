@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { siteConfig } from '$lib/config.js';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import * as Card from '$lib/components/ui/card';
-	import { Separator } from '$lib/components/ui/separator';
-	import * as Table from '$lib/components/ui/table';
-	import { SpotlightCard } from '$lib/components/ui/spotlight-card';
-	import { NumberTicker } from '$lib/components/ui/number-ticker';
-	import { ShinyButton } from '$lib/components/ui/shiny-button';
-	import { StatusDot } from '$lib/components/ui/status-dot';
-	import Timeline from '$lib/components/ui/timeline/index.svelte';
+	import { siteConfig } from '#lib/config.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import { SpotlightCard } from '#lib/components/ui/spotlight-card/index.js';
+	import { NumberTicker } from '#lib/components/ui/number-ticker/index.js';
+	import { ShinyButton } from '#lib/components/ui/shiny-button/index.js';
+	import { StatusDot } from '#lib/components/ui/status-dot/index.js';
+	import Timeline from '#lib/components/ui/timeline/index.svelte';
 	import Database from '@lucide/svelte/icons/database';
 	import Shield from '@lucide/svelte/icons/shield';
 	import Code2 from '@lucide/svelte/icons/code-2';
@@ -77,7 +77,8 @@
 		{
 			date: 'v0.2–v0.3 · Soon',
 			title: 'CLI, DX & UI',
-			description: 'omni generate remote, resource CRUD generation, Auth session live query, shadcn-svelte UI',
+			description:
+				'omni generate remote, resource CRUD generation, Auth session live query, shadcn-svelte UI',
 			variant: 'default' as const
 		},
 		{
@@ -451,8 +452,8 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 				>
 				<h2 class="mb-4 text-3xl font-bold tracking-tight">Built for the long term</h2>
 				<p class="mb-6 leading-relaxed text-muted-foreground">
-					OmniSvelte starts with a solid foundation and grows incrementally — AI primitives, caching,
-					realtime, payments, jobs, and more.
+					OmniSvelte starts with a solid foundation and grows incrementally — AI primitives,
+					caching, realtime, payments, jobs, and more.
 				</p>
 				<div class="mb-8 flex flex-wrap gap-2">
 					{#each ['AI Primitives', 'Local-First', 'Realtime', 'Payments', 'Jobs', 'File Storage', 'CLI', 'Caching'] as item}

@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Separator } from '$lib/components/ui/separator';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Calendar from '@lucide/svelte/icons/calendar';
 	import Clock from '@lucide/svelte/icons/clock';
 	import User from '@lucide/svelte/icons/user';
 
-	import { formatDate } from '$lib/utils.js';
+	import { formatDate } from '#lib/utils.js';
 
 	let { data } = $props();
 	const { post, component: MarkdownComponent } = data;
@@ -40,7 +40,9 @@
 			<p class="mb-6 text-xl leading-relaxed text-muted-foreground">{post.description}</p>
 			<div class="flex items-center gap-5 text-sm text-muted-foreground">
 				<span class="flex items-center gap-1.5"><User class="h-4 w-4" />{post.author}</span>
-				<span class="flex items-center gap-1.5"><Calendar class="h-4 w-4" />{formatDate(post.date)}</span>
+				<span class="flex items-center gap-1.5"
+					><Calendar class="h-4 w-4" />{formatDate(post.date)}</span
+				>
 				<span class="flex items-center gap-1.5"><Clock class="h-4 w-4" />5 min read</span>
 			</div>
 			<Separator class="mt-6" />

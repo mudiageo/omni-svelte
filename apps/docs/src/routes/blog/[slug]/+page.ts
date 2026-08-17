@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { EntryGenerator, PageLoad } from './$types.js';
-import { getPost } from '$lib/blog.js';
+import { getPost } from '#lib/blog.js';
 import { blog } from '$velite/index.js';
 
 export const load: PageLoad = async ({ params }) => {
@@ -13,9 +13,9 @@ export const load: PageLoad = async ({ params }) => {
 			error(404, `Blog post not found: ${slug}`);
 		}
 
-		return { 
-			post: postData.metadata, 
-			component: postData.component 
+		return {
+			post: postData.metadata,
+			component: postData.component
 		};
 	} catch (e) {
 		console.error(e);

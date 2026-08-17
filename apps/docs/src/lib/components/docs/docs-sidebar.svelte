@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { Badge } from '$lib/components/ui/badge';
-	import * as Collapsible from '$lib/components/ui/collapsible';
-	import { docsNav } from '$lib/docs-nav.js';
-	import { cn } from '$lib/utils.js';
-	import OmniIcon from '$lib/icons/favicon.svelte';
+	import * as Sidebar from '#lib/components/ui/sidebar/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.js';
+	import * as Collapsible from '#lib/components/ui/collapsible/index.js';
+	import { docsNav } from '#lib/docs-nav.js';
+	import { cn } from '#lib/utils.js';
+	import OmniIcon from '#lib/icons/favicon.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import { siteConfig } from '$lib/config.js';
+	import { siteConfig } from '#lib/config.js';
 
 	function isActive(href: string | undefined) {
 		return href ? page.url.pathname === href : false;

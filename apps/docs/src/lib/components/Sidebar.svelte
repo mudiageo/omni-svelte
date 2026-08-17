@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { nav, type NavItem } from '$lib/nav';
+	import { nav, type NavItem } from '#lib/nav.js';
 
 	let { currentPath }: { currentPath: string } = $props();
 

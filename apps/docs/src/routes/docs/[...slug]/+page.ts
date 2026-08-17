@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { EntryGenerator, PageLoad } from './$types.js';
-import { getDoc } from '$lib/docs.js';
+import { getDoc } from '#lib/docs.js';
 
 export const load: PageLoad = async ({ params }) => {
 	const slug = params.slug || 'getting-started/introduction';

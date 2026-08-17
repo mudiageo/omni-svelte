@@ -1,21 +1,21 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.js';
 	import {
 		Card,
 		CardContent,
 		CardHeader,
 		CardTitle,
 		CardDescription
-	} from '$lib/components/ui/card/index.js';
-	import { Separator } from '$lib/components/ui/separator';
-	import { SpotlightCard } from '$lib/components/ui/spotlight-card';
+	} from '#lib/components/ui/card/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import { SpotlightCard } from '#lib/components/ui/spotlight-card/index.js';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import Calendar from '@lucide/svelte/icons/calendar';
 	import Clock from '@lucide/svelte/icons/clock';
 	import User from '@lucide/svelte/icons/user';
 	import Rss from '@lucide/svelte/icons/rss';
-	import { formatDate } from '$lib/utils.js';
+	import { formatDate } from '#lib/utils.js';
 
 	let { data } = $props();
 	const { posts } = data;

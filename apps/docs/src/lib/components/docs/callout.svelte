@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from '#lib/utils.js';
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
 	import Info from '@lucide/svelte/icons/info';
 	import CheckCircle from '@lucide/svelte/icons/check-circle';

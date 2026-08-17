@@ -2,8 +2,12 @@
 	import { Terminal, Play } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 
-	let { title = 'Playground', code, preview }: { title?: string, code: Snippet, preview: Snippet } = $props();
-	
+	let {
+		title = 'Playground',
+		code,
+		preview
+	}: { title?: string; code: Snippet; preview: Snippet } = $props();
+
 	let activeTab = $state<'code' | 'preview'>('preview');
 </script>
 
@@ -14,15 +18,21 @@
 		</div>
 		<div class="flex gap-1">
 			<button
-				class="flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors {activeTab === 'preview' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:bg-muted'}"
-				onclick={() => activeTab = 'preview'}
+				class="flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors {activeTab ===
+				'preview'
+					? 'bg-background text-foreground shadow-sm'
+					: 'text-muted-foreground hover:bg-muted'}"
+				onclick={() => (activeTab = 'preview')}
 			>
 				<Play class="h-3.5 w-3.5" />
 				Preview
 			</button>
 			<button
-				class="flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors {activeTab === 'code' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:bg-muted'}"
-				onclick={() => activeTab = 'code'}
+				class="flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors {activeTab ===
+				'code'
+					? 'bg-background text-foreground shadow-sm'
+					: 'text-muted-foreground hover:bg-muted'}"
+				onclick={() => (activeTab = 'code')}
 			>
 				<Terminal class="h-3.5 w-3.5" />
 				Code
@@ -33,7 +43,11 @@
 		<div class={activeTab === 'preview' ? 'block p-6' : 'hidden'}>
 			{@render preview()}
 		</div>
-		<div class={activeTab === 'code' ? 'block [&_pre]:m-0 [&_pre]:rounded-none [&_pre]:border-0' : 'hidden'}>
+		<div
+			class={activeTab === 'code'
+				? 'block [&_pre]:m-0 [&_pre]:rounded-none [&_pre]:border-0'
+				: 'hidden'}
+		>
 			{@render code()}
 		</div>
 	</div>

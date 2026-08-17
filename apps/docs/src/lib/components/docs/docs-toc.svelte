@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { cn } from '$lib/utils.js';
-	import { Separator } from '$lib/components/ui/separator';
+	import { cn } from '#lib/utils.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 
 	let headings: Array<{ id: string; text: string; level: number }> = $state([]);
 	let activeId = $state('');

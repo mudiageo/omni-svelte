@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { PageData } from './$types.js';
-	import { docsNav } from '$lib/docs-nav.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Separator } from '$lib/components/ui/separator/index.js';
-	import DocsToc from '$lib/components/docs/docs-toc.svelte';
+	import { docsNav } from '#lib/docs-nav.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.js';
+	import { Separator } from '#lib/components/ui/separator/index.js';
+	import DocsToc from '#lib/components/docs/docs-toc.svelte';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Pencil from '@lucide/svelte/icons/pencil';
