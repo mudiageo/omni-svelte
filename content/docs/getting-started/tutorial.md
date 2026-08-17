@@ -6,14 +6,14 @@ order: 4
 ---
 
 <script>
-  import Callout from '$lib/components/docs/Callout.svelte';
-  import Steps from '$lib/components/docs/Steps.svelte';
-  import Step from '$lib/components/docs/Step.svelte';
-  import Visualize from '$lib/components/docs/Visualize.svelte';
-  import FileTree from '$lib/components/docs/FileTree.svelte';
-  import Folder from '$lib/components/docs/Folder.svelte';
-  import File from '$lib/components/docs/File.svelte';
-  import Playground from '$lib/components/docs/Playground.svelte';
+  import Callout from '#lib/components/docs/Callout.svelte';
+  import Steps from '#lib/components/docs/Steps.svelte';
+  import Step from '#lib/components/docs/Step.svelte';
+  import Visualize from '#lib/components/docs/Visualize.svelte';
+  import FileTree from '#lib/components/docs/FileTree.svelte';
+  import Folder from '#lib/components/docs/Folder.svelte';
+  import File from '#lib/components/docs/File.svelte';
+  import Playground from '#lib/components/docs/Playground.svelte';
 </script>
 
 # Build a SaaS in 15 Minutes
