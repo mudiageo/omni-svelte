@@ -11,7 +11,7 @@ export const siteConfig = {
 
 export const bannerConfig = {
 	enabled: true,
-	message: 'OmniSvelte v0.1 is here! A schema-driven data layer and first-class auth for SvelteKit.',
-	link: '/blog/release-0.1',
+	message: 'OmniSvelte v0.2 is here! CLI suite, resource() API, and a cleaner config.',
+	link: '/blog/release-0.2',
 	linkLabel: 'Read the announcement'
 };
