@@ -27,17 +27,6 @@ Every feature is scored on four axes so you can sequence work by leverage, not j
 
 ---
 
-## 0. Codebase audit — what's actually true today
-
-Before planning new work, here's what direct inspection of `feat/omni-cli` confirmed, since the existing roadmap's checkboxes aren't fully accurate:
-
-- **Genuinely solid:** the `Model`/`QueryBuilder`/relationships layer, schema → Drizzle/Zod codegen, Better-Auth integration, the Vite plugin's virtual modules (`$db`, `$models/*`, `$auth/*`), and the core CLI (`init`, `add`, `generate schema|migration`, `db push|pull|generate|migrate|check|studio|seed`, `ui init|add`, `doctor`, `install-dependency`).
-- **Scaffolded but inert:** cache (Redis/filesystem drivers warn-and-noop), queue (same), mail (no provider sends anything), storage (no driver stores anything), notifications (no DB persistence), and the `resource`/`auth-page`/`email` generators (`console.log('...coming soon')`).
-- **✅ OmniPlugin API:** The `OmniPlugin` interface is fully typed and available. The Plugin Ecosystem phase is unblocked.
-- **Not present at all yet:** no `.remote.ts` files anywhere in the repo — none of the SvelteKit remote-functions work from this conversation has been started.
-
----
-
 ## 1. Core primitives reference
 
 Most features below are combinations of a small set of building blocks. Get these right once and everything downstream gets cheaper.
@@ -247,13 +236,13 @@ Estimates assume continued **part-time, largely solo** development alongside cou
 |---|---|---|---|
 | **v0.1 — Foundation** | *Done* | — | (no change — already shipped) |
 | **v0.2 — CLI & Remote Functions** | *Done* | Q3 2026 | `resource(Model)`, `formSchema()`, `fromURL()`, `getModel()`, `omni generate remote`, CLI revamp, config migration to `vite.config.ts` |
-| **v0.3 — UI & Forms** | Next | Q4 2026 | `omni generate resource` full CRUD UI scaffold, shadcn-svelte integration, accessible form components |
-| **v0.4 — Realtime, Email & Caching** | Planned | Q4 2026–Q1 2027 | Auth session via `query.live`, `query.live` as the lightweight realtime primitive; `remember()`-on-`query` caching |
-| **v0.5 — Jobs, Storage & Monitoring** | Planned | Q1 2027 | Notification persistence + live feed, dev inspector, feature flags |
-| **v0.6 — Payments & Multi-tenancy** | Planned | Q2 2027 | Paystack/Flutterwave plugins, generic webhooks module, RBAC/policy layer |
+| **v0.3 — Auth, Core Services & ORM** | Next | Q4 2026 | Auth primitive (typed policies, rate limiting, row-level multi-tenancy); cache, events, jobs/queue, mail, storage, notifications; ORM hardening (transactions, soft-delete scopes, cursor pagination, query macros, model factories) |
+| **v0.4 — UI & Forms** | Planned | Q4 2026–Q1 2027 | `omni generate resource` full CRUD UI scaffold, shadcn-svelte integration, accessible form components |
+| **v0.5 — Realtime & Live Data** | Planned | Q1 2027 | Auth session via `query.live`, `query.live` as the lightweight realtime primitive; model-level realtime subscriptions |
+| **v0.6 — Payments & Billing** | Planned | Q2 2027 | Paystack/Flutterwave plugins, generic webhooks module, Stripe/Lemon Squeezy integration |
 | **v0.7 — Deployment & Docs** | Planned | Q2 2027 | SEO automation, public API/SDK generator, HTTP cache headers |
 | **v0.8 — Plugin Ecosystem** | Planned | Q3 2027 | Plugin-contributed remote functions |
-| **v0.9 — Hardening & Quality** 🆕 | New phase | Q3–Q4 2027 | Soft-delete scopes, pagination, transactions API, query scopes, rate limiting, i18n, audit trails, testing toolkit (fake drivers, seeded DB, remote-fn test harness) |
+| **v0.9 — Hardening & Quality** 🆕 | New phase | Q3–Q4 2027 | i18n, audit trails, testing toolkit (fake drivers, seeded DB, remote-fn test harness), feature flags |
 | **v1.0 — Production Ready** | Planned | Q4 2027 | (unchanged scope — stability, docs, migration guides, flagship apps) |
 | **v1.1 — AI & Intelligence Layer** 🆕 | New phase | 2028 | Vector/embedding columns, `defineAgent()`, RAG helper |
 | **v1.2 — Local-First & Cross-Platform** 🆕 | New phase | 2028 | `defineLocalModel()`, Tauri/Capacitor scaffolding |
@@ -282,10 +271,10 @@ Value was scored by how directly a feature removes *repetitive, non-business-log
 ## 7. Immediate next actions
 
 1. ✅ Build `resource(Model)` for remote-function CRUD generation.
-2. Build `omni generate resource` full CRUD UI scaffold — the most visible v0.3 milestone.
-3. Implement one real cache driver (Redis) and one real storage driver (S3) — closes the gap between "the API exists" and "it actually works."
-4. Write the Remote Function wrappers to ensure config and middleware behavior is scalable.
-5. Ship the `Money` value type and foundational plugin groundwork — small effort, highly reusable.
+2. Build Auth & Authorization primitive — typed policies (`definePolicy`, `can`, `authorize`), rate limiting, row-level multi-tenancy.
+3. Build out core services — cache, events, jobs/queue, mail, storage, and notifications with standardized driver pattern.
+4. Core ORM hardening — transactions API, query scopes/macros, soft deletes, pagination helpers, model factories.
+5. Scaffold UI, Forms & Admin (v0.4) — `omni generate resource` full CRUD UI scaffold, shadcn-svelte integration, accessible form components.
 
 ## 8. Opportunities for Improvement 💡
 
