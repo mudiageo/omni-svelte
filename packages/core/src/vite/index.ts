@@ -83,7 +83,20 @@ function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 		async configResolved(resolvedConfig) {
 			config = resolvedConfig;
 
-			
+			// Detect if sveltekit() was added alongside omniSvelte(), which causes SvelteKit
+			// to initialise twice. 'vite-plugin-sveltekit-setup' is always registered by sveltekit().
+			const sveltekitPluginCount = resolvedConfig.plugins.filter(
+				(p) => p.name === 'vite-plugin-sveltekit-setup'
+			).length;
+			if (sveltekitPluginCount > 1) {
+				// TODO: add docs URL when available
+				throw new Error(
+					`[omni-svelte] Conflict: sveltekit() and omniSvelte() are both in your Vite plugins array.\n\n` +
+					`omniSvelte() includes SvelteKit internally — remove sveltekit() from your plugins,\n` +
+					`or switch to the omni() export if you want to manage SvelteKit yourself.`
+				);
+			}
+
 
 			// Initialize schema configuration
 			const schemaConfig = await initializeSchemaConfig(omniConfig, config.root);
