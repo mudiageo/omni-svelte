@@ -20,8 +20,8 @@
 	let { data } = $props();
 	const { posts } = data;
 
-	const featured = posts.find((p) => p.featured);
-	const rest = posts.filter((p) => !p.featured);
+	const featured = posts.find((p) => p.featured) ?? posts[0];
+	const rest = posts.filter((p) => p.slug !== featured?.slug);
 </script>
 
 <svelte:head>

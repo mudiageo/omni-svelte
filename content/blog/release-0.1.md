@@ -4,7 +4,7 @@ description: "The first release of OmniSvelte is here. A schema-driven data laye
 date: 2026-07-23
 author: "Mudiaga Arharhire"
 tags: ["announcement", "release"]
-featured: true
+featured: false
 ---
 
 # OmniSvelte v0.1: SvelteKit, but with superpowers
