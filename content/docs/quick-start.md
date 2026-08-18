@@ -18,10 +18,10 @@ The CLI creates a SvelteKit project with TypeScript and Tailwind, installs `omni
 
 ## 2. Configure omni-svelte
 
-Add the `omni` key to `svelte.config.js`:
+Add the `omni` key to `vite.config.ts`:
 
 ```js
-// svelte.config.js
+// vite.config.ts
 import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 

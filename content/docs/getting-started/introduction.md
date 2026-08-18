@@ -23,7 +23,7 @@ OmniSvelte solves this at the framework level. One Vite plugin. One config block
 
 ## How it works
 
-Add the `omniSvelte()` Vite plugin, define an `omni` block in `svelte.config.js`, and OmniSvelte:
+Add the `omniSvelte()` Vite plugin, define an `omni` block in `vite.config.ts`, and OmniSvelte:
 
 1. Watches your `.schema.ts` files and **generates** Drizzle tables, Zod validators, and typed model classes on the fly
 2. **Injects** a set of virtual modules (`$db`, `$auth/server`, `$auth/client`, `$models/*`, `$schema`, `$validation/*`) so you never hardcode import paths
@@ -73,7 +73,7 @@ export default defineConfig({ plugins: [omniSvelte()] });
 ```
 
 ```js
-// svelte.config.js
+// vite.config.ts
 const config = {
   kit: { adapter: adapter() },
   omni: {

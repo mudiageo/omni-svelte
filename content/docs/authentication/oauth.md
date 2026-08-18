@@ -11,10 +11,10 @@ OmniSvelte exposes Better-Auth's social sign-in through the same `$auth/client` 
 
 ## Configuration
 
-Add your provider credentials to `svelte.config.js` and set the corresponding env variables:
+Add your provider credentials to `vite.config.ts` and set the corresponding env variables:
 
 ```js
-// svelte.config.js
+// vite.config.ts
 omni: {
   auth: {
     enabled: true,

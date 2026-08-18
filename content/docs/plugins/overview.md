@@ -57,7 +57,7 @@ interface PluginContext {
 
 ## Registering a plugin
 
-Plugins are registered in `svelte.config.js`:
+Plugins are registered in `vite.config.ts`:
 
 ```js
 import { myPlugin } from './plugins/my-plugin.js';
@@ -114,7 +114,7 @@ export function myPlugin(options: { option: string }): OmniPlugin {
 
 ## Built-in "plugins" (baked in)
 
-The database and auth integrations are not separate plugins — they are first-class framework features configured via the `omni` block in `svelte.config.js`. Community-contributed plugins sit on top of this foundation and can extend tables, hooks, auth providers, and CLI commands.
+The database and auth integrations are not separate plugins — they are first-class framework features configured via the `omni` block in `vite.config.ts`. Community-contributed plugins sit on top of this foundation and can extend tables, hooks, auth providers, and CLI commands.
 
 ## Plugin marketplace
 

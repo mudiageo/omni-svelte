@@ -35,12 +35,12 @@ export default defineConfig({
 
 > `omniSvelte()` includes `sveltekit()` internally — you don't need both.
 
-## 3. Configure in svelte.config.js
+## 3. Configure in vite.config.ts
 
-Add an `omni` key to your `svelte.config.js`:
+Add an `omni` key to your `vite.config.ts`:
 
 ```js
-// svelte.config.js
+// vite.config.ts
 import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 

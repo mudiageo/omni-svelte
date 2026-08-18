@@ -12,7 +12,7 @@ Email/password is the default authentication strategy and is enabled by setting 
 ## Configuration
 
 ```js
-// svelte.config.js
+// vite.config.ts
 omni: {
   auth: {
     enabled: true,

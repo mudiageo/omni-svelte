@@ -104,7 +104,7 @@ import { authClient } from '$auth/client';
 await authClient.signIn.email({ email, password });
 ```
 
-Powered by [Better-Auth](https://better-auth.com). The server instance is auto-generated from your `omni.auth` config in `svelte.config.js`.
+Powered by [Better-Auth](https://better-auth.com). The server instance is auto-generated from your `omni.auth` config in `vite.config.ts`.
 
 ---
 
@@ -154,10 +154,10 @@ Make sure this file is included in your `tsconfig.json`:
 
 ## Customising output paths
 
-All virtual module resolution follows the `schema.output` config you set in `svelte.config.js`. Changing a path there re-generates `src/omni-env.d.ts` automatically:
+All virtual module resolution follows the `schema.output` config you set in `vite.config.ts`. Changing a path there re-generates `src/omni-env.d.ts` automatically:
 
 ```js
-// svelte.config.js
+// vite.config.ts
 omni: {
   schema: {
     output: {

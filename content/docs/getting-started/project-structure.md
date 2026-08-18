@@ -26,7 +26,7 @@ my-app/
 │
 ├── .omni/                           # 3. OmniSvelte generated internals
 ├── omni.config.ts                   # 4. OmniSvelte configuration
-├── svelte.config.js
+├── vite.config.ts
 ├── vite.config.ts
 └── package.json
 ```
