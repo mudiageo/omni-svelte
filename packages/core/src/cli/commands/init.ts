@@ -1,6 +1,6 @@
 import { cancel, intro, isCancel, log, note, outro, select, text } from '@clack/prompts';
 import pc from 'picocolors';
-import { existsSync, rmSync } from 'fs';
+import { existsSync, rmSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { addOmniToViteConfig } from '../utils/project.js';
 import {
@@ -93,16 +93,51 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 		return;
 	}
 
-	if (
-		!(await runStep('Installing omni-svelte', () =>
-			installDependencies([options.omniPkg ?? 'omni-svelte'], {
-				cwd: projectPath,
-				packageManager
-			})
-		))
-	) {
-		cleanupOnFailure();
-		return;
+	if (options.skipInstall) {
+		const success = await runInProcessStep('Adding omni-svelte to package.json', () => {
+			const pkgPath = join(projectPath, 'package.json');
+			const pkgContent = readFileSync(pkgPath, 'utf-8');
+			const pkgJson = JSON.parse(pkgContent);
+			
+			// Resolve the current version of omni-svelte
+			let cliVersion = 'latest';
+			for (const searchPath of [
+				new URL('../../package.json', import.meta.url),
+				new URL('../../../package.json', import.meta.url)
+			]) {
+				try {
+					const cliPkg = JSON.parse(readFileSync(searchPath, 'utf-8'));
+					if (cliPkg.version) {
+						cliVersion = `^${cliPkg.version}`;
+						break;
+					}
+				} catch {
+					// Ignore
+				}
+			}
+
+			pkgJson.dependencies = pkgJson.dependencies || {};
+			pkgJson.dependencies[options.omniPkg ?? 'omni-svelte'] = cliVersion;
+			
+			writeFileSync(pkgPath, JSON.stringify(pkgJson, null, '\t') + '\n');
+		});
+
+		if (!success) {
+			cleanupOnFailure();
+			return;
+		}
+	} else {
+		if (
+			!(await runStep('Installing omni-svelte', () =>
+				installDependencies([options.omniPkg ?? 'omni-svelte'], {
+					cwd: projectPath,
+					packageManager
+				})
+			))
+		) {
+			cleanupOnFailure();
+			return;
+		}
 	}
 
 	// addOmniToViteConfig is synchronous in-process — use runInProcessStep
