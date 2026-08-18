@@ -20,6 +20,7 @@
 		"@shikijs/langs": "^4.3.0",
 		"@shikijs/themes": "^4.3.0",
 		"@sveltejs/adapter-auto": "next",
+		"@sveltejs/adapter-vercel": "7.0.0-next.6",
 		"@sveltejs/kit": "next",
 		"@sveltejs/vite-plugin-svelte": "^7.3.0",
 		"@tailwindcss/typography": "^0.5.15",
