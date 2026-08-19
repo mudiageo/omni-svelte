@@ -138,7 +138,7 @@ function generateIndexes(schema: Schema, table: any) {
 
 //We could potentially generate the file
 export class DrizzleGenerator {
-	constructor(private schema: Schema) {}
+	constructor(private schema: Schema) { }
 
 	generate(): string {
 		const imports = this.generateImports();
@@ -149,7 +149,7 @@ export class DrizzleGenerator {
 		return `${imports}\n\n${tableDefinition}\n\n${indexes}\n\n${exports}`;
 	}
 
-	// New method for multiple schemas with output config
+	// New methode for multiple schemas with output config
 	async generateFiles(schemas: Schema[], outputConfig: any): Promise<GeneratedOutput[]> {
 		const outputs: GeneratedOutput[] = [];
 
@@ -282,7 +282,7 @@ ${allTypes.join('\n\n')}`;
 			types.add('uniqueIndex');
 		}
 
-		return `import { ${Array.from(types).join(', ')} } from 'drizzle-orm/pg-core';`;
+		return `import { ${Array.from(types).join(', ')} } from 'omni-svelte/drizzle/pg';`;
 	}
 
 	private generateTableDefinition(): string {

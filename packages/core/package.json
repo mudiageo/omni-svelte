@@ -111,6 +111,11 @@
 			"svelte": "./dist/notifications/index.js",
 			"default": "./dist/notifications/index.js"
 		},
+		"./drizzle/pg": {
+			"types": "./dist/drizzle/pg.d.ts",
+			"svelte": "./dist/drizzle/pg.js",
+			"default": "./dist/drizzle/pg.js"
+		},
 		"./cli": {
 			"types": "./dist/cli/index.d.ts",
 			"svelte": "./dist/cli/index.js",
