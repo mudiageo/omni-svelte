@@ -152,6 +152,111 @@ Releases are fully automated via [Changesets](https://github.com/changesets/chan
 
 Maintainers handle releases — contributors only need to add a changeset to their PR.
 
+### Maintainer Prerelease Workflow (Dual-Branch Strategy)
+
+This documents the official maintainer workflow for developing a future version (e.g., `v0.3.0`) in a prerelease state, while keeping the `main` branch clean and available for regular stable patches.
+
+**Overview**
+- **`main`**: The default, stable branch. All releases from here are published to the `@latest` tag on npm.
+- **`version-X`** (e.g., `version-0.3`): The dedicated prerelease branch. All releases from here are published to the `@next` tag on npm.
+
+#### Phase 1: Starting a New Prerelease Cycle
+When starting work on the next major/minor release, create a dedicated branch and configure it for prerelease mode.
+
+1. **Create the branch**
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b version-0.3
+   ```
+
+2. **Update the Changesets `baseBranch`**
+   In `.changeset/config.json`, change `baseBranch` to your new branch. This ensures `pnpm changeset` calculates differences correctly for PRs targeting this branch instead of checking against `main`.
+   ```diff
+   - "baseBranch": "main"
+   + "baseBranch": "version-0.3"
+   ```
+
+3. **Update GitHub Actions**
+   In `.github/workflows/release.yml`, add the new branch so that the Changesets release action triggers when PRs are merged.
+   ```diff
+     on:
+       push:
+         branches:
+           - main
+   +       - version-0.3
+   ```
+
+4. **Enter Prerelease Mode**
+   Run the CLI command to generate `.changeset/pre.json`:
+   ```bash
+   pnpm changeset pre enter next
+   ```
+
+5. **Commit and Push**
+   ```bash
+   git add .changeset/config.json .changeset/pre.json .github/workflows/release.yml
+   git commit -m "chore: setup version-0.3 prerelease branch"
+   git push -u origin version-0.3
+   ```
+
+#### Phase 2: Concurrent Development
+With both branches active, maintainers can safely work on stable hotfixes and next-generation features simultaneously.
+
+**Developing Stable Patches (Hotfixes)**
+- **Target Branch**: `main`
+- **Workflow**: 
+  1. Branch from `main` -> Fix bug -> `pnpm changeset` -> Merge PR to `main`.
+  2. The GitHub Action updates the automated **"Version Packages" PR**. 
+  3. Merge the "Version Packages" PR to publish the standard version (e.g., `0.0.2` to `@latest`).
+
+**Developing Next Features**
+- **Target Branch**: `version-0.3`
+- **Workflow**: 
+  1. Branch from `version-0.3` -> Add feature -> `pnpm changeset` -> Merge PR to `version-0.3`.
+  2. The GitHub Action updates the automated **"Version Packages" PR** with a `-next.x` suffix.
+  3. Merge the "Version Packages" PR to publish the prerelease version (e.g., `0.3.0-next.0` to `@next`).
+
+> **CRITICAL: Keeping Prerelease Updated**
+> Whenever a hotfix is merged into `main`, you **must** bring those changes into the prerelease branch so `v0.3` doesn't regress.
+> ```bash
+> git checkout version-0.3
+> git merge main
+> git push origin version-0.3
+> ```
+> *(Do **not** merge `version-0.3` back into `main` until Phase 3!)*
+
+#### Phase 3: Releasing to Stable
+When `v0.3.0` is complete, tested, and ready for official release, exit prerelease mode and merge back to `main`.
+
+1. **Revert Configurations**
+   On the `version-0.3` branch, revert `baseBranch` back to `main` in `.changeset/config.json`.
+   ```diff
+   - "baseBranch": "version-0.3"
+   + "baseBranch": "main"
+   ```
+
+2. **Exit Prerelease Mode**
+   ```bash
+   pnpm changeset pre exit
+   ```
+   *(This safely deletes `.changeset/pre.json` and stages the changesets for a final stable release)*
+
+3. **Commit and Merge to Main**
+   ```bash
+   git add .changeset
+   git commit -m "chore: exit prerelease mode"
+   git push origin version-0.3
+   ```
+   Open a Pull Request on GitHub to merge `version-0.3` into `main`.
+
+4. **Publish the Final Release**
+   Once merged to `main`, the Changesets Action will run. Because it no longer detects `pre.json`, it will strip the `-next.x` suffix and create a final "Version Packages" PR for `0.3.0`.
+   Merge that PR to publish `v0.3.0` to the `@latest` tag on npm!
+
+#### Common Pitfalls & Warnings
+* **Forgetting `baseBranch`:** If you forget to set `baseBranch: "version-0.3"` in Phase 1, the `pnpm changeset` CLI on developer machines will compare their changes against `main`. This can cause the CLI to wrongly assume they touched files they didn't, generating inaccurate changeset prompts.
+
 ## Code style
 
 - TypeScript everywhere (strict mode).
