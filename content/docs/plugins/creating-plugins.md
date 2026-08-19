@@ -27,7 +27,7 @@ export function myPlugin(options: { apiKey: string }): OmniPlugin {
 }
 ```
 
-Register in `svelte.config.js`:
+Register in `vite.config.ts`:
 
 ```js
 import { myPlugin } from './plugins/my-plugin.js';

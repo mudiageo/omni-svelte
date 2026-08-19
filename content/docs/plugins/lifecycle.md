@@ -13,7 +13,7 @@ order: 4
 pnpm dev / pnpm build
         │
         ▼
-svelte.config.js loaded — plugins array resolved
+vite.config.ts loaded — plugins array resolved
         │
         ▼
 Vite plugin starts

@@ -40,10 +40,10 @@ This installs `omni-svelte` and patches `vite.config.ts` to include the `omniSve
 
 ## Configure omni-svelte
 
-Add an `omni` key to your `svelte.config.js`:
+Add an `omni` key to your `vite.config.ts`:
 
 ```js
-// svelte.config.js
+// vite.config.ts
 import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 

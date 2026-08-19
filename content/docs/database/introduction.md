@@ -11,7 +11,7 @@ OmniSvelte wraps [Drizzle ORM](https://orm.drizzle.team) and extends it with aut
 
 ## Setup
 
-Enable in `svelte.config.js`:
+Enable in `vite.config.ts`:
 
 ```js
 omni: {

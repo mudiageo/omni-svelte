@@ -30,7 +30,7 @@ src/lib/db/
     posts.factory.ts   ← Test factory (dev/test only)
 ```
 
-All paths are configurable — see [svelte.config.js](/docs/configuration/svelte-config).
+All paths are configurable — see [vite.config.ts](/docs/configuration/svelte-config).
 
 ## Generated Drizzle table
 

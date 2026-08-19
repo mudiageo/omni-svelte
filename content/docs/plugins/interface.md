@@ -57,7 +57,7 @@ interface OmniPlugin {
 
 ```ts
 interface PluginContext {
-  /** Resolved omni config from svelte.config.js */
+  /** Resolved omni config from vite.config.ts */
   config: OmniConfig;
 
   /** Drizzle database instance (if database.enabled) */

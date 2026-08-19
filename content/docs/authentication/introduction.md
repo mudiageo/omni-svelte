@@ -7,12 +7,12 @@ order: 1
 
 # Authentication
 
-OmniSvelte uses [Better-Auth](https://better-auth.com) and wires it into your SvelteKit app automatically. Enable it in `svelte.config.js` and the framework generates your auth handler, injects it into your hooks, and exposes `$auth/server` and `$auth/client` virtual modules.
+OmniSvelte uses [Better-Auth](https://better-auth.com) and wires it into your SvelteKit app automatically. Enable it in `vite.config.ts` and the framework generates your auth handler, injects it into your hooks, and exposes `$auth/server` and `$auth/client` virtual modules.
 
 ## Setup
 
 ```js
-// svelte.config.js
+// vite.config.ts
 omni: {
   auth: {
     enabled: true,

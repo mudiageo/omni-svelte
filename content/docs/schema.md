@@ -132,7 +132,7 @@ When you run `pnpm dev` (or `pnpm build`), omni-svelte writes these files:
 | Model classes    | `src/lib/db/models/`          | `schema.output.model.path`   |
 | TS ambient types | `src/omni-env.d.ts`           | Auto (do not edit)           |
 
-Configure output paths in `svelte.config.js`:
+Configure output paths in `vite.config.ts`:
 
 ```js
 omni: {

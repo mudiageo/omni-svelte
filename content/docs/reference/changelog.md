@@ -19,7 +19,7 @@ order: 6
 - Model relationships: `hasMany`, `belongsTo`, `hasOne`, `belongsToMany`
 - Model lifecycle hooks: `creating`, `created`, `updating`, `updated`, `deleting`, `deleted`
 - `Factory` and `Faker` utilities for test data generation
-- Better-Auth integration — auto-generates server config from `svelte.config.js`
+- Better-Auth integration — auto-generates server config from `vite.config.ts`
 - Virtual module aliases: `$db`, `$auth/server`, `$auth/client`, `$models/*`, `$schema`, `$validation/*`
 - `OmniPlugin` interface with full lifecycle hooks
 - `omniSvelte()` Vite plugin — zero-config hook injection, code generation, hot reload
