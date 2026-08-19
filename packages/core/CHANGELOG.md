@@ -1,5 +1,17 @@
 # omni-svelte
 
+## 0.2.1
+
+### Patch Changes
+
+- docs: update references from svelte.config.js to vite.config.ts to reflect SvelteKit 3 / OmniSvelte v0.2 configuration model ([#28](https://github.com/mudiageo/omni-svelte/pull/28))
+
+- fix(vite): throw a clear error when sveltekit() and omniSvelte() are used together in vite.config.ts ([#29](https://github.com/mudiageo/omni-svelte/pull/29))
+
+- fix(cli): explicitly inject omni-svelte version during init to respect --skip-install without triggering package resolution ([#26](https://github.com/mudiageo/omni-svelte/pull/26))
+
+- fix(cli): replace sveltekit plugin with omniSvelte and preserve options during migration and initialization ([#27](https://github.com/mudiageo/omni-svelte/pull/27))
+
 ## 0.2.0
 
 ### Minor Changes
@@ -7,6 +19,7 @@
 - breaking: move configuration from svelte.config.js to `omniSvelte()` in vite.config.ts with SvelteKit options under the `kit` namespace ([#21](https://github.com/mudiageo/omni-svelte/pull/21))
 
 - breaking: restructure CLI commands — `omni add` repurposed, `omni migrate` moved to `omni db migrate` ([#12](https://github.com/mudiageo/omni-svelte/pull/12))
+
   > **Migration guide:** See [CLI reference](/docs/cli) for the updated command structure.
 
 - feat: add `resource()` function to auto-generate remote functions (list, get, create, update, remove) ([#24](https://github.com/mudiageo/omni-svelte/pull/24))
