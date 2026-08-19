@@ -83,13 +83,24 @@ export function addOmniToViteConfig(projectPath: string): boolean {
 	let updated = original;
 
 	if (!updated.includes('omni-svelte/vite')) {
-		updated = `import { omniSvelte } from 'omni-svelte/vite';\n${updated}`;
+		if (updated.includes('@sveltejs/kit/vite')) {
+			updated = updated.replace(
+				/import\s+\{\s*sveltekit\s*\}\s+from\s+['"]@sveltejs\/kit\/vite['"];?/,
+				`import { omniSvelte } from 'omni-svelte/vite';`
+			);
+		} else {
+			updated = `import { omniSvelte } from 'omni-svelte/vite';\n${updated}`;
+		}
 	}
 
-	if (!updated.includes('omniSvelte()')) {
-		const pluginArrayPattern = /plugins:\s*\[/m;
-		if (pluginArrayPattern.test(updated)) {
-			updated = updated.replace(pluginArrayPattern, 'plugins: [omniSvelte(), ');
+	if (!updated.includes('omniSvelte(')) {
+		if (/sveltekit\s*\(/.test(updated)) {
+			updated = updated.replace(/sveltekit\s*\(/g, 'omniSvelte(');
+		} else {
+			const pluginArrayPattern = /plugins:\s*\[/m;
+			if (pluginArrayPattern.test(updated)) {
+				updated = updated.replace(pluginArrayPattern, 'plugins: [omniSvelte(), ');
+			}
 		}
 	}
 
