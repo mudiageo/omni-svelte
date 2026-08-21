@@ -35,7 +35,7 @@ function resolveId(id: string): string | undefined {
  */
 function loadDb(config?: any): string {
 	const dbConfig = config?.database || {};
-	return `import { configureDatabase, database } from 'omni-svelte/database';\nconfigureDatabase(${JSON.stringify(dbConfig)});\nexport { database as db };\nexport default database;`;
+	return `import { configureDatabase, getDatabase } from 'omni-svelte/database';\nconfigureDatabase(${JSON.stringify(dbConfig)});\nconst db = getDatabase();\nexport { db };\nexport default db;`;
 }
 
 function loadSchema(schemaPath: string): string {
@@ -147,9 +147,12 @@ describe('plugin_omni_virtual_aliases – load barrel generation', () => {
 
 	it('generates correct $db export', () => {
 		const code = loadDb();
-		expect(code).toContain("import { configureDatabase, database } from 'omni-svelte/database'");
+		expect(code).toContain("import { configureDatabase, getDatabase } from 'omni-svelte/database'");
 		expect(code).toContain('configureDatabase(');
-		expect(code).toContain('export { database as db }');
+		expect(code).toContain('const db = getDatabase()');
+		expect(code).toContain('export { db }');
+		// Must NOT import the non-exported `database` binding
+		expect(code).not.toContain('import { configureDatabase, database }');
 	});
 
 	it('generates correct $schema re-export', () => {

@@ -401,7 +401,7 @@ const plugin_omni_virtual_aliases = (omniConfig: OmniConfig): Plugin => ({
 
 		if (key === 'db') {
 			const dbConfig = omniConfig?.database || {};
-			return `import { configureDatabase, database } from 'omni-svelte/database';\nconfigureDatabase(${JSON.stringify(dbConfig)});\nexport { database as db };\nexport default database;`;
+			return `import { configureDatabase, getDatabase } from 'omni-svelte/database';\nconfigureDatabase(${JSON.stringify(dbConfig)});\nconst db = getDatabase();\nexport { db };\nexport default db;`;
 		}
 
 		if (key === 'schema') {
