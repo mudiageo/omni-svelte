@@ -1,6 +1,7 @@
 {
-	"mode": "pre",
-	"tag": "next",
-	"initialVersions": {},
-	"changesets": []
+  "mode": "pre",
+  "tag": "next",
+  "changesets": [
+    "fix-db-virtual-module-getdatabase"
+  ]
 }
