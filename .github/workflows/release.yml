@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - version-0.3
 
 concurrency:
   group: release-${{ github.ref }}
