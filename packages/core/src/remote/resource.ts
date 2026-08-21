@@ -61,18 +61,20 @@ type QueryType = ReturnType<typeof query>;
 
 function sanitizeError(err: any): never {
 	if (err && err instanceof Error) {
-		// If it's a SvelteKit HttpError (has status and body), let it through unmodified
+		// let intentional SvelteKit HttpErrors (like error(404)) pass through unmodified
 		if ('status' in err && 'body' in err) throw err;
 		
 		let message = err.message;
 		
-		// Provide helpful hints for common database errors
+		// provide friendly hints for known, common framework errors like missing db tables
 		if (message.includes('relation') && message.includes('does not exist')) {
 			message = `${message}\n\n💡 Hint: It looks like this table hasn't been created in your database. Did you forget to run \`omni db push\` or \`omni db migrate\`?`;
 		}
 
-		// Reconstruct the error to ensure stack is writable/configurable
-		// This prevents SvelteKit Server Functions from crashing on PostgresError/AggregateError
+		// universal safety net: reconstruct all escaping errors into a standard Error object
+		// this ensures the `stack` property is writable. if third-party libraries (like postgres-js) 
+		// throw errors with read-only stacks, SvelteKit's Server Functions will crash with a TypeError 
+		// when trying to serialize them for the client
 		const safeErr = new Error(message);
 		safeErr.name = err.name || 'Error';
 		safeErr.stack = err.stack;
