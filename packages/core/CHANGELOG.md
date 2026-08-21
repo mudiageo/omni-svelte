@@ -1,5 +1,11 @@
 # omni-svelte
 
+## 0.2.2-next.1
+
+### Patch Changes
+
+- fix(remote): prevent crash on escaping errors with read-only stacks and preserve rich error fields ([`383303e`](https://github.com/mudiageo/omni-svelte/commit/383303eac15a5f103a61e9fa2cc3db23dea53c7e))
+
 ## 0.2.2-next.0
 
 ### Patch Changes
