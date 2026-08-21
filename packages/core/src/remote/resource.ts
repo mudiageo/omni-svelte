@@ -65,20 +65,47 @@ function sanitizeError(err: any): never {
 		if ('status' in err && 'body' in err) throw err;
 		
 		let message = err.message;
+		let modifiedMessage = false;
 		
 		// provide friendly hints for known, common framework errors like missing db tables
 		if (message.includes('relation') && message.includes('does not exist')) {
 			message = `${message}\n\n💡 Hint: It looks like this table hasn't been created in your database. Did you forget to run \`omni db push\` or \`omni db migrate\`?`;
+			modifiedMessage = true;
 		}
 
-		// universal safety net: reconstruct all escaping errors into a standard Error object
-		// this ensures the `stack` property is writable. if third-party libraries (like postgres-js) 
-		// throw errors with read-only stacks, SvelteKit's Server Functions will crash with a TypeError 
-		// when trying to serialize them for the client
-		const safeErr = new Error(message);
-		safeErr.name = err.name || 'Error';
-		safeErr.stack = err.stack;
-		throw safeErr;
+		// check if the stack is read-only (this is what crashes SvelteKit)
+		const stackDesc = Object.getOwnPropertyDescriptor(err, 'stack');
+		const isStackReadOnly = stackDesc && !stackDesc.writable && !stackDesc.set;
+
+		if (isStackReadOnly) {
+			// universal safety net: reconstruct all escaping errors into a standard Error object
+			// this ensures the `stack` property is writable. if third-party libraries (like postgres-js) 
+			// throw errors with read-only stacks, SvelteKit's Server Functions will crash with a TypeError 
+			// when trying to serialize them for the client
+			const safeErr = new Error(message, { cause: err });
+			safeErr.name = err.name || 'Error';
+			safeErr.stack = err.stack;
+			
+			// copy all original metadata properties (e.g. Postgres DB fields)
+			const skip = new Set(['message', 'name', 'stack', 'cause']);
+			for (const key of Object.getOwnPropertyNames(err)) {
+				if (!skip.has(key)) {
+					Object.defineProperty(safeErr, key, {
+						value: (err as any)[key],
+						writable: true,
+						configurable: true,
+						enumerable: Object.prototype.propertyIsEnumerable.call(err, key)
+					});
+				}
+			}
+			throw safeErr;
+		}
+
+		if (modifiedMessage) {
+			try { err.message = message; } catch (_) {}
+		}
+
+		throw err;
 	}
 	throw err;
 }
