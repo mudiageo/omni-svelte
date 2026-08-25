@@ -4,6 +4,7 @@
   "changesets": [
     "fix-aggregate-error-stack",
     "fix-db-virtual-module-getdatabase",
-    "fix-postgres-error-crash"
+    "fix-postgres-error-crash",
+    "fix-redundant-throw-error"
   ]
 }

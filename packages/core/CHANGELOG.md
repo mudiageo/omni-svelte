@@ -1,5 +1,11 @@
 # omni-svelte
 
+## 0.2.2-next.3
+
+### Patch Changes
+
+- fix(remote): remove redundant throw keyword before SvelteKit error calls ([#39](https://github.com/mudiageo/omni-svelte/pull/39))
+
 ## 0.2.2-next.2
 
 ### Patch Changes
