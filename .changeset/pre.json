@@ -2,6 +2,7 @@
   "mode": "pre",
   "tag": "next",
   "changesets": [
+    "fix-aggregate-error-stack",
     "fix-db-virtual-module-getdatabase",
     "fix-postgres-error-crash"
   ]
