@@ -1,5 +1,11 @@
 # omni-svelte
 
+## 0.2.2-next.2
+
+### Patch Changes
+
+- fix(remote): correctly detect read-only stack on prototype chain (AggregateError) ([`8240ee4`](https://github.com/mudiageo/omni-svelte/commit/8240ee40e34dd73be0a59af530992358da8a91a6))
+
 ## 0.2.2-next.1
 
 ### Patch Changes
