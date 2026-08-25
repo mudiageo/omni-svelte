@@ -73,9 +73,14 @@ function sanitizeError(err: any): never {
 			modifiedMessage = true;
 		}
 
-		// check if the stack is read-only (this is what crashes SvelteKit)
-		const stackDesc = Object.getOwnPropertyDescriptor(err, 'stack');
-		const isStackReadOnly = stackDesc && !stackDesc.writable && !stackDesc.set;
+		// check if the stack is read-only (this is what crashes SvelteKit's Server Functions)
+		let isStackReadOnly = false;
+		try {
+			// This safely detects read-only properties even if they are on the prototype chain
+			err.stack = err.stack;
+		} catch (e) {
+			isStackReadOnly = true;
+		}
 
 		if (isStackReadOnly) {
 			// universal safety net: reconstruct all escaping errors into a standard Error object
