@@ -148,7 +148,7 @@ export function resource<
 		if (options?.authorize) {
 			const ctx: AuthorizeContext<M> = { user: null, operation, model, input };
 			const allowed = await options.authorize(ctx);
-			if (!allowed) throw error(403, 'Forbidden');
+			if (!allowed) error(403, 'Forbidden');
 		}
 	};
 
@@ -215,7 +215,7 @@ export function resource<
 					}
 				}
 				const record = await q.first();
-				if (!record) throw error(404, 'Not found');
+				if (!record) error(404, 'Not found');
 				return record;
 			} catch (e) {
 				sanitizeError(e);
