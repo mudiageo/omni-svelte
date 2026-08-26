@@ -148,22 +148,23 @@ export class DrizzleGenerator {
 	constructor(private schema: Schema) {}
 
 	generate(): string {
-		const imports = this.generateImports();
-		const tableDefinition = this.generateTableDefinition();
-		const indexes = this.generateIndexes();
-		const relations = this.generateRelations();
-		const exports = this.generateExports();
-
-		return [imports, tableDefinition, indexes, relations, exports]
-			.filter(Boolean)
-			.join('\n\n');
+		// Relations are emitted only in single-file generateFiles() mode because
+		// per-schema files would need cross-schema imports for the target tables.
+		return [
+			this.generateImports(),
+			this.generateTableDefinition(),
+			this.generateExports(),
+		].join('\n\n');
 	}
 
+	/**
+	 * Returns the `defineRelationsPart(...)` export block for this schema.
+	 * Imports are NOT included here — callers (generateFiles) prepend them.
+	 */
 	generateRelations(): string {
-		const internal = this.generateRelationsInternal();
-		if (!internal) return '';
-		// For standalone generation, assume an index.js exists that exports all schemas
-		return `import * as schema from './index.js';\nimport { defineRelationsPart } from 'drizzle-orm';\n\nexport const ${this.schema.name}Relations = defineRelationsPart(schema, (r) => ({\n${internal}\n}));`;
+		return this.generateRelationsInternal()
+			? `export const ${this.schema.name}Relations = defineRelationsPart({ ${this.schema.name} }, (r) => ({\n${this.generateRelationsInternal()}\n}));`
+			: '';
 	}
 
 	generateRelationsInternal(): string {
@@ -172,40 +173,51 @@ export class DrizzleGenerator {
 		}
 
 		const tableName = this.schema.name;
-		let relStr = `  ${tableName}: {\n`;
+		const lines: string[] = [];
 
 		for (const [key, rel] of Object.entries(this.schema.relations)) {
+			let targetTable = 'unknown';
+
 			if (rel.kind === 'belongsTo') {
-				let targetTable = 'unknown';
-				try { targetTable = rel.target().name; } catch (e) {}
-				const localKey = rel.options?.via || `${key}Id`;
-				relStr += `    ${key}: r.${tableName}.one(r.${targetTable}, {\n`;
-				relStr += `      from: [r.${tableName}.${localKey}],\n`;
-				relStr += `      to: [r.${targetTable}.id]\n`;
-				relStr += `    }),\n`;
+				try { targetTable = rel.target().name; } catch (_e) {}
+				// FK sits on this table; convention: `${key}Id` unless overridden via `via`
+				const localKey = rel.options?.via ?? `${key}Id`;
+				lines.push(`    ${key}: r.one.${targetTable}({`);
+				lines.push(`      from: r.${tableName}.${localKey},`);
+				lines.push(`      to: r.${targetTable}.id,`);
+				lines.push(`    }),`);
+
 			} else if (rel.kind === 'hasMany') {
-				let targetTable = 'unknown';
-				try { targetTable = rel.target().name; } catch (e) {}
-				relStr += `    ${key}: r.${tableName}.many(r.${targetTable}),\n`;
+				try { targetTable = rel.target().name; } catch (_e) {}
+				// Drizzle infers FK direction from the corresponding belongsTo on the target
+				lines.push(`    ${key}: r.many.${targetTable}(),`);
+
 			} else if (rel.kind === 'hasOne') {
-				let targetTable = 'unknown';
-				try { targetTable = rel.target().name; } catch (e) {}
-				relStr += `    ${key}: r.${tableName}.one(r.${targetTable}),\n`;
+				try { targetTable = rel.target().name; } catch (_e) {}
+				// FK sits on the target table; convention: `${tableName}Id`
+				const fkOnTarget = rel.options?.via ?? `${tableName}Id`;
+				lines.push(`    ${key}: r.one.${targetTable}({`);
+				lines.push(`      from: r.${targetTable}.${fkOnTarget},`);
+				lines.push(`      to: r.${tableName}.id,`);
+				lines.push(`    }),`);
+
 			} else if (rel.kind === 'manyToMany') {
-				let targetTable = 'unknown';
 				let pivotTable = 'unknown';
-				try { targetTable = rel.target().name; } catch (e) {}
-				try { pivotTable = rel.options?.through().name; } catch (e) {}
-				
-				relStr += `    ${key}: r.many.${targetTable}({\n`;
-				relStr += `      from: r.${tableName}.id.through(r.${pivotTable}.${tableName}Id),\n`;
-				relStr += `      to: r.${targetTable}.id.through(r.${pivotTable}.${targetTable}Id)\n`;
-				relStr += `    }),\n`;
+				try { targetTable = rel.target().name; } catch (_e) {}
+				try { pivotTable = rel.options?.through().name; } catch (_e) {}
+				lines.push(`    ${key}: r.many.${targetTable}({`);
+				lines.push(`      from: r.${tableName}.id.through(r.${pivotTable}.${tableName}Id),`);
+				lines.push(`      to: r.${targetTable}.id.through(r.${pivotTable}.${targetTable}Id),`);
+				lines.push(`    }),`);
+
+			} else if (rel.kind === 'morphTo' || rel.kind === 'morphMany') {
+				// Polymorphic relations are not yet supported in Drizzle 1.0 generation.
+				// Define them manually using `defineRelations` in your schema file.
+				lines.push(`    // TODO: ${key} (${rel.kind}) — polymorphic relations must be defined manually`);
 			}
 		}
 
-		relStr += `  }`;
-		return relStr;
+		return `  ${tableName}: {\n${lines.join('\n')}\n  }`;
 	}
 
 	// New method for multiple schemas with output config
@@ -228,20 +240,17 @@ export class DrizzleGenerator {
 			// Generate single file with all schemas
 			const allImports = new Set<string>();
 			const allSchemas: string[] = [];
-			const allIndexes: string[] = [];
 			const allTypes: string[] = [];
 			const allRelations: string[] = [];
 			let hasRelations = false;
 
-			// Collect all necessary imports
+			// Collect all necessary pg-core imports and detect relations
 			schemas.forEach((schema) => {
 				const generator = new DrizzleGenerator(schema);
 				const imports = generator.generateImports();
-				// Extract types from import statement
 				const importMatch = imports.match(/import\s*\{\s*([^}]+)\s*\}/);
 				if (importMatch) {
-					const types = importMatch[1].split(',').map((t) => t.trim());
-					types.forEach((type) => allImports.add(type));
+					importMatch[1].split(',').map((t) => t.trim()).forEach((type) => allImports.add(type));
 				}
 				if (schema.relations && Object.keys(schema.relations).length > 0) {
 					hasRelations = true;
@@ -251,33 +260,26 @@ export class DrizzleGenerator {
 			// Generate content for each schema
 			schemas.forEach((schema) => {
 				const generator = new DrizzleGenerator(schema);
-				const tableDefinition = generator.generateTableDefinition();
-				const indexes = generator.generateIndexes();
-				const relations = generator.generateRelationsInternal();
-				const exports = generator.generateExports();
-
-				allSchemas.push(tableDefinition);
-				if (indexes) allIndexes.push(indexes);
-				if (relations) allRelations.push(relations);
-				allTypes.push(exports);
+				allSchemas.push(generator.generateTableDefinition());
+				allTypes.push(generator.generateExports());
+				const rel = generator.generateRelationsInternal();
+				if (rel) allRelations.push(rel);
 			});
 
-			const relationsImport = hasRelations ? `\nimport { defineRelations } from 'drizzle-orm';` : '';
+			const drizzleOrmImport = hasRelations
+				? `\nimport { defineRelations } from 'drizzle-orm';`
+				: '';
 
-			const content = `// Auto-generated Drizzle schemas
+			const relationsBlock = hasRelations
+				? `\nexport const schemaRelations = defineRelations({ ${schemas.map((s) => s.name).join(', ')} }, (r) => ({\n${allRelations.join(',\n')}\n}));\n`
+				: '';
 
-import { ${Array.from(allImports).join(', ')} } from 'drizzle-orm/pg-core';${relationsImport}
+			const content = `// Auto-generated by omni-svelte
+
+import { ${Array.from(allImports).join(', ')} } from 'drizzle-orm/pg-core';${drizzleOrmImport}
 
 ${allSchemas.join('\n\n')}
-
-${allIndexes.filter(Boolean).join('\n\n')}
-
-${
-	hasRelations
-		? `export const schemaRelations = defineRelations({ ${schemas.map((s) => s.name).join(', ')} }, (r) => ({\n${allRelations.filter(Boolean).join(',\n')}\n}));`
-		: ''
-}
-
+${relationsBlock}
 ${allTypes.join('\n\n')}`;
 
 			outputs.push({
@@ -319,6 +321,9 @@ ${allTypes.join('\n\n')}`;
 				case 'integer':
 					types.add('integer');
 					break;
+				case 'reference':
+					types.add('integer');
+					break;
 				case 'serial':
 					types.add('serial');
 					break;
@@ -349,7 +354,6 @@ ${allTypes.join('\n\n')}`;
 			types.add('timestamp');
 		}
 
-		// Always include pgTable and index functions
 		types.add('pgTable');
 		if (this.schema.config?.indexes?.length) {
 			types.add('index');
@@ -496,13 +500,8 @@ ${allTypes.join('\n\n')}`;
 		return `${name}: ${columnDef}`;
 	}
 
-	private generateIndexes(): string {
-		return '';
-	}
-
 	private generateExports(): string {
-		return `export type ${this.capitalize(this.schema.name)} = typeof ${this.schema.name}.$inferSelect;
-export type New${this.capitalize(this.schema.name)} = typeof ${this.schema.name}.$inferInsert;`;
+		return `export type ${this.capitalize(this.schema.name)} = typeof ${this.schema.name}.$inferSelect;\nexport type New${this.capitalize(this.schema.name)} = typeof ${this.schema.name}.$inferInsert;`;
 	}
 
 	private capitalize(str: string): string {
