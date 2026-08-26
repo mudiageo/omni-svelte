@@ -182,7 +182,7 @@ describe('Schema System', () => {
 			expect(output).toContain('users_email_idx');
 			expect(output).toContain('users_name_idx');
 			expect(output).toContain('users_active_idx');
-			expect(output).toContain(`index('users_email_idx').on(users.email)`);
+			expect(output).toContain(`index('users_email_idx').on(t.email)`);
 		});
 
 		it('should generate type exports', () => {
