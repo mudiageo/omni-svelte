@@ -1,5 +1,11 @@
 # omni-svelte
 
+## 0.2.2-next.4
+
+### Patch Changes
+
+- fix: automatically pass user hooks (handleError, handleFetch, etc) through using wildcard exports ([#40](https://github.com/mudiageo/omni-svelte/pull/40))
+
 ## 0.2.2-next.3
 
 ### Patch Changes
