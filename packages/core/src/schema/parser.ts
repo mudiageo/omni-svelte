@@ -129,7 +129,7 @@ export class RegexSchemaParser implements ISchemaParser {
 			for (const [key, def] of Object.entries(rawFields)) {
 				if (def.kind) {
 					relations[key] = def;
-				} else {
+				} else if (def.type) {
 					fields[key] = def;
 				}
 			}
@@ -153,6 +153,10 @@ export class RegexSchemaParser implements ISchemaParser {
 		const fields: Record<string, any> = {};
 
 		try {
+			// Strip comments to avoid breaking the primitive extraction
+			fieldsContent = fieldsContent.replace(/\/\/.*$/gm, '');
+			fieldsContent = fieldsContent.replace(/\/\*[\s\S]*?\*\//g, '');
+
 			// Enhanced field extraction that handles nested objects
 			let depth = 0;
 			let currentField = '';
@@ -573,7 +577,7 @@ export class ASTSchemaParser implements ISchemaParser {
 			return null;
 		}
 
-		const fieldDef: Partial<FieldDefinition> = {};
+		const objDef: Partial<FieldDefinition> = {};
 
 		for (const property of node.properties) {
 			if (ts.isPropertyAssignment(property) && ts.isIdentifier(property.name)) {
@@ -583,7 +587,7 @@ export class ASTSchemaParser implements ISchemaParser {
 				switch (propName) {
 					case 'type':
 						if (typeof value === 'string') {
-							fieldDef.type = value as any;
+							objDef.type = value as any;
 						}
 						break;
 					case 'primary':
@@ -593,35 +597,35 @@ export class ASTSchemaParser implements ISchemaParser {
 					case 'computed':
 					case 'optional':
 						if (typeof value === 'boolean') {
-							(fieldDef as any)[propName] = value;
+							(objDef as any)[propName] = value;
 						}
 						break;
 					case 'length':
 						if (typeof value === 'number') {
-							fieldDef.length = value;
+							objDef.length = value;
 						}
 						break;
 					case 'default':
-						fieldDef.default = value;
+						objDef.default = value;
 						break;
 					case 'values':
 						if (Array.isArray(value)) {
-							fieldDef.values = value as string[];
+							objDef.values = value as string[];
 						}
 						break;
 					case 'validation':
 						if (typeof value === 'object' && value !== null) {
-							fieldDef.validation = value;
+							objDef.validation = value;
 						}
 						break;
 					case 'hash':
 						if (typeof value === 'string') {
-							fieldDef.hash = value as 'bcrypt' | 'argon2';
+							objDef.hash = value as 'bcrypt' | 'argon2';
 						}
 						break;
 					case 'storage':
 						if (typeof value === 'object' && value !== null) {
-							fieldDef.storage = value as any;
+							objDef.storage = value as any;
 						}
 						break;
 					case 'get':
@@ -630,7 +634,7 @@ export class ASTSchemaParser implements ISchemaParser {
 							ts.isFunctionExpression(property.initializer) ||
 							ts.isArrowFunction(property.initializer)
 						) {
-							fieldDef.get = this.extractFunctionText(property.initializer);
+							objDef.get = this.extractFunctionText(property.initializer);
 						}
 						break;
 				}
@@ -638,11 +642,11 @@ export class ASTSchemaParser implements ISchemaParser {
 		}
 
 		// Ensure type is present
-		if (!fieldDef.type) {
+		if (!objDef.type) {
 			return null;
 		}
 
-		return fieldDef as FieldDefinition;
+		return objDef as FieldDefinition;
 	}
 
 	/**

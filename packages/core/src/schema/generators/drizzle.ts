@@ -163,7 +163,7 @@ export class DrizzleGenerator {
 	 */
 	generateRelations(): string {
 		return this.generateRelationsInternal()
-			? `export const ${this.schema.name}Relations = defineRelationsPart({ ${this.schema.name} }, (r) => ({\n${this.generateRelationsInternal()}\n}));`
+			? `export const ${this.schema.name}Relations = relations(${this.schema.name}, (r) => ({\n${this.generateRelationsInternal()}\n}));`
 			: '';
 	}
 
