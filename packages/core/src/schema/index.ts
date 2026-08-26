@@ -22,7 +22,8 @@ export function defineSchema(
 		if (def && typeof def === 'object' && 'kind' in def) {
 			relations[key] = def;
 		} else {
-			rawFields[key] = def;
+			// If it's a FieldBuilder instance, extract the underlying definition
+			rawFields[key] = typeof def.build === 'function' ? def.build() : def;
 		}
 	}
 
