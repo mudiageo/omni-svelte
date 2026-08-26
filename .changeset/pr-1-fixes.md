@@ -2,4 +2,4 @@
 "omni-svelte": patch
 ---
 
-fix(schema): inline index definitions inside pgTable callback
+fix(schema): generate inline index definitions inside pgTable callback
