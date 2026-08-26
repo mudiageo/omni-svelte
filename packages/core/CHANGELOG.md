@@ -1,5 +1,19 @@
 # omni-svelte
 
+## 0.2.2
+
+### Patch Changes
+
+- fix(remote): correctly detect read-only stack on prototype chain (AggregateError) ([#42](https://github.com/mudiageo/omni-svelte/pull/42))
+
+- fix: resolve runtime import error by using getDatabase() instead of missing database named export in virtual module ([#35](https://github.com/mudiageo/omni-svelte/pull/35))
+
+- fix: automatically pass user hooks (handleError, handleFetch, etc) through using wildcard exports ([#40](https://github.com/mudiageo/omni-svelte/pull/40))
+
+- fix(remote): prevent crash on escaping errors with read-only stacks and preserve rich error fields ([#42](https://github.com/mudiageo/omni-svelte/pull/42))
+
+- fix(remote): remove redundant throw keyword before SvelteKit error calls ([#42](https://github.com/mudiageo/omni-svelte/pull/42))
+
 ## 0.2.2-next.4
 
 ### Patch Changes
