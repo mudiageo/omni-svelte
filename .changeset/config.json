@@ -4,7 +4,7 @@
 	"commit": false,
 	"fixed": [],
 	"access": "public",
-	"baseBranch": "main",
+	"baseBranch": "version-0.3",
 	"updateInternalDependencies": "patch",
 	"ignore": ["playground", "docs"]
 }
