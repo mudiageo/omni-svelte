@@ -3,9 +3,8 @@
 	"changelog": ["@changesets/changelog-github", { "repo": "mudiageo/omni-svelte", "template": "\n- {summary} {ref}" }],
 	"commit": false,
 	"fixed": [],
-	"linked": [["omni-svelte", "@omni-svelte/shared", "@omni-svelte/plugins"]],
 	"access": "public",
-	"baseBranch": "version-0.3",
+	"baseBranch": "main",
 	"updateInternalDependencies": "patch",
 	"ignore": ["playground", "docs"]
 }
