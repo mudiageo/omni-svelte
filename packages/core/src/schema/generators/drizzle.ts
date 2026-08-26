@@ -304,9 +304,37 @@ ${allTypes.join('\n\n')}`;
   deletedAt: timestamp('deleted_at')`;
 		}
 
+		let inlineIndexes = '';
+		if (this.schema.config?.indexes?.length) {
+			const indexDefs = this.schema.config.indexes.map((index) => {
+				let indexFields: string[];
+				let isUnique = false;
+
+				if (typeof index === 'string') {
+					indexFields = [index];
+				} else if (Array.isArray(index)) {
+					indexFields = index;
+				} else {
+					indexFields = index.fields;
+					isUnique = index.unique === true;
+				}
+
+				const indexName = `${tableName}_${indexFields.join('_')}_idx`;
+				const fields = indexFields.map((field) => `t.${field}`).join(', ');
+
+				if (isUnique) {
+					return `    uniqueIndex('${indexName}').on(${fields})`;
+				} else {
+					return `    index('${indexName}').on(${fields})`;
+				}
+			});
+
+			inlineIndexes = `, (t) => [\n${indexDefs.join(',\n')}\n  ]`;
+		}
+
 		return `export const ${tableName} = pgTable('${tableName}', {
   ${columns}${timestampColumns}
-});`;
+}${inlineIndexes});`;
 	}
 
 	private generateColumnDefinition(name: string, field: FieldDefinition): string {
@@ -383,32 +411,7 @@ ${allTypes.join('\n\n')}`;
 	}
 
 	private generateIndexes(): string {
-		if (!this.schema.config?.indexes?.length) return '';
-
-		return this.schema.config.indexes
-			.map((index) => {
-				let indexFields: string[];
-				let isUnique = false;
-
-				if (typeof index === 'string') {
-					indexFields = [index];
-				} else if (Array.isArray(index)) {
-					indexFields = index;
-				} else {
-					indexFields = index.fields;
-					isUnique = index.unique === true;
-				}
-
-				const indexName = `${this.schema.name}_${indexFields.join('_')}_idx`;
-				const fields = indexFields.map((field) => `${this.schema.name}.${field}`).join(', ');
-
-				if (isUnique) {
-					return `export const ${indexName} = uniqueIndex('${indexName}').on(${fields});`;
-				} else {
-					return `export const ${indexName} = index('${indexName}').on(${fields});`;
-				}
-			})
-			.join('\n');
+		return '';
 	}
 
 	private generateExports(): string {
