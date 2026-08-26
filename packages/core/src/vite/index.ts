@@ -401,7 +401,7 @@ const plugin_omni_virtual_aliases = (omniConfig: OmniConfig): Plugin => ({
 
 		if (key === 'db') {
 			const dbConfig = omniConfig?.database || {};
-			return `import { configureDatabase, database } from 'omni-svelte/database';\nconfigureDatabase(${JSON.stringify(dbConfig)});\nexport { database as db };\nexport default database;`;
+			return `import { configureDatabase, getDatabase } from 'omni-svelte/database';\nconfigureDatabase(${JSON.stringify(dbConfig)});\nconst db = getDatabase();\nexport { db };\nexport default db;`;
 		}
 
 		if (key === 'schema') {
@@ -534,11 +534,13 @@ function generateServerHooks(omniConfig: OmniConfig, userHooksServer: string | n
 	// If user has existing hooks, create a virtual module for them
 	let userHooksImport = '';
 	let userHooksHandler = 'null';
+	let userHooksPassthrough = '';
 
 	if (userHooksServer) {
 		// Create a virtual module for user hooks
-		userHooksImport = `import { handle as userHandle } from 'virtual:user-hooks/server';`;
-		userHooksHandler = 'userHandle';
+		userHooksImport = `import * as userHooks from 'virtual:user-hooks/server';`;
+		userHooksHandler = 'userHooks.handle';
+		userHooksPassthrough = `export * from 'virtual:user-hooks/server';`;
 	}
 
 	const handleFunction = `
@@ -552,14 +554,13 @@ userHandle: ${userHooksHandler}
 return frameworkHandler({ event, resolve });
 }`;
 
-	const initFunction = omniConfig.database?.enabled
-		? `
+	const initFunction = `
 export async function init() {
-await initDb(${JSON.stringify(omniConfig.database, null, 2)})
-}`
-		: '';
+${omniConfig.database?.enabled ? `await initDb(${JSON.stringify(omniConfig.database, null, 2)});` : ''}
+${userHooksServer ? `if (typeof userHooks.init === 'function') await userHooks.init();` : ''}
+}`;
 
-	return `${imports.join('\n')}\n${userHooksImport}\n\n${handleFunction}\n\n${initFunction}`;
+	return `${imports.join('\n')}\n${userHooksImport}\n\n${handleFunction}\n\n${initFunction}\n\n${userHooksPassthrough}`;
 }
 
 function generateClientHooks(omniConfig: OmniConfig, userHooksClient: string | null) {
@@ -583,10 +584,12 @@ function generateClientHooks(omniConfig: OmniConfig, userHooksClient: string | n
 	// Handle user client hooks
 	let userHooksImport = '';
 	let userHooksHandler = 'null';
+	let userHooksPassthrough = '';
 
 	if (userHooksClient) {
 		userHooksImport = `import * as userHooks from 'virtual:user-hooks/client';`;
 		userHooksHandler = 'userHooks';
+		userHooksPassthrough = `export * from 'virtual:user-hooks/client';`;
 	}
 
 	const hookFunctions = `
@@ -610,7 +613,7 @@ userHooks: ${userHooksHandler}
 return handler.handleFetch({ event, request, fetch });
 }`;
 
-	return `${imports.join('\n')}\n${userHooksImport}\n\n${hookFunctions}`;
+	return `${imports.join('\n')}\n${userHooksImport}\n\n${hookFunctions}\n\n${userHooksPassthrough}`;
 }
 
 function applyExperimentalConfig(options: OmniSvelteConfig) {

@@ -5,7 +5,7 @@
 	"fixed": [],
 	"linked": [["omni-svelte", "@omni-svelte/shared", "@omni-svelte/plugins"]],
 	"access": "public",
-	"baseBranch": "main",
+	"baseBranch": "version-0.3",
 	"updateInternalDependencies": "patch",
 	"ignore": ["playground", "docs"]
 }
