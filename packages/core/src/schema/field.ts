@@ -204,5 +204,16 @@ export const field = {
 		const b = make('enum');
 		(b as any).def.values = values;
 		return b;
+	},
+
+	/**
+	 * Foreign key reference to another schema.
+	 * 
+	 * @param target A thunk returning the target schema, e.g. `() => userSchema`
+	 */
+	reference: (target: () => any) => {
+		const b = make('reference');
+		(b as any).def.target = target;
+		return b;
 	}
 } as const;

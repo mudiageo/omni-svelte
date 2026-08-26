@@ -8,15 +8,28 @@ export { DrizzleGenerator } from './generators/drizzle.js';
 export { ZodGenerator } from './generators/zod.js';
 export { ModelGenerator } from './generators/model.js';
 export { field } from './field.js';
+export { relation } from './relation.js';
 
 export function defineSchema(
 	name: string,
-	fields: Record<string, FieldDefinition>,
+	definitions: Record<string, any>,
 	config: SchemaDefinitionConfig = {}
 ): GeneratedSchema {
+	const rawFields: Record<string, FieldDefinition> = {};
+	const relations: Record<string, any> = {};
+
+	for (const [key, def] of Object.entries(definitions)) {
+		if (def && typeof def === 'object' && 'kind' in def) {
+			relations[key] = def;
+		} else {
+			rawFields[key] = def;
+		}
+	}
+
 	const schema: Schema = {
 		name,
-		fields: processFields(fields, config),
+		fields: processFields(rawFields, config),
+		relations,
 		config: processConfig(config)
 	};
 
@@ -24,9 +37,6 @@ export function defineSchema(
 	const drizzleSchema = generateDrizzleSchema(schema);
 	const zodSchemas = generateZodSchemas(schema);
 	const model = generateModel(schema, drizzleSchema, zodSchemas);
-
-	// Register schema globally for CLI and hot reload
-	// registerSchema(schema);
 
 	return {
 		...schema,

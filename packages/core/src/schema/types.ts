@@ -23,6 +23,7 @@ export type FieldType =
 	| 'belongsTo'
 	| 'datetime'
 	| 'unsigned'
+	| 'reference'
 	| `enum:${string}`;
 
 export interface FieldDefinition {
@@ -44,6 +45,7 @@ export interface FieldDefinition {
 	get?: (record: any) => any;
 	relationship?: Relationship;
 	isAuthField?: boolean; // Mark fields managed by auth system
+	target?: () => any; // For foreign key references
 }
 export interface StorageConfig {
 	type?: 'local' | 's3' | 'gcs';
@@ -85,6 +87,7 @@ export interface SchemaDefinitionConfig {
 export interface Schema {
 	name: string;
 	fields: Record<string, FieldDefinition>;
+	relations?: Record<string, any>;
 	config: SchemaDefinitionConfig;
 	filePath?: string; // Added for file-based schema discovery
 	metadata?: {
@@ -97,6 +100,7 @@ export interface Schema {
 export interface GeneratedSchema {
 	name: string;
 	fields: Record<string, FieldDefinition>;
+	relations?: Record<string, any>;
 	config: SchemaDefinitionConfig;
 	drizzle: ReturnType<typeof generateDrizzleSchema>;
 	zod: ReturnType<typeof generateZodSchemas>;
