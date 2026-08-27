@@ -2,6 +2,7 @@ import type { generateDrizzleSchema } from './generators/drizzle.js';
 import type { generateZodSchemas } from './generators/zod.js';
 import type { generateModel } from './generators/model.js';
 import type { Relationship } from '../database/relationships.js';
+import type { RelationDefinition } from './relation.js';
 
 export type FieldType =
 	| 'string'
@@ -23,6 +24,7 @@ export type FieldType =
 	| 'belongsTo'
 	| 'datetime'
 	| 'unsigned'
+	| 'reference'
 	| `enum:${string}`;
 
 export interface FieldDefinition {
@@ -44,6 +46,7 @@ export interface FieldDefinition {
 	get?: (record: any) => any;
 	relationship?: Relationship;
 	isAuthField?: boolean; // Mark fields managed by auth system
+	target?: () => any; // For foreign key references
 }
 export interface StorageConfig {
 	type?: 'local' | 's3' | 'gcs';
@@ -85,6 +88,7 @@ export interface SchemaDefinitionConfig {
 export interface Schema {
 	name: string;
 	fields: Record<string, FieldDefinition>;
+	relations?: Record<string, RelationDefinition>;
 	config: SchemaDefinitionConfig;
 	filePath?: string; // Added for file-based schema discovery
 	metadata?: {
@@ -97,6 +101,7 @@ export interface Schema {
 export interface GeneratedSchema {
 	name: string;
 	fields: Record<string, FieldDefinition>;
+	relations?: Record<string, RelationDefinition>;
 	config: SchemaDefinitionConfig;
 	drizzle: ReturnType<typeof generateDrizzleSchema>;
 	zod: ReturnType<typeof generateZodSchemas>;

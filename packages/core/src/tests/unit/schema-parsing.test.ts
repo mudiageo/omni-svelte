@@ -88,7 +88,6 @@ export const userSchema = defineSchema('users', {
 }, {
   timestamps: true,
   softDeletes: false,
-});
 `;
 
 			const filePath = join(TEST_DIR, 'user.schema.ts');
@@ -129,7 +128,6 @@ export const userSchema = defineSchema('users', {
   },
 }, {
   timestamps: true,
-});
 `;
 
 			const filePath = join(TEST_DIR, 'user-validation.schema.ts');
@@ -205,7 +203,6 @@ export const userSchema = defineSchema('users', {
   },
 }, {
   timestamps: true,
-});
 `;
 
 			const filePath = join(TEST_DIR, 'user-ast.schema.ts');
@@ -262,7 +259,6 @@ export const userSchema = defineSchema('users', {
 }, {
   timestamps: true,
   softDeletes: false,
-});
 `;
 
 			const filePath = join(TEST_DIR, 'comparison.schema.ts');
@@ -289,4 +285,5 @@ export const userSchema = defineSchema('users', {
 			expect(regexSchema.fields.email.unique).toBe(astSchema.fields.email.unique);
 		});
 	});
+
 });

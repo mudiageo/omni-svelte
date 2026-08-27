@@ -208,6 +208,177 @@ describe('Schema System', () => {
 			const importCount = (outputs[0].content.match(/from 'drizzle-orm\/pg-core'/g) || []).length;
 			expect(importCount).toBe(1);
 		});
+
+		// ── field.reference ──────────────────────────────────────────
+		it('should include integer in imports when reference field is present', () => {
+			const schema: Schema = {
+				name: 'comments',
+				fields: {
+					id: { type: 'serial', primary: true },
+					postId: { type: 'reference', target: () => mockPostSchema }
+				},
+				config: {}
+			};
+			const generator = new DrizzleGenerator(schema);
+			const output = generator.generate();
+			expect(output).toContain('integer');
+			expect(output).toContain(`from 'drizzle-orm/pg-core'`);
+		});
+
+		it('should generate integer column with .references() for reference fields', () => {
+			const schema: Schema = {
+				name: 'comments',
+				fields: {
+					id: { type: 'serial', primary: true },
+					postId: { type: 'reference', target: () => mockPostSchema }
+				},
+				config: {}
+			};
+			const generator = new DrizzleGenerator(schema);
+			const output = generator.generate();
+			expect(output).toContain(`integer('postId')`);
+			expect(output).toContain(`.references(() => posts.id)`);
+		});
+
+		// ── relations ────────────────────────────────────────────────
+		it('should generate correct belongsTo syntax with r.one.target', () => {
+			const schema: Schema = {
+				name: 'posts',
+				fields: { id: { type: 'serial', primary: true } },
+				relations: {
+					author: { kind: 'belongsTo', target: () => mockUserSchema }
+				},
+				config: {}
+			};
+			const internal = new DrizzleGenerator(schema).generateRelationsInternal();
+			// Must use r.one.users(), NOT r.posts.one(r.users, ...)
+			expect(internal).toContain('r.one.users(');
+			expect(internal).not.toContain('r.posts.one(');
+			// from/to not wrapped in arrays
+			expect(internal).toContain('from: r.posts.authorId,');
+			expect(internal).toContain('to: r.users.id,');
+		});
+
+		it('should use authorId as default FK name for belongsTo named "author"', () => {
+			const schema: Schema = {
+				name: 'posts',
+				fields: { id: { type: 'serial', primary: true } },
+				relations: {
+					author: { kind: 'belongsTo', target: () => mockUserSchema }
+				},
+				config: {}
+			};
+			const internal = new DrizzleGenerator(schema).generateRelationsInternal();
+			expect(internal).toContain('r.posts.authorId');
+		});
+
+		it('should respect via option for custom FK name in belongsTo', () => {
+			const schema: Schema = {
+				name: 'posts',
+				fields: { id: { type: 'serial', primary: true } },
+				relations: {
+					author: { kind: 'belongsTo', target: () => mockUserSchema, options: { via: 'writtenBy' } }
+				},
+				config: {}
+			};
+			const internal = new DrizzleGenerator(schema).generateRelationsInternal();
+			expect(internal).toContain('r.posts.writtenBy');
+		});
+
+		it('should generate correct hasMany syntax with r.many.target', () => {
+			const schema: Schema = {
+				name: 'users',
+				fields: { id: { type: 'serial', primary: true } },
+				relations: {
+					posts: { kind: 'hasMany', target: () => mockPostSchema }
+				},
+				config: {}
+			};
+			const internal = new DrizzleGenerator(schema).generateRelationsInternal();
+			// Must use r.many.posts(), NOT r.users.many(r.posts)
+			expect(internal).toContain('r.many.posts()');
+			expect(internal).not.toContain('r.users.many(');
+		});
+
+		it('should generate correct hasOne syntax with from/to FK direction', () => {
+			const profileSchema: Schema = { name: 'profiles', fields: { id: { type: 'serial', primary: true } }, config: {} };
+			const schema: Schema = {
+				name: 'users',
+				fields: { id: { type: 'serial', primary: true } },
+				relations: {
+					profile: { kind: 'hasOne', target: () => profileSchema }
+				},
+				config: {}
+			};
+			const internal = new DrizzleGenerator(schema).generateRelationsInternal();
+			// Must use r.one.profiles with FK on the target side
+			expect(internal).toContain('r.one.profiles(');
+			expect(internal).toContain('from: r.profiles.usersId,');
+			expect(internal).toContain('to: r.users.id,');
+			expect(internal).not.toContain('r.users.one(');
+		});
+
+		it('should emit a TODO comment for morphTo/morphMany (not yet supported)', () => {
+			const schema: Schema = {
+				name: 'comments',
+				fields: { id: { type: 'serial', primary: true } },
+				relations: {
+					commentable: { kind: 'morphTo', options: { types: {} } }
+				},
+				config: {}
+			};
+			const internal = new DrizzleGenerator(schema).generateRelationsInternal();
+			expect(internal).toContain('TODO');
+			expect(internal).toContain('morphTo');
+		});
+
+		it('should emit defineRelations block in single-file output when schemas have relations', async () => {
+			const userSchema: Schema = {
+				name: 'users',
+				fields: { id: { type: 'serial', primary: true } },
+				relations: {
+					posts: { kind: 'hasMany', target: () => postSchemaWithRel }
+				},
+				config: {}
+			};
+			const postSchemaWithRel: Schema = {
+				name: 'posts',
+				fields: {
+					id: { type: 'serial', primary: true },
+					authorId: { type: 'integer', required: true }
+				},
+				relations: {
+					author: { kind: 'belongsTo', target: () => userSchema }
+				},
+				config: {}
+			};
+
+			const generator = new DrizzleGenerator(userSchema);
+			const outputs = await generator.generateFiles([userSchema, postSchemaWithRel], {
+				format: 'single-file',
+				path: path.join(tempDir, 'schema.ts')
+			});
+
+			const content = outputs[0].content;
+			expect(content).toContain(`import { defineRelations } from 'drizzle-orm'`);
+			expect(content).toContain('schemaRelations = defineRelations(');
+			expect(content).toContain('users, posts');
+			// Correct Drizzle 1.0 syntax
+			expect(content).toContain('r.many.posts()');
+			expect(content).toContain('r.one.users(');
+			// Must NOT contain old wrong syntax
+			expect(content).not.toContain('r.users.many(');
+			expect(content).not.toContain('r.posts.one(');
+		});
+
+		it('should not emit defineRelations block when no schemas have relations', async () => {
+			const generator = new DrizzleGenerator(mockUserSchema);
+			const outputs = await generator.generateFiles([mockUserSchema, mockPostSchema], {
+				format: 'single-file',
+				path: path.join(tempDir, 'schema.ts')
+			});
+			expect(outputs[0].content).not.toContain('defineRelations');
+		});
 	});
 
 	// ─── ZodGenerator ─────────────────────────────────────────────

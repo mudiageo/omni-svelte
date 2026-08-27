@@ -122,9 +122,22 @@ export class RegexSchemaParser implements ISchemaParser {
 			const fieldsContent = fieldsMatch[1];
 			const configContent = fieldsMatch[2] || '';
 
+			const rawFields = this.extractFields(fieldsContent);
+			const fields: Record<string, any> = {};
+			const relations: Record<string, any> = {};
+
+			for (const [key, def] of Object.entries(rawFields)) {
+				if (def.kind) {
+					relations[key] = def;
+				} else if (def.type) {
+					fields[key] = def;
+				}
+			}
+
 			const schema: Schema = {
 				name: schemaName,
-				fields: this.extractFields(fieldsContent),
+				fields,
+				relations,
 				config: this.extractConfig(configContent),
 				filePath
 			};
@@ -140,6 +153,10 @@ export class RegexSchemaParser implements ISchemaParser {
 		const fields: Record<string, any> = {};
 
 		try {
+			// Strip comments to avoid breaking the primitive extraction
+			fieldsContent = fieldsContent.replace(/\/\/.*$/gm, '');
+			fieldsContent = fieldsContent.replace(/\/\*[\s\S]*?\*\//g, '');
+
 			// Enhanced field extraction that handles nested objects
 			let depth = 0;
 			let currentField = '';
@@ -209,11 +226,28 @@ export class RegexSchemaParser implements ISchemaParser {
 				.replace(/^\s*\{\s*/, '')
 				.replace(/\s*\}\s*$/, '');
 
-			// Extract type
+			// Extract type (standard object literal)
 			const typeMatch = fieldDef.match(/type:\s*['"`](\w+)['"`]/);
 			if (typeMatch) field.type = typeMatch[1];
 
-			// Extract boolean properties
+			// Extract type from fluent field API
+			const fluentTypeMatch = fieldDef.match(/field\.(\w+)\s*\(/);
+			if (fluentTypeMatch) {
+				field.type = fluentTypeMatch[1];
+				if (fieldDef.includes('.primaryKey()')) field.primary = true;
+				if (fieldDef.includes('.required()')) field.required = true;
+				if (fieldDef.includes('.unique()')) field.unique = true;
+				if (fieldDef.includes('.optional()')) field.optional = true;
+				if (fieldDef.includes('.hidden()')) field.hidden = true;
+			}
+
+			// Extract relation from fluent relation API
+			const relationMatch = fieldDef.match(/relation\.(\w+)\s*\(/);
+			if (relationMatch) {
+				field.kind = relationMatch[1];
+			}
+
+			// Extract boolean properties (standard object literal)
 			const booleanProps = ['primary', 'required', 'unique', 'hidden', 'computed', 'optional'];
 			for (const prop of booleanProps) {
 				if (new RegExp(`${prop}:\\s*true`).test(fieldDef)) {
@@ -430,7 +464,18 @@ export class ASTSchemaParser implements ISchemaParser {
 
 			// Extract fields from second argument
 			const fieldsArg = args[1];
-			const fields = this.parseFieldsObject(fieldsArg);
+			const rawFields = this.parseFieldsObject(fieldsArg);
+
+			const fields: Record<string, any> = {};
+			const relations: Record<string, any> = {};
+
+			for (const [key, def] of Object.entries(rawFields)) {
+				if ((def as any).kind) {
+					relations[key] = def;
+				} else {
+					fields[key] = def;
+				}
+			}
 
 			// Extract config from third argument (optional)
 			const configArg = args[2];
@@ -439,6 +484,7 @@ export class ASTSchemaParser implements ISchemaParser {
 			return {
 				name: schemaName,
 				fields,
+				relations,
 				config,
 				filePath: this.filePath
 			};
@@ -502,11 +548,36 @@ export class ASTSchemaParser implements ISchemaParser {
 	 * Parse a field definition object
 	 */
 	private parseFieldDefinition(node: ts.Node): FieldDefinition | null {
+		const fieldDef: any = {};
+
+		if (ts.isCallExpression(node) || ts.isPropertyAccessExpression(node)) {
+			const text = node.getText(this.sourceFile);
+			
+			// Extract type from fluent field API
+			const fluentTypeMatch = text.match(/field\.(\w+)\s*\(/);
+			if (fluentTypeMatch) {
+				fieldDef.type = fluentTypeMatch[1];
+				if (text.includes('.primaryKey()')) fieldDef.primary = true;
+				if (text.includes('.required()')) fieldDef.required = true;
+				if (text.includes('.unique()')) fieldDef.unique = true;
+				if (text.includes('.optional()')) fieldDef.optional = true;
+				if (text.includes('.hidden()')) fieldDef.hidden = true;
+				return fieldDef as FieldDefinition;
+			}
+			
+			// Extract relation from fluent relation API
+			const relationMatch = text.match(/relation\.(\w+)\s*\(/);
+			if (relationMatch) {
+				fieldDef.kind = relationMatch[1];
+				return fieldDef as any;
+			}
+		}
+
 		if (!ts.isObjectLiteralExpression(node)) {
 			return null;
 		}
 
-		const fieldDef: Partial<FieldDefinition> = {};
+		const objDef: Partial<FieldDefinition> = {};
 
 		for (const property of node.properties) {
 			if (ts.isPropertyAssignment(property) && ts.isIdentifier(property.name)) {
@@ -516,7 +587,7 @@ export class ASTSchemaParser implements ISchemaParser {
 				switch (propName) {
 					case 'type':
 						if (typeof value === 'string') {
-							fieldDef.type = value as any;
+							objDef.type = value as any;
 						}
 						break;
 					case 'primary':
@@ -526,35 +597,35 @@ export class ASTSchemaParser implements ISchemaParser {
 					case 'computed':
 					case 'optional':
 						if (typeof value === 'boolean') {
-							(fieldDef as any)[propName] = value;
+							(objDef as any)[propName] = value;
 						}
 						break;
 					case 'length':
 						if (typeof value === 'number') {
-							fieldDef.length = value;
+							objDef.length = value;
 						}
 						break;
 					case 'default':
-						fieldDef.default = value;
+						objDef.default = value;
 						break;
 					case 'values':
 						if (Array.isArray(value)) {
-							fieldDef.values = value as string[];
+							objDef.values = value as string[];
 						}
 						break;
 					case 'validation':
 						if (typeof value === 'object' && value !== null) {
-							fieldDef.validation = value;
+							objDef.validation = value;
 						}
 						break;
 					case 'hash':
 						if (typeof value === 'string') {
-							fieldDef.hash = value as 'bcrypt' | 'argon2';
+							objDef.hash = value as 'bcrypt' | 'argon2';
 						}
 						break;
 					case 'storage':
 						if (typeof value === 'object' && value !== null) {
-							fieldDef.storage = value as any;
+							objDef.storage = value as any;
 						}
 						break;
 					case 'get':
@@ -563,7 +634,7 @@ export class ASTSchemaParser implements ISchemaParser {
 							ts.isFunctionExpression(property.initializer) ||
 							ts.isArrowFunction(property.initializer)
 						) {
-							fieldDef.get = this.extractFunctionText(property.initializer);
+							objDef.get = this.extractFunctionText(property.initializer);
 						}
 						break;
 				}
@@ -571,11 +642,11 @@ export class ASTSchemaParser implements ISchemaParser {
 		}
 
 		// Ensure type is present
-		if (!fieldDef.type) {
+		if (!objDef.type) {
 			return null;
 		}
 
-		return fieldDef as FieldDefinition;
+		return objDef as FieldDefinition;
 	}
 
 	/**
