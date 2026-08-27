@@ -148,13 +148,32 @@ export class DrizzleGenerator {
 	constructor(private schema: Schema) {}
 
 	generate(): string {
-		// Relations are emitted only in single-file generateFiles() mode because
-		// per-schema files would need cross-schema imports for the target tables.
+		const relationsBlock = this.generateRelations();
+		
+		let relativeImports = '';
+		if (relationsBlock) {
+			const targetTables = new Set<string>();
+			for (const rel of Object.values(this.schema.relations || {})) {
+				try {
+					targetTables.add(rel.target().name);
+				} catch (e) {}
+			}
+			targetTables.delete(this.schema.name); // don't import self
+			
+			if (targetTables.size > 0) {
+				relativeImports = `// TODO: replace relative cross-schema imports with virtual module imports\n`;
+				relativeImports += Array.from(targetTables).map(t => `import { ${t} } from './${t}';`).join('\n');
+			}
+			relativeImports += `\nimport { defineRelationsPart } from 'drizzle-orm';`;
+		}
+
 		return [
 			this.generateImports(),
+			relativeImports,
 			this.generateTableDefinition(),
+			relationsBlock,
 			this.generateExports(),
-		].join('\n\n');
+		].filter(Boolean).join('\n\n');
 	}
 
 	/**
@@ -185,6 +204,7 @@ export class DrizzleGenerator {
 				const localKey = rel.options?.via ?? `${key}Id`;
 				lines.push(`    ${key}: r.one.${targetTable}({`);
 				lines.push(`      from: r.${tableName}.${localKey},`);
+				// TODO: dynamically look up target primary key instead of hardcoding .id
 				lines.push(`      to: r.${targetTable}.id,`);
 				lines.push(`    }),`);
 
@@ -199,6 +219,7 @@ export class DrizzleGenerator {
 				const fkOnTarget = rel.options?.via ?? `${tableName}Id`;
 				lines.push(`    ${key}: r.one.${targetTable}({`);
 				lines.push(`      from: r.${targetTable}.${fkOnTarget},`);
+				// TODO: dynamically look up target primary key instead of hardcoding .id
 				lines.push(`      to: r.${tableName}.id,`);
 				lines.push(`    }),`);
 
