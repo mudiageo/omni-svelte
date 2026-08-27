@@ -4,7 +4,7 @@ import type { Model } from './model.js';
 import { getModel } from './hooks.js';
 
 export interface Relationship {
-	type: 'belongsTo' | 'hasMany' | 'hasOne' | 'manyToMany';
+	type: 'belongsTo' | 'hasMany' | 'hasOne' | 'manyToMany' | 'morphTo' | 'morphMany';
 	model: string;
 	foreignKey?: string; // for belongsTo and hasMany
 	localKey?: string; // for hasMany and hasOne
@@ -44,6 +44,12 @@ export class RelationshipLoader {
 				return this.loadHasOne(models, relationship, relationName);
 			case 'manyToMany':
 				return this.loadManyToMany(models, relationship, relationName);
+			case 'morphTo':
+			case 'morphMany':
+				// TODO: implement polymorphic eager loading
+				throw new Error(`Polymorphic eager loading (${relationship.type}) is not yet supported.`);
+			default:
+				throw new Error(`Unsupported relationship type ${relationship.type}`);
 		}
 	}
 

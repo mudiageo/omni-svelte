@@ -61,6 +61,7 @@ function generateRelationships(schema: Schema): Record<string, any> {
 				// Target might not be defined if using strings or unresolved references
 			}
 
+			// TODO: consider handling pluralization for default foreign keys (e.g. postsId -> postId)
 			relationships[relationName] = {
 				type: relation.kind,
 				model: targetModel,
