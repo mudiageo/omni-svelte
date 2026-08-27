@@ -100,12 +100,16 @@ Defined in your schema or model file:
 
 ```ts
 // src/lib/posts.schema.ts
-defineSchema('posts', fields, {
-  relationships: {
-    author:   { type: 'belongsTo',  model: 'users',    foreignKey: 'userId' },
-    comments: { type: 'hasMany',    model: 'comments', foreignKey: 'postId' },
-    tags:     { type: 'belongsToMany', through: 'postTags', model: 'tags' }
-  }
+import { defineSchema, field, relation } from 'omni-svelte/schema';
+import { userSchema } from './users.schema';
+import { commentSchema } from './comments.schema';
+
+export const postSchema = defineSchema('posts', {
+  id: field.serial().primaryKey(),
+  title: field.string(255).required(),
+  authorId: field.integer().required(),
+  author: relation.belongsTo(() => userSchema, { via: 'authorId' }),
+  comments: relation.hasMany(() => commentSchema)
 });
 ```
 

@@ -7,80 +7,84 @@ order: 4
 
 # Relationships
 
-OmniSvelte supports four relationship types, all defined in your schema options and resolved via `.with()` eager loading.
+OmniSvelte supports fluent relationships defined directly in your schema, powering both auto-generated Drizzle 1.0 relations (`defineRelations`) and ActiveRecord `.with()` eager loading.
 
 ## Defining relationships
 
+Relationships can be defined inline using the `relation.*` helpers in your schema definition:
+
 ```ts
 // src/lib/posts.schema.ts
-defineSchema('posts', fields, {
-  relationships: {
-    author:   { type: 'belongsTo',    model: 'users',    foreignKey: 'userId' },
-    comments: { type: 'hasMany',      model: 'comments', foreignKey: 'postId' },
-    tags:     { type: 'belongsToMany', through: 'postTags', model: 'tags',
-                foreignKey: 'postId', relatedKey: 'tagId' }
-  }
+import { defineSchema, field, relation } from 'omni-svelte/schema';
+import { userSchema } from './users.schema';
+import { commentSchema } from './comments.schema';
+
+export const postSchema = defineSchema('posts', {
+  id: field.serial().primaryKey(),
+  title: field.string(255).required(),
+  authorId: field.integer().required(),
+  
+  // Inline relations
+  author: relation.belongsTo(() => userSchema, { via: 'authorId' }),
+  comments: relation.hasMany(() => commentSchema),
+}, {
+  timestamps: true
 });
 ```
 
-## Relationship types
+## Relationship helpers
 
-### `hasMany`
+### `relation.belongsTo`
 
-One post has many comments:
+A record belongs to a parent record (foreign key on this table):
 
 ```ts
-relationships: {
-  comments: {
-    type:       'hasMany',
-    model:      'comments',
-    foreignKey: 'postId'   // column on `comments` table
-  }
-}
+author: relation.belongsTo(() => userSchema, { via: 'authorId' })
 ```
 
-### `belongsTo`
-
-A comment belongs to one post:
-
+*Generated Drizzle:*
 ```ts
-relationships: {
-  post: {
-    type:       'belongsTo',
-    model:      'posts',
-    foreignKey: 'postId'   // column on THIS model's table
-  }
-}
+author: r.one.users({
+  from: r.posts.authorId,
+  to: r.users.id
+})
 ```
 
-### `hasOne`
+### `relation.hasMany`
 
-A user has one profile:
+A record owns many child records (foreign key on target table):
 
 ```ts
-relationships: {
-  profile: {
-    type:       'hasOne',
-    model:      'profiles',
-    foreignKey: 'userId'
-  }
-}
+comments: relation.hasMany(() => commentSchema, { via: 'postId' })
 ```
 
-### `belongsToMany`
+*Generated Drizzle:*
+```ts
+comments: r.many.comments()
+```
 
-Posts and tags through a pivot table:
+### `relation.hasOne`
+
+A record has exactly one child record (foreign key on target table):
 
 ```ts
-relationships: {
-  tags: {
-    type:        'belongsToMany',
-    model:       'tags',
-    through:     'postTags',     // pivot table name
-    foreignKey:  'postId',
-    relatedKey:  'tagId'
-  }
-}
+profile: relation.hasOne(() => profileSchema, { via: 'userId' })
+```
+
+*Generated Drizzle:*
+```ts
+profile: r.one.profiles({
+  from: r.profiles.userId,
+  to: r.posts.id
+})
+```
+
+### `relation.manyToMany`
+
+Records related through a pivot table:
+
+```ts
+tags: relation.manyToMany(() => tagSchema, { through: 'postTags' })
 ```
 
 ## Eager loading
