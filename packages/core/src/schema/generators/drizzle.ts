@@ -162,8 +162,9 @@ export class DrizzleGenerator {
 	 * Imports are NOT included here — callers (generateFiles) prepend them.
 	 */
 	generateRelations(): string {
-		return this.generateRelationsInternal()
-			? `export const ${this.schema.name}Relations = relations(${this.schema.name}, (r) => ({\n${this.generateRelationsInternal()}\n}));`
+		const internal = this.generateRelationsInternal();
+		return internal
+			? `export const ${this.schema.name}Relations = defineRelationsPart({ ${this.schema.name} }, (r) => ({\n  ${this.schema.name}: {\n${internal}\n  }\n}));`
 			: '';
 	}
 
@@ -263,7 +264,7 @@ export class DrizzleGenerator {
 				allSchemas.push(generator.generateTableDefinition());
 				allTypes.push(generator.generateExports());
 				const rel = generator.generateRelationsInternal();
-				if (rel) allRelations.push(rel);
+				if (rel) allRelations.push(`  ${schema.name}: {\n${rel}\n  }`);
 			});
 
 			const drizzleOrmImport = hasRelations
