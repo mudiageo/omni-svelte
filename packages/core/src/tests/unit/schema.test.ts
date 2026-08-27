@@ -441,6 +441,19 @@ describe('Schema System', () => {
 
 	// ─── ModelGenerator ───────────────────────────────────────────
 	describe('ModelGenerator', () => {
+		it('should generate relationships object correctly', () => {
+			const schemaWithRelations = { ...mockUserSchema, relations: { posts: { kind: 'hasMany', target: () => ({ name: 'posts' }) } } };
+			const generator = new ModelGenerator(schemaWithRelations);
+			const content = generator.generate();
+
+			expect(content).toContain('static relationships =');
+			expect(content).toContain('posts:');
+			expect(content).toContain("type: 'hasMany'");
+			expect(content).toContain("model: 'posts'");
+			expect(content).toContain("foreignKey: 'usersId'");
+			expect(content).toContain("localKey: 'id'");
+		});
+
 		it('should generate model with correct class name', () => {
 			const generator = new ModelGenerator(mockUserSchema);
 			const content = generator.generate();
