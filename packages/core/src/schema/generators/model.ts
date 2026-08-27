@@ -50,17 +50,25 @@ export function generateModel(
 function generateRelationships(schema: Schema): Record<string, any> {
 	const relationships: Record<string, any> = {};
 
-	Object.entries(schema.fields).forEach(([fieldName, field]) => {
-		if (field.relationship) {
-			const relation = field.relationship;
-			relationships[fieldName] = {
-				type: relation.type,
-				model: relation.model,
-				foreignKey: relation.foreignKey,
-				localKey: relation.localKey
+	if (schema.relations) {
+		Object.entries(schema.relations).forEach(([relationName, relation]) => {
+			let targetModel = 'unknown';
+			try {
+				if (relation.target) {
+					targetModel = relation.target().name;
+				}
+			} catch (e) {
+				// Target might not be defined if using strings or unresolved references
+			}
+
+			relationships[relationName] = {
+				type: relation.kind,
+				model: targetModel,
+				foreignKey: relation.options?.via || (relation.kind === 'belongsTo' ? `${relationName}Id` : `${schema.name}Id`),
+				localKey: relation.options?.localKey || 'id'
 			};
-		}
-	});
+		});
+	}
 
 	return relationships;
 }
