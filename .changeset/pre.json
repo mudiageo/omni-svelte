@@ -1,5 +1,13 @@
 {
   "mode": "pre",
   "tag": "next",
-  "changesets": []
+  "changesets": [
+    "drizzle-barrel-exports",
+    "drizzle-upgrade",
+    "feat-relations-api",
+    "missing-model-hooks",
+    "model-relations-fix",
+    "pr-1-fixes",
+    "relations-parser-fix"
+  ]
 }
