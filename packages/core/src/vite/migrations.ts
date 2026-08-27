@@ -110,7 +110,7 @@ async function runMigrations(
 
 	try {
 		// Dynamically import drizzle-kit and database dependencies
-		const drizzleKit = await import('drizzle-kit/api');
+		const drizzleKit = await import('drizzle-kit/api-postgres');
 		const { drizzle } = await import('drizzle-orm/postgres-js');
 		const postgres = (await import('postgres')).default;
 

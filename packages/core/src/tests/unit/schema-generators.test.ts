@@ -49,6 +49,9 @@ describe('Schema Generators with Path Resolution', () => {
 			expect(outputs[0].path).toBe('./src/lib/db/server/schema.ts');
 			expect(outputs[0].type).toBe('drizzle');
 			expect(outputs[0].content).toContain('export const users = pgTable');
+			expect(outputs[0].content).toContain("(t) => [");
+			expect(outputs[0].content).toContain("index('users_email_idx').on(t.email)");
+			expect(outputs[0].content).not.toContain("export const users_email_idx = index");
 		});
 
 		it('should generate files with correct paths for per-schema format', async () => {
