@@ -1,5 +1,25 @@
 # omni-svelte
 
+## 0.3.0-next.0
+
+### Minor Changes
+
+- feat: add omni-svelte/drizzle barrel exports for pg, mysql, and sqlite and update schema generators ([#48](https://github.com/mudiageo/omni-svelte/pull/48))
+
+- breaking: upgrade drizzle-orm and drizzle-kit to 1.0.0-rc.4 ([#46](https://github.com/mudiageo/omni-svelte/pull/46))
+
+- feat(schema): introduce new relations API (field.reference and relation.*) to support Drizzle 1.0 ([#47](https://github.com/mudiageo/omni-svelte/pull/47))
+
+### Patch Changes
+
+- fix(schema): append static hooks initialization to all generated model classes to prevent crashes on Model.create() ([#53](https://github.com/mudiageo/omni-svelte/pull/53))
+
+- fix(schema): update model generator to use schema.relations instead of field.relationship to support eager loading ([#49](https://github.com/mudiageo/omni-svelte/pull/49))
+
+- fix(schema): generate inline index definitions inside pgTable callback ([#46](https://github.com/mudiageo/omni-svelte/pull/46))
+
+- fix: allow AST and Regex parsers to statically parse fluent field.* and relation.* APIs correctly and ignore comments ([#47](https://github.com/mudiageo/omni-svelte/pull/47))
+
 ## 0.2.2
 
 ### Patch Changes
