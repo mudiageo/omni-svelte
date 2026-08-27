@@ -148,7 +148,7 @@ describe('Schema System', () => {
 			const output = generator.generate();
 
 			// Import line
-			expect(output).toContain(`from 'drizzle-orm/pg-core'`);
+			expect(output).toContain(`from 'omni-svelte/drizzle/pg'`);
 			expect(output).toContain('serial');
 			expect(output).toContain('text');
 			expect(output).toContain('varchar');
@@ -204,8 +204,8 @@ describe('Schema System', () => {
 			expect(outputs[0].type).toBe('drizzle');
 			expect(outputs[0].content).toContain('export const users = pgTable');
 			expect(outputs[0].content).toContain('export const posts = pgTable');
-			// Should import from drizzle-orm/pg-core exactly once
-			const importCount = (outputs[0].content.match(/from 'drizzle-orm\/pg-core'/g) || []).length;
+			// Should import from omni-svelte/drizzle/pg exactly once
+			const importCount = (outputs[0].content.match(/from 'omni-svelte\/drizzle\/pg'/g) || []).length;
 			expect(importCount).toBe(1);
 		});
 
@@ -222,7 +222,7 @@ describe('Schema System', () => {
 			const generator = new DrizzleGenerator(schema);
 			const output = generator.generate();
 			expect(output).toContain('integer');
-			expect(output).toContain(`from 'drizzle-orm/pg-core'`);
+			expect(output).toContain(`from 'omni-svelte/drizzle/pg'`);
 		});
 
 		it('should generate integer column with .references() for reference fields', () => {
