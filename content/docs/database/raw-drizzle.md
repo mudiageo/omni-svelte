@@ -21,7 +21,7 @@ import { posts, users, comments } from '$schema'; // all Drizzle tables
 ```ts
 import { db } from '$db';
 import { posts, users, comments } from '$schema';
-import { eq, and, count, sql, desc, gt } from 'drizzle-orm';
+import { eq, and, count, sql, desc, gt } from 'omni-svelte/drizzle/pg';
 
 const results = await db
   .select({
@@ -86,7 +86,7 @@ await db
 ## Raw SQL
 
 ```ts
-import { sql } from 'drizzle-orm';
+import { sql } from 'omni-svelte/drizzle/pg';
 
 const result = await db.execute(
   sql`SELECT id, title, ts_rank(search_vector, plainto_tsquery(${query})) AS rank

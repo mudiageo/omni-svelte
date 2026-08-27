@@ -36,7 +36,7 @@ All paths are configurable — see [vite.config.ts](/docs/configuration/svelte-c
 
 ```ts
 // src/lib/db/server/schema.ts — DO NOT EDIT (auto-generated)
-import { pgTable, serial, varchar, text, boolean, timestamp, index } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, boolean, timestamp, index } from 'omni-svelte/drizzle/pg';
 
 export const posts = pgTable('posts', {
   id:        serial('id').primaryKey(),

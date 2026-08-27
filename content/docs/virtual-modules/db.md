@@ -29,7 +29,7 @@ const db: PostgresJsDatabase;
 ```ts
 import { db }    from '$db';
 import { users } from '$schema';
-import { eq }    from 'drizzle-orm';
+import { eq }    from 'omni-svelte/drizzle/pg';
 
 // Select
 const allUsers = await db.select().from(users);
