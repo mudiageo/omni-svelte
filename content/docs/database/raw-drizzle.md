@@ -9,7 +9,26 @@ order: 7
 
 The generated Model API covers most use cases. When you need complex joins, custom SQL, or Drizzle features the Model abstraction doesn't expose, use `$db` directly.
 
-## Importing
+## Drizzle Imports
+
+When writing custom queries, you will often need Drizzle utilities like `eq`, `and`, `sql`, or `desc`. 
+
+Omni Svelte provides built-in barrel exports for these so you **do not** need to install `drizzle-orm` in your project. This guarantees you are using the exact same version of Drizzle that Omni Svelte uses internally, preventing frustrating type mismatches.
+
+Import them directly from the Omni Svelte package based on your database type:
+
+```ts
+// For PostgreSQL
+import { eq, and, sql, desc } from 'omni-svelte/drizzle/pg';
+
+// For MySQL
+import { eq, and, sql, desc } from 'omni-svelte/drizzle/mysql';
+
+// For SQLite
+import { eq, and, sql, desc } from 'omni-svelte/drizzle/sqlite';
+```
+
+## Importing Database Instance
 
 ```ts
 import { db }    from '$db';          // Drizzle database instance
