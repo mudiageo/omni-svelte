@@ -526,6 +526,10 @@ ${typeImport}`;
   };`);
 		}
 
+		if (hooks.length === 0) {
+			return '  static hooks = {};';
+		}
+
 		return hooks.join('\n');
 	}
 
