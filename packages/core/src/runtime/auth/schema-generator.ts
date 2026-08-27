@@ -263,9 +263,9 @@ function generateImports(databaseType: string, tables: any): string {
 	// Build import statement
 	let importStatement = '';
 	if (rootImports.length > 0) {
-		importStatement += `import { ${rootImports.join(', ')} } from "drizzle-orm";\n`;
+		coreImports.push(...rootImports);
 	}
-	importStatement += `import { ${coreImports.filter((x) => x.trim()).join(', ')} } from "drizzle-orm/${databaseType}-core";\n\n`;
+	importStatement += `import { ${coreImports.filter((x) => x.trim()).join(', ')} } from "omni-svelte/drizzle/${databaseType}";\n\n`;
 
 	return importStatement;
 }

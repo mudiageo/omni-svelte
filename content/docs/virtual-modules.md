@@ -54,7 +54,7 @@ Generated from your `.schema.ts` files. The barrel re-exports every `*.model.ts`
 // src/lib/db/server/+server.ts
 import { db } from '$db';
 import { posts, users } from '$schema';
-import { eq } from 'drizzle-orm';
+import { eq } from 'omni-svelte/drizzle/pg';
 
 const publishedPosts = await db.select().from(posts).where(eq(posts.published, true));
 ```

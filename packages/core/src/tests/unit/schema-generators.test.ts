@@ -73,7 +73,7 @@ describe('Schema Generators with Path Resolution', () => {
 			const content = generator.generate();
 
 			expect(content).toContain('import {');
-			expect(content).toContain("} from 'drizzle-orm/pg-core';");
+			expect(content).toContain("} from 'omni-svelte/drizzle/pg';");
 			expect(content).toContain('serial');
 			expect(content).toContain('text');
 			expect(content).toContain('timestamp');

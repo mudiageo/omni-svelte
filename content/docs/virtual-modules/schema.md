@@ -22,7 +22,7 @@ This is equivalent to importing from the generated `src/lib/db/server/schema.ts`
 ```ts
 import { db }    from '$db';
 import { posts, users } from '$schema';
-import { eq } from 'drizzle-orm';
+import { eq } from 'omni-svelte/drizzle/pg';
 
 const result = await db
   .select()

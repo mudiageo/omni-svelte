@@ -46,6 +46,11 @@
 	"types": "./dist/index.d.ts",
 	"type": "module",
 	"exports": {
+		"./drizzle/pg": {
+			"types": "./dist/drizzle/pg.d.ts",
+			"svelte": "./dist/drizzle/pg.js",
+			"default": "./dist/drizzle/pg.js"
+		},
 		".": {
 			"types": "./dist/index.d.ts",
 			"svelte": "./dist/index.js",
@@ -125,6 +130,16 @@
 			"types": "./dist/utils/index.d.ts",
 			"svelte": "./dist/utils/index.js",
 			"default": "./dist/utils/index.js"
+		},
+		"./drizzle/mysql": {
+			"types": "./dist/drizzle/mysql.d.ts",
+			"svelte": "./dist/drizzle/mysql.js",
+			"default": "./dist/drizzle/mysql.js"
+		},
+		"./drizzle/sqlite": {
+			"types": "./dist/drizzle/sqlite.d.ts",
+			"svelte": "./dist/drizzle/sqlite.js",
+			"default": "./dist/drizzle/sqlite.js"
 		}
 	},
 	"peerDependencies": {

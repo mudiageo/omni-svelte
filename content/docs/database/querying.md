@@ -124,7 +124,7 @@ When you need SQL that the query builder can't express:
 import { Posts } from '$models/posts.model';
 import { db }    from '$db';
 import { posts, users } from '$schema';
-import { eq, and, gt, sql } from 'drizzle-orm';
+import { eq, and, gt, sql } from 'omni-svelte/drizzle/pg';
 
 const result = await db
   .select({

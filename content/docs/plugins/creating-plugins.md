@@ -42,7 +42,7 @@ const config = {
 ## Adding database tables
 
 ```ts
-import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp } from 'omni-svelte/drizzle/pg';
 
 export function auditPlugin(): OmniPlugin {
   const auditLogs = pgTable('audit_logs', {

@@ -9,7 +9,26 @@ order: 7
 
 The generated Model API covers most use cases. When you need complex joins, custom SQL, or Drizzle features the Model abstraction doesn't expose, use `$db` directly.
 
-## Importing
+## Drizzle Imports
+
+When writing custom queries, you will often need Drizzle utilities like `eq`, `and`, `sql`, or `desc`. 
+
+Omni Svelte provides built-in barrel exports for these so you **do not** need to install `drizzle-orm` in your project. This guarantees you are using the exact same version of Drizzle that Omni Svelte uses internally, preventing frustrating type mismatches.
+
+Import them directly from the Omni Svelte package based on your database type:
+
+```ts
+// For PostgreSQL
+import { eq, and, sql, desc } from 'omni-svelte/drizzle/pg';
+
+// For MySQL
+import { eq, and, sql, desc } from 'omni-svelte/drizzle/mysql';
+
+// For SQLite
+import { eq, and, sql, desc } from 'omni-svelte/drizzle/sqlite';
+```
+
+## Importing Database Instance
 
 ```ts
 import { db }    from '$db';          // Drizzle database instance
@@ -21,7 +40,7 @@ import { posts, users, comments } from '$schema'; // all Drizzle tables
 ```ts
 import { db } from '$db';
 import { posts, users, comments } from '$schema';
-import { eq, and, count, sql, desc, gt } from 'drizzle-orm';
+import { eq, and, count, sql, desc, gt } from 'omni-svelte/drizzle/pg';
 
 const results = await db
   .select({
@@ -86,7 +105,7 @@ await db
 ## Raw SQL
 
 ```ts
-import { sql } from 'drizzle-orm';
+import { sql } from 'omni-svelte/drizzle/pg';
 
 const result = await db.execute(
   sql`SELECT id, title, ts_rank(search_vector, plainto_tsquery(${query})) AS rank
