@@ -67,7 +67,9 @@ export const postSchema = defineSchema(
 		// New relations API
 		author: relation.belongsTo(() => userSchema, { via: 'userId' }),
 
-		published: field.boolean()
+		published: field.boolean(),
+		
+		comments: relation.hasMany(() => commentSchema)
 	},
 	{
 		timestamps: true,
@@ -87,3 +89,21 @@ export const postSchema = defineSchema(
 );
 
 export const Post = postSchema.model;
+
+export const commentSchema = defineSchema(
+	'comments',
+	{
+		id: field.serial().primaryKey(),
+		content: field.string().required(),
+		postId: field.reference(() => postSchema),
+		authorId: field.reference(() => userSchema),
+		
+		post: relation.belongsTo(() => postSchema, { via: 'postId' }),
+		author: relation.belongsTo(() => userSchema, { via: 'authorId' })
+	},
+	{
+		timestamps: true
+	}
+);
+
+export const Comment = commentSchema.model;

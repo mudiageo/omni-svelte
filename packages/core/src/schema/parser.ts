@@ -83,7 +83,7 @@ export class RegexSchemaParser implements ISchemaParser {
 			const schemas: Schema[] = [];
 
 			for (const match of schemaMatches) {
-				const schema = this.parseSchemaFromMatch(match, filePath);
+				const schema = this.parseSchemaFromMatch(match, filePath, content);
 				if (schema) {
 					schemas.push(schema);
 				}
@@ -98,7 +98,7 @@ export class RegexSchemaParser implements ISchemaParser {
 		}
 	}
 
-	private parseSchemaFromMatch(match: string, filePath: string): Schema | null {
+	private parseSchemaFromMatch(match: string, filePath: string, fullContent: string = ''): Schema | null {
 		try {
 			const nameMatch = match.match(/defineSchema\s*\(\s*['"`](\w+)['"`]/);
 
@@ -122,7 +122,7 @@ export class RegexSchemaParser implements ISchemaParser {
 			const fieldsContent = fieldsMatch[1];
 			const configContent = fieldsMatch[2] || '';
 
-			const rawFields = this.extractFields(fieldsContent);
+			const rawFields = this.extractFields(fieldsContent, fullContent);
 			const fields: Record<string, any> = {};
 			const relations: Record<string, any> = {};
 
@@ -149,7 +149,7 @@ export class RegexSchemaParser implements ISchemaParser {
 		}
 	}
 
-	private extractFields(fieldsContent: string): Record<string, any> {
+	private extractFields(fieldsContent: string, fullContent: string = ''): Record<string, any> {
 		const fields: Record<string, any> = {};
 
 		try {
@@ -184,7 +184,7 @@ export class RegexSchemaParser implements ISchemaParser {
 					// Field separator at root level
 					if (depth === 0 && char === ',') {
 						if (currentFieldName && currentField) {
-							fields[currentFieldName] = this.parseFieldDefinition(currentField);
+							fields[currentFieldName] = this.parseFieldDefinition(currentField, fullContent);
 						}
 						currentField = '';
 						currentFieldName = '';
@@ -207,7 +207,7 @@ export class RegexSchemaParser implements ISchemaParser {
 
 			// Handle the last field
 			if (currentFieldName && currentField) {
-				fields[currentFieldName] = this.parseFieldDefinition(currentField);
+				fields[currentFieldName] = this.parseFieldDefinition(currentField, fullContent);
 			}
 		} catch (error) {
 			console.warn('Error extracting fields:', error);
@@ -216,7 +216,7 @@ export class RegexSchemaParser implements ISchemaParser {
 		return fields;
 	}
 
-	private parseFieldDefinition(fieldDef: string): any {
+	private parseFieldDefinition(fieldDef: string, fullContent: string = ''): any {
 		const field: any = {};
 
 		try {
@@ -245,6 +245,31 @@ export class RegexSchemaParser implements ISchemaParser {
 			const relationMatch = fieldDef.match(/relation\.(\w+)\s*\(/);
 			if (relationMatch) {
 				field.kind = relationMatch[1];
+				
+				const fullMatch = fieldDef.match(/relation\.\w+\s*\(\s*\(\s*\)\s*=>\s*([a-zA-Z0-9_]+)(?:\s*,\s*(\{.*?\}))?\s*\)/);
+				if (fullMatch) {
+					const targetVar = fullMatch[1];
+					const optionsRaw = fullMatch[2];
+					
+					let targetTableName = targetVar.replace(/Schema$/i, '');
+					if (!targetTableName.endsWith('s')) targetTableName += 's';
+					
+					if (fullContent) {
+						const tableMatch = new RegExp(targetVar + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(fullContent);
+						if (tableMatch) {
+							targetTableName = tableMatch[1];
+						}
+					}
+					
+					field.target = () => ({ name: targetTableName });
+					
+					if (optionsRaw) {
+						const viaMatch = optionsRaw.match(/via:\s*['"`]([^'"`]+)['"`]/);
+						if (viaMatch) {
+							field.options = { via: viaMatch[1] };
+						}
+					}
+				}
 			}
 
 			// Extract boolean properties (standard object literal)
@@ -569,6 +594,33 @@ export class ASTSchemaParser implements ISchemaParser {
 			const relationMatch = text.match(/relation\.(\w+)\s*\(/);
 			if (relationMatch) {
 				fieldDef.kind = relationMatch[1];
+				
+				const fullMatch = text.match(/relation\.\w+\s*\(\s*\(\s*\)\s*=>\s*([a-zA-Z0-9_]+)(?:\s*,\s*(\{.*?\}))?\s*\)/);
+				if (fullMatch) {
+					const targetVar = fullMatch[1];
+					const optionsRaw = fullMatch[2];
+					
+					let targetTableName = targetVar.replace(/Schema$/i, '');
+					if (!targetTableName.endsWith('s')) targetTableName += 's';
+					
+					if (this.sourceFile) {
+						const sourceCode = this.sourceFile.getFullText();
+						const tableMatch = new RegExp(targetVar + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(sourceCode);
+						if (tableMatch) {
+							targetTableName = tableMatch[1];
+						}
+					}
+					
+					fieldDef.target = () => ({ name: targetTableName });
+					
+					if (optionsRaw) {
+						const viaMatch = optionsRaw.match(/via:\s*['"`]([^'"`]+)['"`]/);
+						if (viaMatch) {
+							fieldDef.options = { via: viaMatch[1] };
+						}
+					}
+				}
+				
 				return fieldDef as any;
 			}
 		}

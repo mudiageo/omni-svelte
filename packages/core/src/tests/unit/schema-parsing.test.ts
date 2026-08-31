@@ -88,6 +88,7 @@ export const userSchema = defineSchema('users', {
 }, {
   timestamps: true,
   softDeletes: false,
+});
 `;
 
 			const filePath = join(TEST_DIR, 'user.schema.ts');
@@ -142,6 +143,31 @@ export const userSchema = defineSchema('users', {
 			expect(schemas[0].fields.password.hash).toBe('bcrypt');
 			expect(schemas[0].fields.status.values).toEqual(['active', 'inactive', 'suspended']);
 			expect(schemas[0].fields.status.default).toBe('active');
+		});
+
+		it('should parse fluent relationships correctly', async () => {
+			const schemaContent = `
+import { defineSchema, relation } from 'omni-svelte';
+
+export const postSchema = defineSchema('posts', {
+  id: field.serial().primaryKey(),
+  author: relation.belongsTo(() => userSchema, { via: 'authorId' }),
+  comments: relation.hasMany(() => commentSchema)
+});
+`;
+			const filePath = join(TEST_DIR, 'fluent-relations.schema.ts');
+			writeFileSync(filePath, schemaContent);
+			
+			const schemas = await parser.parseSchemas(filePath);
+			expect(schemas).toHaveLength(1);
+			expect(schemas[0].name).toBe('posts');
+			
+			expect(schemas[0].relations.author.kind).toBe('belongsTo');
+			expect(schemas[0].relations.author.options.via).toBe('authorId');
+			expect(schemas[0].relations.author.target().name).toBe('users');
+			
+			expect(schemas[0].relations.comments.kind).toBe('hasMany');
+			expect(schemas[0].relations.comments.target().name).toBe('comments');
 		});
 
 		it('should handle multiple schemas in one file', async () => {
@@ -203,6 +229,7 @@ export const userSchema = defineSchema('users', {
   },
 }, {
   timestamps: true,
+});
 `;
 
 			const filePath = join(TEST_DIR, 'user-ast.schema.ts');
@@ -214,6 +241,31 @@ export const userSchema = defineSchema('users', {
 			expect(schemas[0].name).toBe('users');
 			expect(schemas[0].fields.id.type).toBe('serial');
 			expect(schemas[0].fields.name.type).toBe('string');
+		});
+
+		it('should parse fluent relationships correctly', async () => {
+			const schemaContent = `
+import { defineSchema, relation } from 'omni-svelte';
+
+export const postSchema = defineSchema('posts', {
+  id: field.serial().primaryKey(),
+  author: relation.belongsTo(() => userSchema, { via: 'authorId' }),
+  comments: relation.hasMany(() => commentSchema)
+});
+`;
+			const filePath = join(TEST_DIR, 'ast-fluent-relations.schema.ts');
+			writeFileSync(filePath, schemaContent);
+			
+			const schemas = await parser.parseSchemas(filePath);
+			expect(schemas).toHaveLength(1);
+			expect(schemas[0].name).toBe('posts');
+			
+			expect(schemas[0].relations.author.kind).toBe('belongsTo');
+			expect(schemas[0].relations.author.options.via).toBe('authorId');
+			expect(schemas[0].relations.author.target().name).toBe('users');
+			
+			expect(schemas[0].relations.comments.kind).toBe('hasMany');
+			expect(schemas[0].relations.comments.target().name).toBe('comments');
 		});
 
 		it('should fallback to regex when AST parsing fails', async () => {
