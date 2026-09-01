@@ -1,5 +1,15 @@
 # omni-svelte
 
+## 0.3.0-next.1
+
+### Patch Changes
+
+- fix: change default schema parsing strategy from regex to ast to prevent nested object truncation ([#55](https://github.com/mudiageo/omni-svelte/pull/55))
+
+- fix(database): migrate to Drizzle 1.0 connection API to fix silent postgres-js fallback bugs ([#56](https://github.com/mudiageo/omni-svelte/pull/56))
+
+- fix(schema): resolve unknown relation target and double nesting in drizzle generator ([#55](https://github.com/mudiageo/omni-svelte/pull/55))
+
 ## 0.3.0-next.0
 
 ### Minor Changes

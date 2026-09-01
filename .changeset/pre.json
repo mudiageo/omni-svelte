@@ -2,12 +2,15 @@
   "mode": "pre",
   "tag": "next",
   "changesets": [
+    "default-ast-parser",
+    "drizzle-1.0-connection-init",
     "drizzle-barrel-exports",
     "drizzle-upgrade",
     "feat-relations-api",
     "missing-model-hooks",
     "model-relations-fix",
     "pr-1-fixes",
+    "relation-unknown-fix",
     "relations-parser-fix"
   ]
 }
