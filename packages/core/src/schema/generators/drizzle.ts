@@ -239,7 +239,7 @@ export class DrizzleGenerator {
 			}
 		}
 
-		return `  ${tableName}: {\n${lines.join('\n')}\n  }`;
+		return lines.join('\n');
 	}
 
 	// New method for multiple schemas with output config

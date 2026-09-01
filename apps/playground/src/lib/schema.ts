@@ -32,7 +32,10 @@ export const userSchema = defineSchema(
 		},
 
 		// New relations API
-		posts: relation.hasMany(() => postSchema)
+		posts: relation.hasMany(() => postSchema),
+		profile: relation.hasOne(() => profileSchema),
+		comments: relation.hasMany(() => commentSchema),
+		roles: relation.manyToMany(() => roleSchema, { through: () => userRoleSchema })
 	},
 	{
 		timestamps: true,
@@ -67,7 +70,9 @@ export const postSchema = defineSchema(
 		// New relations API
 		author: relation.belongsTo(() => userSchema, { via: 'userId' }),
 
-		published: field.boolean()
+		published: field.boolean(),
+		
+		comments: relation.hasMany(() => commentSchema)
 	},
 	{
 		timestamps: true,
@@ -87,3 +92,65 @@ export const postSchema = defineSchema(
 );
 
 export const Post = postSchema.model;
+
+export const commentSchema = defineSchema(
+	'comments',
+	{
+		id: field.serial().primaryKey(),
+		content: field.string().required(),
+		postId: field.reference(() => postSchema),
+		authorId: field.reference(() => userSchema),
+		
+		post: relation.belongsTo(() => postSchema, { via: 'postId' }),
+		author: relation.belongsTo(() => userSchema, { via: 'authorId' })
+	},
+	{
+		timestamps: true
+	}
+);
+
+export const Comment = commentSchema.model;
+
+export const profileSchema = defineSchema(
+	'profiles',
+	{
+		id: field.serial().primaryKey(),
+		bio: field.string(),
+		userId: field.reference(() => userSchema),
+		
+		user: relation.belongsTo(() => userSchema, { via: 'userId' })
+	},
+	{
+		timestamps: true
+	}
+);
+
+export const Profile = profileSchema.model;
+
+export const roleSchema = defineSchema(
+	'roles',
+	{
+		id: field.serial().primaryKey(),
+		name: field.string().unique(),
+		users: relation.manyToMany(() => userSchema, { through: () => userRoleSchema })
+	},
+	{
+		timestamps: true
+	}
+);
+
+export const Role = roleSchema.model;
+
+export const userRoleSchema = defineSchema(
+	'userRoles',
+	{
+		id: field.serial().primaryKey(),
+		userId: field.reference(() => userSchema),
+		roleId: field.reference(() => roleSchema),
+		
+		user: relation.belongsTo(() => userSchema, { via: 'userId' }),
+		role: relation.belongsTo(() => roleSchema, { via: 'roleId' })
+	}
+);
+
+export const UserRole = userRoleSchema.model;

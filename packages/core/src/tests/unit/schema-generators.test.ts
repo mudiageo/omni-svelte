@@ -78,6 +78,45 @@ describe('Schema Generators with Path Resolution', () => {
 			expect(content).toContain('text');
 			expect(content).toContain('timestamp');
 		});
+
+		it('should generate relations block correctly without double-nesting or unknown targets', async () => {
+			const relationSchema: Schema = {
+				name: 'posts',
+				fields: { id: { type: 'serial', primary: true } },
+				relations: {
+					author: {
+						kind: 'belongsTo',
+						target: () => ({ name: 'users' }),
+						options: { via: 'authorId' }
+					},
+					comments: {
+						kind: 'hasMany',
+						target: () => ({ name: 'comments' })
+					}
+				}
+			};
+
+			const generator = new DrizzleGenerator(relationSchema);
+			const outputs = await generator.generateFiles([relationSchema], mockConfig.drizzle);
+
+			expect(outputs).toHaveLength(1);
+			const content = outputs[0].content;
+			
+			// Should NOT double nest: e.g. "posts: {\nposts: {"
+			expect(content).not.toMatch(/posts:\s*{\s*posts:/);
+			
+			// Should generate correct blocks
+			expect(content).toContain('export const schemaRelations = defineRelations({ posts }, (r) => ({');
+			expect(content).toContain('  posts: {');
+			expect(content).toContain('    author: r.one.users({');
+			expect(content).toContain('      from: r.posts.authorId,');
+			expect(content).toContain('      to: r.users.id,');
+			expect(content).toContain('    }),');
+			expect(content).toContain('    comments: r.many.comments(),');
+			
+			// Should NOT contain unknown targets
+			expect(content).not.toContain('unknown');
+		});
 	});
 
 	describe('ZodGenerator', () => {
