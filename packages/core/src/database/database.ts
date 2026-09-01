@@ -1,5 +1,4 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { loadEnvFile } from 'node:process';
 try {
@@ -11,7 +10,7 @@ try {
 }
 
 export let database: PostgresJsDatabase = process.env.DATABASE_URL
-	? drizzle(postgres(process.env.DATABASE_URL))
+	? drizzle({ connection: { url: process.env.DATABASE_URL } })
 	: (null as any);
 
 export interface DatabaseConnectionConfig {
@@ -30,12 +29,11 @@ export interface DatabaseConfig {
 }
 
 export function configureDatabase(config: DatabaseConfig) {
-	let client: postgres.Sql;
-
 	const url = config?.connection?.url || process.env.DATABASE_URL;
+	let connectionOpts = {};
+
 	if (url) {
-		// Use connection string if provided
-		client = postgres(url);
+		connectionOpts = { url };
 	} else {
 		// Fall back to individual parameters
 		if (!config?.connection?.host || !config?.connection?.database || !config?.connection?.username) {
@@ -44,17 +42,17 @@ export function configureDatabase(config: DatabaseConfig) {
 			);
 		}
 
-		client = postgres({
+		connectionOpts = {
 			host: config.connection.host,
 			port: config.connection.port || 5432,
 			database: config.connection.database,
 			username: config.connection.username,
 			password: config.connection.password,
 			ssl: config.connection.ssl
-		});
+		};
 	}
 
-	database = drizzle(client, { schema: config?.schema });
+	database = drizzle({ connection: connectionOpts, schema: config?.schema });
 	return database;
 }
 
