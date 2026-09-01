@@ -145,6 +145,36 @@ export const userSchema = defineSchema('users', {
 			expect(schemas[0].fields.status.default).toBe('active');
 		});
 
+		it('should parse schema with deeply nested braces and arrays without truncating early', async () => {
+			const schemaContent = `
+export const userSchema = defineSchema('users', {
+  settings: {
+    type: 'json',
+    default: '{}',
+    validate: {
+      theme: 'string?',
+      language: { enum: ['en', 'es', 'fr'] },
+      nested: { foo: { bar: [1, 2, 3] } }
+    }
+  },
+  roles: relation.manyToMany(() => roleSchema, { through: () => userRoleSchema })
+}, {
+  timestamps: true,
+});
+`;
+			const filePath = join(TEST_DIR, 'user-nested.schema.ts');
+			writeFileSync(filePath, schemaContent);
+
+			const schemas = await parser.parseSchemas(filePath);
+
+			expect(schemas).toHaveLength(1);
+			expect(schemas[0].fields.settings.type).toBe('json');
+			expect(schemas[0].fields.settings.default).toBe('{}');
+			// Ensures fields after the nested braces are not dropped
+			expect(schemas[0].relations.roles.kind).toBe('manyToMany');
+			expect(schemas[0].relations.roles.target().name).toBe('roles');
+		});
+
 		it('should parse fluent relationships correctly', async () => {
 			const schemaContent = `
 import { defineSchema, relation } from 'omni-svelte';

@@ -67,26 +67,125 @@ export class RegexSchemaParser implements ISchemaParser {
 	async parseSchemas(filePath: string): Promise<Schema[]> {
 		try {
 			const content = readFileSync(filePath, 'utf8');
-
-			// Look for defineSchema calls
-			const schemaMatches = content.match(
-				/export\s+const\s+(\w+Schema)\s*=\s*defineSchema\s*\(\s*['"`](\w+)['"`]\s*,\s*\{([\s\S]*?)\}\s*(?:,\s*\{([\s\S]*?)\})?\s*\)/g
-			);
-
-			if (!schemaMatches) {
-				if (this.config.dev?.logLevel === 'debug') {
-					console.warn(`No schema definitions found in ${filePath}`);
-				}
-				return [];
-			}
-
 			const schemas: Schema[] = [];
 
-			for (const match of schemaMatches) {
-				const schema = this.parseSchemaFromMatch(match, filePath, content);
-				if (schema) {
-					schemas.push(schema);
+			const defineRegex = /export\s+const\s+(\w+Schema)\s*=\s*defineSchema\s*\(\s*['"`](\w+)['"`]\s*,/g;
+			let match;
+			
+			while ((match = defineRegex.exec(content)) !== null) {
+				const schemaName = match[2];
+				const startIndex = defineRegex.lastIndex;
+				
+				let fieldsContent = '';
+				let configContent = '';
+				
+				let depth = 0;
+				let inString = false;
+				let stringChar = '';
+				let currentBlock = '';
+				let i = startIndex;
+				let started = false;
+				
+				for (; i < content.length; i++) {
+					const char = content[i];
+					if (!inString && (char === '"' || char === "'" || char === '`')) {
+						inString = true;
+						stringChar = char;
+					} else if (inString && char === stringChar && content[i - 1] !== '\\') {
+						inString = false;
+					}
+					
+					if (!inString) {
+						if (char === '{') {
+							depth++;
+							started = true;
+						}
+						if (char === '}') {
+							depth--;
+							if (started && depth === 0) {
+								currentBlock += char;
+								fieldsContent = currentBlock;
+								currentBlock = '';
+								i++;
+								break;
+							}
+						}
+					}
+					if (started) currentBlock += char;
 				}
+				
+				let hasConfig = false;
+				for (; i < content.length; i++) {
+					const char = content[i];
+					if (char === ',') {
+						hasConfig = true;
+						i++;
+						break;
+					}
+					if (char === ')' || char === ';') break;
+					if (char.trim()) break; 
+				}
+				
+				if (hasConfig) {
+					depth = 0;
+					inString = false;
+					currentBlock = '';
+					started = false;
+					for (; i < content.length; i++) {
+						const char = content[i];
+						if (!inString && (char === '"' || char === "'" || char === '`')) {
+							inString = true;
+							stringChar = char;
+						} else if (inString && char === stringChar && content[i - 1] !== '\\') {
+							inString = false;
+						}
+						
+						if (!inString) {
+							if (char === '{') {
+								depth++;
+								started = true;
+							}
+							if (char === '}') {
+								depth--;
+								if (started && depth === 0) {
+									currentBlock += char;
+									configContent = currentBlock;
+									break;
+								}
+							}
+						}
+						if (started) currentBlock += char;
+					}
+				}
+				
+				if (fieldsContent) {
+					fieldsContent = fieldsContent.trim().replace(/^\{/, '').replace(/\}$/, '');
+					configContent = configContent ? configContent.trim().replace(/^\{/, '').replace(/\}$/, '') : '';
+					
+					const rawFields = this.extractFields(fieldsContent, content);
+					const fields: Record<string, any> = {};
+					const relations: Record<string, any> = {};
+
+					for (const [key, def] of Object.entries(rawFields)) {
+						if (def.kind) {
+							relations[key] = def;
+						} else if (def.type) {
+							fields[key] = def;
+						}
+					}
+
+					schemas.push({
+						name: schemaName,
+						fields,
+						relations,
+						config: this.extractConfig(configContent),
+						filePath
+					});
+				}
+			}
+
+			if (schemas.length === 0 && this.config.dev?.logLevel === 'debug') {
+				console.warn(`No schema definitions found in ${filePath}`);
 			}
 
 			return schemas;
@@ -99,54 +198,8 @@ export class RegexSchemaParser implements ISchemaParser {
 	}
 
 	private parseSchemaFromMatch(match: string, filePath: string, fullContent: string = ''): Schema | null {
-		try {
-			const nameMatch = match.match(/defineSchema\s*\(\s*['"`](\w+)['"`]/);
-
-			if (!nameMatch) {
-				console.warn(`Could not extract schema name from ${filePath}`);
-				return null;
-			}
-
-			const schemaName = nameMatch[1];
-
-			// Extract fields and config using regex
-			const fieldsMatch = match.match(
-				/defineSchema\s*\([^,]+,\s*\{([\s\S]*?)\}(?:\s*,\s*\{([\s\S]*?)\})?\s*\)/
-			);
-
-			if (!fieldsMatch) {
-				console.warn(`Could not extract fields from schema ${schemaName} in ${filePath}`);
-				return null;
-			}
-
-			const fieldsContent = fieldsMatch[1];
-			const configContent = fieldsMatch[2] || '';
-
-			const rawFields = this.extractFields(fieldsContent, fullContent);
-			const fields: Record<string, any> = {};
-			const relations: Record<string, any> = {};
-
-			for (const [key, def] of Object.entries(rawFields)) {
-				if (def.kind) {
-					relations[key] = def;
-				} else if (def.type) {
-					fields[key] = def;
-				}
-			}
-
-			const schema: Schema = {
-				name: schemaName,
-				fields,
-				relations,
-				config: this.extractConfig(configContent),
-				filePath
-			};
-
-			return schema;
-		} catch (error) {
-			console.warn(`Error parsing schema match in ${filePath}:`, error);
-			return null;
-		}
+		// Deprecated: logic moved to parseSchemas to handle brace balancing
+		return null;
 	}
 
 	private extractFields(fieldsContent: string, fullContent: string = ''): Record<string, any> {
@@ -158,7 +211,9 @@ export class RegexSchemaParser implements ISchemaParser {
 			fieldsContent = fieldsContent.replace(/\/\*[\s\S]*?\*\//g, '');
 
 			// Enhanced field extraction that handles nested objects
-			let depth = 0;
+			let depthBrace = 0;
+			let depthParen = 0;
+			let depthBracket = 0;
 			let currentField = '';
 			let currentFieldName = '';
 			let inString = false;
@@ -178,11 +233,15 @@ export class RegexSchemaParser implements ISchemaParser {
 				}
 
 				if (!inString) {
-					if (char === '{') depth++;
-					if (char === '}') depth--;
+					if (char === '{') depthBrace++;
+					if (char === '}') depthBrace--;
+					if (char === '(') depthParen++;
+					if (char === ')') depthParen--;
+					if (char === '[') depthBracket++;
+					if (char === ']') depthBracket--;
 
 					// Field separator at root level
-					if (depth === 0 && char === ',') {
+					if (depthBrace === 0 && depthParen === 0 && depthBracket === 0 && char === ',') {
 						if (currentFieldName && currentField) {
 							fields[currentFieldName] = this.parseFieldDefinition(currentField, fullContent);
 						}
@@ -193,7 +252,7 @@ export class RegexSchemaParser implements ISchemaParser {
 					}
 
 					// Field name separator
-					if (depth === 0 && char === ':' && !currentFieldName) {
+					if (depthBrace === 0 && depthParen === 0 && depthBracket === 0 && char === ':' && !currentFieldName) {
 						currentFieldName = currentField.trim();
 						currentField = '';
 						i++;
