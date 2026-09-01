@@ -871,14 +871,14 @@ export class ASTSchemaParser implements ISchemaParser {
  */
 export class ParserFactory {
 	static createParser(config: SchemaConfig): ISchemaParser {
-		const strategy = config.parsing?.strategy || 'regex'; // Default to regex
+		const strategy = config.parsing?.strategy || 'ast'; // Default to ast since regex parsing is brittle for complex nested schemas
 
 		switch (strategy) {
-			case 'ast':
-				return new ASTSchemaParser(config);
 			case 'regex':
-			default:
 				return new RegexSchemaParser(config);
+			case 'ast':
+			default:
+				return new ASTSchemaParser(config);
 		}
 	}
 }

@@ -41,12 +41,12 @@ describe('Schema Parsing Strategies', () => {
 	});
 
 	describe('ParserFactory', () => {
-		it('should create regex parser by default', () => {
+		it('should create AST parser by default', () => {
 			const config = { ...regexConfig };
 			delete config.parsing?.strategy;
 
 			const parser = ParserFactory.createParser(config);
-			expect(parser).toBeInstanceOf(RegexSchemaParser);
+			expect(parser).toBeInstanceOf(ASTSchemaParser);
 		});
 
 		it('should create regex parser when specified', () => {
