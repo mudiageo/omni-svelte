@@ -164,6 +164,14 @@ describe('Schema Generators with Path Resolution', () => {
 			expect(content).toContain("static fillable = ['name', 'email']"); // password should be excluded
 			expect(content).toContain("static hidden = ['password']"); // password should be hidden
 		});
+
+		it('should inject relationships and declaration merging', () => {
+			const generator = new ModelGenerator(mockSchema);
+			const content = generator.generate();
+
+			expect(content).toContain("export interface UsersModel extends UsersType {}");
+			expect(content).toContain("static relationships = {}");
+		});
 	});
 
 	describe('Path Resolution Integration', () => {

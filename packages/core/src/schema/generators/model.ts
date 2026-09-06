@@ -374,13 +374,16 @@ ${typeImport}`;
 	private generateBaseModel(): string {
 		const tableName = this.schema.name;
 		const className = this.capitalize(tableName);
-
 		const fillable = this.generateFillableArray();
 		const hidden = this.generateHiddenArray();
 		const casts = this.generateCastsObject();
 		const hooks = this.generateHooks();
+		const relationships = JSON.stringify(generateRelationships(this.schema), null, 2).replace(/\n/g, '\n  ');
 
-		return `export class ${className}Model extends Model {
+		return `
+export interface ${className}Model extends ${className}Type {}
+
+export class ${className}Model extends Model {
   static tableName = '${tableName}';
   static table = ${tableName};
   static validation = {
@@ -392,6 +395,8 @@ ${typeImport}`;
   static fillable = ${fillable};
   static hidden = ${hidden};
   static casts = ${casts};${this.generateRealtimeConfig()}
+  static relationships = ${relationships};
+  
   ${hooks}
 }`;
 	}
