@@ -9,8 +9,8 @@ import type { User } from 'better-auth';
  * @param record The model instance being authorized (optional for global actions)
  * @returns boolean (allow/deny), undefined (fallthrough to next rule), or a Promise of those
  */
-export type PolicyRule<M extends typeof Model> = (
-	user: User | null,
+export type PolicyRule<M extends typeof Model, U extends User = User> = (
+	user: U | null,
 	record?: InstanceType<M>
 ) => boolean | undefined | Promise<boolean | undefined>;
 
@@ -18,9 +18,9 @@ export type PolicyRule<M extends typeof Model> = (
  * A policy definition containing the model and its rules.
  * Type parameter R captures the exact string literal keys of the rules for type-safe action checks.
  */
-export interface Policy<M extends typeof Model, R extends Record<string, PolicyRule<M>>> {
+export interface Policy<M extends typeof Model, R extends Record<string, PolicyRule<M, U>>, U extends User = User> {
 	model: M;
-	rules: R & { before?: PolicyRule<M> };
+	rules: R & { before?: PolicyRule<M, U> };
 }
 
 /** Internal result type used to track why authorization was denied */
@@ -30,11 +30,11 @@ type AuthResult = { allowed: true } | { allowed: false; reason: string };
  * Internal helper that evaluates a policy and returns a structured result with a denial reason.
  * Used by both `can()` and `authorize()` to avoid duplicating logic.
  */
-async function _evaluate<M extends typeof Model, R extends Record<string, PolicyRule<M>>>(
-	user: User | null,
+async function _evaluate<M extends typeof Model, R extends Record<string, PolicyRule<M, U>>, U extends User = User>(
+	user: U | null,
 	action: keyof R,
 	record: InstanceType<M> | undefined,
-	policy: Policy<M, R>
+	policy: Policy<M, R, U>
 ): Promise<AuthResult> {
 	// 1. Run the `before` hook if present
 	if (policy.rules.before) {
@@ -74,11 +74,11 @@ async function _evaluate<M extends typeof Model, R extends Record<string, Policy
  * @param policy The policy defining the rules
  * @returns True if authorized, false otherwise
  */
-export async function can<M extends typeof Model, R extends Record<string, PolicyRule<M>>>(
-	user: User | null,
+export async function can<M extends typeof Model, R extends Record<string, PolicyRule<M, U>>, U extends User = User>(
+	user: U | null,
 	action: keyof R,
 	record: InstanceType<M> | undefined,
-	policy: Policy<M, R>
+	policy: Policy<M, R, U>
 ): Promise<boolean> {
 	const result = await _evaluate(user, action, record, policy);
 	return result.allowed;
@@ -100,11 +100,11 @@ export async function can<M extends typeof Model, R extends Record<string, Polic
  * @param policy The policy defining the rules
  * @throws {ForbiddenError} If the policy denies the action, with a specific reason
  */
-export async function authorize<M extends typeof Model, R extends Record<string, PolicyRule<M>>>(
-	user: User | null,
+export async function authorize<M extends typeof Model, R extends Record<string, PolicyRule<M, U>>, U extends User = User>(
+	user: U | null,
 	action: keyof R,
 	record: InstanceType<M> | undefined,
-	policy: Policy<M, R>
+	policy: Policy<M, R, U>
 ): Promise<void> {
 	const result = await _evaluate(user, action, record, policy);
 
@@ -124,8 +124,8 @@ export async function authorize<M extends typeof Model, R extends Record<string,
  *
  * @example
  * ```ts
- * const postPolicy = definePolicy(Post, {
- *   before: (user) => (user as any)?.role === 'admin' ? true : undefined,
+ * const postPolicy = definePolicy<typeof Post, typeof rules, CustomUser>(Post, {
+ *   before: (user) => user?.role === 'admin' ? true : undefined,
  *   update: (user, post) => user?.id === post?.authorId,
  *   delete: (user, post) => user?.id === post?.authorId,
  * });
@@ -135,9 +135,9 @@ export async function authorize<M extends typeof Model, R extends Record<string,
  * @param rules An object mapping action names to policy rules
  * @returns A strictly typed Policy object
  */
-export function definePolicy<M extends typeof Model, R extends Record<string, PolicyRule<M>>>(
+export function definePolicy<M extends typeof Model, R extends Record<string, PolicyRule<M, U>>, U extends User = User>(
 	model: M,
-	rules: R & { before?: PolicyRule<M> }
-): Policy<M, R> {
+	rules: R & { before?: PolicyRule<M, U> }
+): Policy<M, R, U> {
 	return { model, rules };
 }

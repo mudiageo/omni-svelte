@@ -113,7 +113,7 @@ import { postPolicy } from '$lib/policies/post';
 
 export const adminPosts = query(async (event) => {
   await authorize(event.locals.user ?? null, 'list', undefined, postPolicy);
-  return Post.query().where('status', 'draft').all();
+  return Post.query().where('status', 'draft').get();
 });
 ```
 
