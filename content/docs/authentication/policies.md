@@ -21,12 +21,13 @@ import { definePolicy } from 'omni-svelte/auth';
 import { Post, Comment } from '$models';
 
 export const postPolicy = definePolicy(Post, {
+  create: (user) => !!user,
   update: (user, post) => user?.id === post?.authorId,
-  delete: (user, post) => user?.id === post?.authorId,
+  remove: (user, post) => user?.id === post?.authorId,
 });
 
 export const commentPolicy = definePolicy(Comment, {
-  delete: (user, comment) => user?.id === comment?.authorId || user?.role === 'moderator',
+  remove: (user, comment) => user?.id === comment?.authorId || user?.role === 'moderator',
 });
 ```
 
@@ -38,14 +39,17 @@ The optional `before` hook runs before every specific action rule. Returning a n
 
 ```ts
 export const postPolicy = definePolicy(Post, {
+  // Better Auth's User type doesn't include role or suspended out of the box.
+  // Cast to any (or extend the User type) to access custom fields.
   before: (user) => {
-    if (user?.role === 'admin') return true;   // admins bypass all rules
-    if (user?.suspended) return false;         // suspended users are denied everything
-    return undefined;                          // everyone else falls through to the specific rule
+    if ((user as any)?.role === 'admin') return true;   // admins bypass all rules
+    if ((user as any)?.suspended) return false;         // suspended users are denied everything
+    return undefined;                                   // everyone else falls through to the specific rule
   },
 
+  create: (user) => !!user,
   update: (user, post) => user?.id === post?.authorId,
-  delete: (user, post) => user?.id === post?.authorId,
+  remove: (user, post) => user?.id === post?.authorId,
   publish: (user, post) => user?.id === post?.authorId && !post?.isDraft,
 });
 ```
@@ -88,8 +92,12 @@ export const {
     // Public read access
     if (operation === 'list' || operation === 'get') return true;
 
-    // All mutations go through the policy
-    const record = input?.id ? await Post.find(input.id) : undefined;
+    // Load the record for operations that act on an existing post
+    const recordId = typeof input === 'object' ? (input as any)?.id : input;
+    const record = (operation === 'update' || operation === 'remove') && recordId 
+      ? await Post.find(recordId) 
+      : undefined;
+      
     return can(user, operation, record, postPolicy);
   }
 });
@@ -107,12 +115,14 @@ When writing custom remote functions, use `authorize()` (the throwing variant) a
 
 ```ts
 // src/routes/posts/data.remote.ts
-import { query } from '@sveltejs/kit';
+import { query, getRequestEvent } from '$app/server';
 import { authorize } from 'omni-svelte/auth';
 import { postPolicy } from '$lib/policies/post';
+import { z } from 'zod';
 
-export const adminPosts = query(async (event) => {
-  await authorize(event.locals.user ?? null, 'list', undefined, postPolicy);
+export const adminPosts = query(z.any(), async (input) => {
+  const event = getRequestEvent();
+  await authorize((event?.locals as any)?.user ?? null, 'list', undefined, postPolicy);
   return Post.query().where('status', 'draft').get();
 });
 ```
@@ -121,18 +131,16 @@ export const adminPosts = query(async (event) => {
 
 ```ts
 // src/routes/posts/data.remote.ts
-import { form } from '@sveltejs/kit';
+import { form, getRequestEvent } from '$app/server';
 import { authorize } from 'omni-svelte/auth';
 import { postPolicy } from '$lib/policies/post';
 import { postFormSchema } from './schema';
 
-export const updatePost = form({
-  schema: postFormSchema,
-  action: async (event, input) => {
+export const updatePost = form(postFormSchema, async (input) => {
+    const event = getRequestEvent();
     const post = await Post.find(input.id);
-    await authorize(event.locals.user ?? null, 'update', post, postPolicy);
+    await authorize((event?.locals as any)?.user ?? null, 'update', post, postPolicy);
     return post.update(input);
-  }
 });
 ```
 
@@ -140,13 +148,15 @@ export const updatePost = form({
 
 ```ts
 // src/routes/posts/data.remote.ts
-import { command } from '@sveltejs/kit';
+import { command, getRequestEvent } from '$app/server';
 import { authorize } from 'omni-svelte/auth';
 import { postPolicy } from '$lib/policies/post';
+import { z } from 'zod';
 
-export const deletePost = command(async (event, id: number) => {
+export const removePost = command(z.number(), async (id) => {
+  const event = getRequestEvent();
   const post = await Post.find(id);
-  await authorize(event.locals.user ?? null, 'delete', post, postPolicy);
+  await authorize((event?.locals as any)?.user ?? null, 'remove', post, postPolicy);
   await post.delete();
 });
 ```

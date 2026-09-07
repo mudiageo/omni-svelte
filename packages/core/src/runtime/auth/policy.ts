@@ -110,7 +110,7 @@ export async function authorize<M extends typeof Model, R extends Record<string,
 
 	if (!result.allowed) {
 		const resourceName =
-			('tableName' in policy.model ? policy.model.tableName : policy.model.name) || 'Resource';
+			('table' in policy.model ? policy.model.table : policy.model.name) || 'Resource';
 		throw new ForbiddenError(String(action), String(resourceName), result.reason);
 	}
 }
