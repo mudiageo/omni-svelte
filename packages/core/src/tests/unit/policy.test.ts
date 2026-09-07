@@ -147,6 +147,43 @@ describe('Policy Authorization Layer (§C.1)', () => {
 			expect(error).toBeInstanceOf(ForbiddenError);
 			expect(error.action).toBe('update');
 			expect(error.resource).toBe('posts');
+			// Rule exists but denied — meaningful reason
+			expect(error.reason).toBe('rule denied the action');
+		}
+	});
+
+	it('provides a meaningful reason when denied by the before hook', async () => {
+		const postPolicy = definePolicy(MockPostModel, {
+			before: (user) => ((user as any)?.banned ? false : undefined),
+			update: (user, post) => user?.id === post?.authorId
+		});
+
+		const bannedAuthor = { ...mockUser, banned: true };
+		const post = new MockPostModel({ id: 1, authorId: 'user-123' });
+
+		try {
+			await authorize(bannedAuthor, 'update', post, postPolicy);
+		} catch (error: any) {
+			expect(error).toBeInstanceOf(ForbiddenError);
+			expect(error.reason).toBe('denied by before hook');
+		}
+	});
+
+	it('denies and provides a reason when no rule is defined for the action', async () => {
+		const postPolicy = definePolicy(MockPostModel, {
+			update: (user, post) => user?.id === post?.authorId
+		});
+
+		const post = new MockPostModel({ id: 1, authorId: 'user-123' });
+
+		// 'delete' is not defined in this policy — should default-deny
+		expect(await can(mockUser, 'delete' as any, post, postPolicy)).toBe(false);
+
+		try {
+			await authorize(mockUser, 'delete' as any, post, postPolicy);
+		} catch (error: any) {
+			expect(error).toBeInstanceOf(ForbiddenError);
+			expect(error.reason).toBe("no rule defined for 'delete'");
 		}
 	});
 });
