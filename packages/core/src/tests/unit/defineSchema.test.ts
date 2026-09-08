@@ -28,4 +28,23 @@ describe('defineSchema API', () => {
 		expect(schema.relations?.posts).toBeDefined();
 		expect(schema.relations?.posts.kind).toBe('hasMany');
 	});
+
+	it('should defer relationship evaluation to support circular schemas', () => {
+		// Define Station schema which refers to PriceReport
+		const stationSchema = defineSchema('station', {
+			id: field.serial().primaryKey(),
+			reports: relation.hasMany(() => priceReportSchema)
+		});
+
+		// Define PriceReport schema which refers to Station
+		const priceReportSchema = defineSchema('price_report', {
+			id: field.serial().primaryKey(),
+			station: relation.belongsTo(() => stationSchema)
+		});
+
+		// Because of the lazy getter, the target models should evaluate to the correct names
+		// instead of "unknown", even though priceReportSchema was undefined initially.
+		expect(stationSchema.model.relationships.reports.model).toBe('price_report');
+		expect(priceReportSchema.model.relationships.station.model).toBe('station');
+	});
 });
