@@ -1,0 +1,38 @@
+## Description
+
+This fixes an issue where schemas with circular relationships caused the dynamic model generation to crash and default the relationship target to `'unknown'`.
+
+The solution converts the `static relationships` property on the dynamic model into a static lazy getter. This safely defers the execution of relationship thunks (e.g. `() => priceReportSchema`) until the relationships are accessed, by which point all circular imports have been fully initialized.
+
+## Related issue
+
+Fixes #60
+
+## Type of change
+
+- [x] 🐛 Bug fix (non-breaking change that fixes an issue)
+- [ ] ✨ New feature (non-breaking change that adds functionality)
+- [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] 📄 Documentation update
+- [ ] 🔧 Refactor / chore (no user-facing changes)
+
+## Affected packages
+
+- [x] `omni-svelte` (packages/core)
+- [ ] `@omni-svelte/shared` (packages/shared)
+- [ ] `@omni-svelte/plugins` (packages/plugins)
+- [ ] `playground` (apps/playground)
+- [ ] `docs` (apps/docs)
+- [ ] `content/docs` (documentation markdown)
+
+## Checklist
+
+- [x] My code follows the project's code style
+- [x] I have added/updated tests as appropriate
+- [ ] I have updated documentation as appropriate
+- [x] I have added a changeset (`pnpm changeset`) if this affects a publishable package
+- [x] All CI checks pass
+
+## Screenshots / recordings
+
+N/A

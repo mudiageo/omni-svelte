@@ -38,8 +38,14 @@ export function generateModel(
 			});
 		}
 
-		// Auto-generated relationships would go here
-		static relationships = generateRelationships(schema);
+		static _relationships: Record<string, any> | null = null;
+		
+		static get relationships() {
+			if (!this._relationships) {
+				this._relationships = generateRelationships(schema);
+			}
+			return this._relationships;
+		}
 	}
 
 	//Auto reister the model
