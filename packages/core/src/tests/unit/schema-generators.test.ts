@@ -6,7 +6,7 @@ import type { Schema } from '../../schema/types';
 
 describe('Schema Generators with Path Resolution', () => {
 	let mockSchema: Schema;
-	let mockConfig: any;
+	let mockConfig: Record<string, unknown>;
 
 	beforeEach(() => {
 		mockSchema = {
@@ -169,8 +169,8 @@ describe('Schema Generators with Path Resolution', () => {
 			const generator = new ModelGenerator(mockSchema);
 			const content = generator.generate();
 
-			expect(content).toContain("export interface UsersModel extends UsersType {}");
-			expect(content).toContain("static relationships = {}");
+			expect(content).toContain('export interface UsersModel extends UsersType {}');
+			expect(content).toContain('static relationships = {}');
 		});
 	});
 

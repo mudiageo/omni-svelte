@@ -53,12 +53,7 @@ function generateRelationships(schema: Schema): Record<string, any> {
 	Object.entries(schema.fields).forEach(([fieldName, field]) => {
 		if (field.relationship) {
 			const relation = field.relationship;
-			relationships[fieldName] = {
-				type: relation.type,
-				model: relation.model,
-				foreignKey: relation.foreignKey,
-				localKey: relation.localKey
-			};
+			relationships[fieldName] = { ...relation };
 		}
 	});
 
@@ -553,7 +548,10 @@ ${computed.join('\n\n')}
 		const modelClass = `
 export class ${className} extends ${baseClass} {
   // Additional model methods and overrides can be added here
-}`;
+}
+
+// Auto-register model with schema name for relationships
+${className}.register('${this.schema.name}');`;
 
 		return this.outputConfig?.format === 'single-file'
 			? modelClass
