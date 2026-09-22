@@ -5,13 +5,13 @@ import { Post } from '#lib/schema';
 // Define our authorization rules for posts
 export const postPolicy = definePolicy(Post, {
 	create: (user) => !!user,
-	
+
 	// We know update receives the form object
 	update: async (user, input: any) => {
 		const dbPost = await Post.find(input.id);
 		return user?.id === dbPost?.userId;
 	},
-	
+
 	// We know remove receives the raw scalar ID
 	remove: async (user, id: any) => {
 		const dbPost = await Post.find(id);
@@ -40,7 +40,7 @@ export const {
 	authorize: async ({ user, operation, input }) => {
 		// Public reads
 		if (operation === 'list' || operation === 'get') return true;
-		
+
 		// Pass the raw input directly to the policy
 		return can(user, operation, input as any, postPolicy);
 	}

@@ -18,7 +18,11 @@ export type PolicyRule<M extends typeof Model, U extends User = User> = (
  * A policy definition containing the model and its rules.
  * Type parameter R captures the exact string literal keys of the rules for type-safe action checks.
  */
-export interface Policy<M extends typeof Model, R extends Record<string, PolicyRule<M, U>>, U extends User = User> {
+export interface Policy<
+	M extends typeof Model,
+	R extends Record<string, PolicyRule<M, U>>,
+	U extends User = User
+> {
 	model: M;
 	rules: R & { before?: PolicyRule<M, U> };
 }
@@ -30,7 +34,11 @@ type AuthResult = { allowed: true } | { allowed: false; reason: string };
  * Internal helper that evaluates a policy and returns a structured result with a denial reason.
  * Used by both `can()` and `authorize()` to avoid duplicating logic.
  */
-async function _evaluate<M extends typeof Model, R extends Record<string, PolicyRule<M, U>>, U extends User = User>(
+async function _evaluate<
+	M extends typeof Model,
+	R extends Record<string, PolicyRule<M, U>>,
+	U extends User = User
+>(
 	user: U | null,
 	action: keyof R,
 	record: InstanceType<M> | undefined,
@@ -40,9 +48,7 @@ async function _evaluate<M extends typeof Model, R extends Record<string, Policy
 	if (policy.rules.before) {
 		const beforeResult = await policy.rules.before(user, record);
 		if (beforeResult !== undefined) {
-			return beforeResult
-				? { allowed: true }
-				: { allowed: false, reason: 'denied by before hook' };
+			return beforeResult ? { allowed: true } : { allowed: false, reason: 'denied by before hook' };
 		}
 	}
 
@@ -54,9 +60,7 @@ async function _evaluate<M extends typeof Model, R extends Record<string, Policy
 
 	// 3. Evaluate the rule
 	const result = await rule(user, record);
-	return result === true
-		? { allowed: true }
-		: { allowed: false, reason: 'rule denied the action' };
+	return result === true ? { allowed: true } : { allowed: false, reason: 'rule denied the action' };
 }
 
 /**
@@ -74,7 +78,11 @@ async function _evaluate<M extends typeof Model, R extends Record<string, Policy
  * @param policy The policy defining the rules
  * @returns True if authorized, false otherwise
  */
-export async function can<M extends typeof Model, R extends Record<string, PolicyRule<M, U>>, U extends User = User>(
+export async function can<
+	M extends typeof Model,
+	R extends Record<string, PolicyRule<M, U>>,
+	U extends User = User
+>(
 	user: U | null,
 	action: keyof R,
 	record: InstanceType<M> | undefined,
@@ -100,7 +108,11 @@ export async function can<M extends typeof Model, R extends Record<string, Polic
  * @param policy The policy defining the rules
  * @throws {ForbiddenError} If the policy denies the action, with a specific reason
  */
-export async function authorize<M extends typeof Model, R extends Record<string, PolicyRule<M, U>>, U extends User = User>(
+export async function authorize<
+	M extends typeof Model,
+	R extends Record<string, PolicyRule<M, U>>,
+	U extends User = User
+>(
 	user: U | null,
 	action: keyof R,
 	record: InstanceType<M> | undefined,
@@ -135,9 +147,10 @@ export async function authorize<M extends typeof Model, R extends Record<string,
  * @param rules An object mapping action names to policy rules
  * @returns A strictly typed Policy object
  */
-export function definePolicy<M extends typeof Model, R extends Record<string, PolicyRule<M, U>>, U extends User = User>(
-	model: M,
-	rules: R & { before?: PolicyRule<M, U> }
-): Policy<M, R, U> {
+export function definePolicy<
+	M extends typeof Model,
+	R extends Record<string, PolicyRule<M, U>>,
+	U extends User = User
+>(model: M, rules: R & { before?: PolicyRule<M, U> }): Policy<M, R, U> {
 	return { model, rules };
 }

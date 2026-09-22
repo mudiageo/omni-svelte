@@ -14,7 +14,11 @@ export class ForbiddenError extends OmniError {
 		public resource: string,
 		public reason?: string
 	) {
-		super(`Not authorized to ${action} ${resource}${reason ? ` (${reason})` : ''}`, { action, resource, reason });
+		super(`Not authorized to ${action} ${resource}${reason ? ` (${reason})` : ''}`, {
+			action,
+			resource,
+			reason
+		});
 	}
 }
 

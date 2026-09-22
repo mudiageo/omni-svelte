@@ -64,15 +64,15 @@ function sanitizeError(err: any): never {
 	if (err && err instanceof Error) {
 		// let intentional SvelteKit HttpErrors (like error(404)) pass through unmodified
 		if ('status' in err && 'body' in err) throw err;
-		
+
 		// Map our internal ForbiddenError to SvelteKit's 403 HTTP error so it propagates correctly
 		if (err instanceof ForbiddenError) {
 			error(403, { message: err.message });
 		}
-		
+
 		let message = err.message;
 		let modifiedMessage = false;
-		
+
 		// provide friendly hints for known, common framework errors like missing db tables
 		if (message.includes('relation') && message.includes('does not exist')) {
 			message = `${message}\n\n💡 Hint: It looks like this table hasn't been created in your database. Did you forget to run \`omni db push\` or \`omni db migrate\`?`;
@@ -90,13 +90,13 @@ function sanitizeError(err: any): never {
 
 		if (isStackReadOnly) {
 			// universal safety net: reconstruct all escaping errors into a standard Error object
-			// this ensures the `stack` property is writable. if third-party libraries (like postgres-js) 
-			// throw errors with read-only stacks, SvelteKit's Server Functions will crash with a TypeError 
+			// this ensures the `stack` property is writable. if third-party libraries (like postgres-js)
+			// throw errors with read-only stacks, SvelteKit's Server Functions will crash with a TypeError
 			// when trying to serialize them for the client
 			const safeErr = new Error(message, { cause: err });
 			safeErr.name = err.name || 'Error';
 			safeErr.stack = err.stack;
-			
+
 			// copy all original metadata properties (e.g. Postgres DB fields)
 			const skip = new Set(['message', 'name', 'stack', 'cause']);
 			for (const key of Object.getOwnPropertyNames(err)) {
@@ -113,7 +113,9 @@ function sanitizeError(err: any): never {
 		}
 
 		if (modifiedMessage) {
-			try { err.message = message; } catch (_) {}
+			try {
+				err.message = message;
+			} catch (_) {}
 		}
 
 		throw err;
@@ -142,13 +144,7 @@ function getMutationMode(op: 'create' | 'update', options?: ResourceOptions<any>
  * @param options Configuration options for the generated resource
  * @returns An object containing the generated remote functions
  */
-export function resource<
-	M extends any,
-	O extends ResourceOptions<M> = {}
->(
-	model: M,
-	options?: O
-) {
+export function resource<M extends any, O extends ResourceOptions<M> = {}>(model: M, options?: O) {
 	// Stub out the authorize checker
 	const checkAuth = async (operation: OperationName, input?: any) => {
 		if (options?.authorize) {
@@ -157,8 +153,13 @@ export function resource<
 			const ctx: AuthorizeContext<M> = { user, operation, model, input };
 			const allowed = await options.authorize(ctx);
 			if (!allowed) {
-				const resourceName = ('table' in (model as any) ? (model as any).table : (model as any).name) || 'Resource';
-				throw new ForbiddenError(String(operation), String(resourceName), 'Denied by resource policy');
+				const resourceName =
+					('table' in (model as any) ? (model as any).table : (model as any).name) || 'Resource';
+				throw new ForbiddenError(
+					String(operation),
+					String(resourceName),
+					'Denied by resource policy'
+				);
 			}
 		}
 	};
@@ -166,139 +167,159 @@ export function resource<
 	const createMode = getMutationMode('create', options);
 	const updateMode = getMutationMode('update', options);
 
-	const listFn = shouldInclude('list', options) ? (() => {
-		const isLive = options?.live?.includes('list');
-		const fn = isLive ? (query as any).live : query;
+	const listFn = shouldInclude('list', options)
+		? (() => {
+				const isLive = options?.live?.includes('list');
+				const fn = isLive ? (query as any).live : query;
 
-		const listInputSchema = z.object({
-			page: z.number().int().positive().optional(),
-			perPage: z.number().int().positive().optional(),
-			search: z.string().optional(),
-			filters: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional()
-		});
+				const listInputSchema = z.object({
+					page: z.number().int().positive().optional(),
+					perPage: z.number().int().positive().optional(),
+					search: z.string().optional(),
+					filters: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional()
+				});
 
-		return fn(listInputSchema, async (input: ListInput) => {
-			try {
-				await checkAuth('list', input);
-				let q = model.query();
-				if (options?.with) {
-					for (const relation of options.with) {
-						q = q.with(relation);
-					}
-				}
-
-				if (input?.search && typeof q.search === 'function') {
-					q = q.search(input.search);
-				}
-
-				if (input?.filters) {
-					for (const [key, value] of Object.entries(input.filters)) {
-						if (value !== null && value !== undefined) {
-							q = q.where(key, value);
+				return fn(listInputSchema, async (input: ListInput) => {
+					try {
+						await checkAuth('list', input);
+						let q = model.query();
+						if (options?.with) {
+							for (const relation of options.with) {
+								q = q.with(relation);
+							}
 						}
+
+						if (input?.search && typeof q.search === 'function') {
+							q = q.search(input.search);
+						}
+
+						if (input?.filters) {
+							for (const [key, value] of Object.entries(input.filters)) {
+								if (value !== null && value !== undefined) {
+									q = q.where(key, value);
+								}
+							}
+						}
+
+						if (options?.listQuery) {
+							q = options.listQuery(q, input ?? {});
+						}
+
+						const perPage = input?.perPage ?? options?.pagination?.perPage ?? 20;
+						const page = input?.page ?? 1;
+						return await q.paginate(perPage, page);
+					} catch (e) {
+						sanitizeError(e);
 					}
-				}
+				});
+			})()
+		: undefined;
 
-				if (options?.listQuery) {
-					q = options.listQuery(q, input ?? {});
-				}
+	const getFn = shouldInclude('get', options)
+		? (() => {
+				const isLive = options?.live?.includes('get');
+				const fn = isLive ? (query as any).live : query;
 
-				const perPage = input?.perPage ?? options?.pagination?.perPage ?? 20;
-				const page = input?.page ?? 1;
-				return await q.paginate(perPage, page);
-			} catch (e) {
-				sanitizeError(e);
-			}
-		});
-	})() : undefined;
-
-	const getFn = shouldInclude('get', options) ? (() => {
-		const isLive = options?.live?.includes('get');
-		const fn = isLive ? (query as any).live : query;
-
-		return fn(z.union([z.string(), z.number()]), async (id: string | number) => {
-			try {
-				await checkAuth('get', id);
-				let q = model.query().where('id', id);
-				if (options?.with) {
-					for (const relation of options.with) {
-						q = q.with(relation);
+				return fn(z.union([z.string(), z.number()]), async (id: string | number) => {
+					try {
+						await checkAuth('get', id);
+						let q = model.query().where('id', id);
+						if (options?.with) {
+							for (const relation of options.with) {
+								q = q.with(relation);
+							}
+						}
+						const record = await q.first();
+						if (!record) error(404, 'Not found');
+						return record;
+					} catch (e) {
+						sanitizeError(e);
 					}
-				}
-				const record = await q.first();
-				if (!record) error(404, 'Not found');
-				return record;
-			} catch (e) {
-				sanitizeError(e);
-			}
-		});
-	})() : undefined;
+				});
+			})()
+		: undefined;
 
-	const createFn = shouldInclude('create', options) ? (() => {
-		const fillable = options?.fillable?.create || (model as any).fillable;
-		const fSchema = formSchema((model as any).validation.create, fillable === 'auto' ? undefined : { pick: fillable });
-		const createHandler = async (data: any) => {
-			try {
-				await checkAuth('create', data);
-				const record = await model.create(data);
-				
-				if (listFn && typeof (listFn as any).refresh === 'function') {
-					(listFn as any).refresh();
-				}
+	const createFn = shouldInclude('create', options)
+		? (() => {
+				const fillable = options?.fillable?.create || (model as any).fillable;
+				const fSchema = formSchema(
+					(model as any).validation.create,
+					fillable === 'auto' ? undefined : { pick: fillable }
+				);
+				const createHandler = async (data: any) => {
+					try {
+						await checkAuth('create', data);
+						const record = await model.create(data);
 
-				return { success: true, record };
-			} catch (e) {
-				sanitizeError(e);
-			}
-		};
-		return createMode === 'command' ? command(fSchema, createHandler) : form(fSchema, createHandler);
-	})() : undefined;
+						if (listFn && typeof (listFn as any).refresh === 'function') {
+							(listFn as any).refresh();
+						}
 
-	const updateFn = shouldInclude('update', options) ? (() => {
-		const fillable = options?.fillable?.update || (model as any).fillable;
-		const baseFSchema = formSchema((model as any).validation.update || (model as any).validation.create, fillable === 'auto' ? { partial: true } : { pick: fillable, partial: true });
-		
-		const updateSchema = z.object({
-			...baseFSchema.shape,
-			id: z.union([z.string(), z.number()])
-		});
-		const updateHandler = async (data: any) => {
-			try {
-				await checkAuth('update', data);
-				const { id, ...updateData } = data;
-				const record = await model.update(id, updateData);
-				
-				if (listFn && typeof (listFn as any).refresh === 'function') {
-					(listFn as any).refresh();
-				}
-				if (getFn && typeof (getFn as any).refresh === 'function') {
-					(getFn as any).refresh(id);
-				}
+						return { success: true, record };
+					} catch (e) {
+						sanitizeError(e);
+					}
+				};
+				return createMode === 'command'
+					? command(fSchema, createHandler)
+					: form(fSchema, createHandler);
+			})()
+		: undefined;
 
-				return { success: true, record };
-			} catch (e) {
-				sanitizeError(e);
-			}
-		};
-		return updateMode === 'command' ? command(updateSchema, updateHandler) : form(updateSchema, updateHandler);
-	})() : undefined;
+	const updateFn = shouldInclude('update', options)
+		? (() => {
+				const fillable = options?.fillable?.update || (model as any).fillable;
+				const baseFSchema = formSchema(
+					(model as any).validation.update || (model as any).validation.create,
+					fillable === 'auto' ? { partial: true } : { pick: fillable, partial: true }
+				);
 
-	const removeFn = shouldInclude('remove', options) ? (() => {
-		return command(z.union([z.string(), z.number()]), async (id: string | number) => {
-			try {
-				await checkAuth('remove', id);
-				await model.delete(id);
-				
-				if (listFn && typeof (listFn as any).refresh === 'function') {
-					(listFn as any).refresh();
-				}
-				
-				return { success: true };
-			} catch (e) {
-				sanitizeError(e);
-			}
-		});
-	})() : undefined;
+				const updateSchema = z.object({
+					...baseFSchema.shape,
+					id: z.union([z.string(), z.number()])
+				});
+				const updateHandler = async (data: any) => {
+					try {
+						await checkAuth('update', data);
+						const { id, ...updateData } = data;
+						const record = await model.update(id, updateData);
+
+						if (listFn && typeof (listFn as any).refresh === 'function') {
+							(listFn as any).refresh();
+						}
+						if (getFn && typeof (getFn as any).refresh === 'function') {
+							(getFn as any).refresh(id);
+						}
+
+						return { success: true, record };
+					} catch (e) {
+						sanitizeError(e);
+					}
+				};
+				return updateMode === 'command'
+					? command(updateSchema, updateHandler)
+					: form(updateSchema, updateHandler);
+			})()
+		: undefined;
+
+	const removeFn = shouldInclude('remove', options)
+		? (() => {
+				return command(z.union([z.string(), z.number()]), async (id: string | number) => {
+					try {
+						await checkAuth('remove', id);
+						await model.delete(id);
+
+						if (listFn && typeof (listFn as any).refresh === 'function') {
+							(listFn as any).refresh();
+						}
+
+						return { success: true };
+					} catch (e) {
+						sanitizeError(e);
+					}
+				});
+			})()
+		: undefined;
 
 	const defaultExports = {
 		...(listFn && { list: listFn }),
@@ -319,14 +340,14 @@ export function resource<
 	type NarrowedCreate = O['mutationMode'] extends 'command'
 		? CreateCommand
 		: O['mutationMode'] extends { create: 'command' }
-		? CreateCommand
-		: CreateForm;
+			? CreateCommand
+			: CreateForm;
 
 	type NarrowedUpdate = O['mutationMode'] extends 'command'
 		? UpdateCommand
 		: O['mutationMode'] extends { update: 'command' }
-		? UpdateCommand
-		: UpdateForm;
+			? UpdateCommand
+			: UpdateForm;
 
 	return defaultExports as Omit<typeof defaultExports, 'create' | 'update'> & {
 		create: typeof createFn extends undefined ? undefined : NarrowedCreate;
