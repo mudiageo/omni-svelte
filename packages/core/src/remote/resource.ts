@@ -1,7 +1,8 @@
-import { query, form, command } from '$app/server';
+import { query, form, command, getRequestEvent } from '$app/server';
 import { error } from '@sveltejs/kit';
 import { z } from 'zod';
 import { formSchema } from './form-schema.js';
+import { ForbiddenError } from '../errors.js';
 
 export type OperationName = 'list' | 'get' | 'create' | 'update' | 'remove';
 
@@ -63,6 +64,11 @@ function sanitizeError(err: any): never {
 	if (err && err instanceof Error) {
 		// let intentional SvelteKit HttpErrors (like error(404)) pass through unmodified
 		if ('status' in err && 'body' in err) throw err;
+		
+		// Map our internal ForbiddenError to SvelteKit's 403 HTTP error so it propagates correctly
+		if (err instanceof ForbiddenError) {
+			error(403, { message: err.message });
+		}
 		
 		let message = err.message;
 		let modifiedMessage = false;
@@ -146,9 +152,14 @@ export function resource<
 	// Stub out the authorize checker
 	const checkAuth = async (operation: OperationName, input?: any) => {
 		if (options?.authorize) {
-			const ctx: AuthorizeContext<M> = { user: null, operation, model, input };
+			const event = getRequestEvent();
+			const user = (event?.locals as any)?.user ?? null;
+			const ctx: AuthorizeContext<M> = { user, operation, model, input };
 			const allowed = await options.authorize(ctx);
-			if (!allowed) error(403, 'Forbidden');
+			if (!allowed) {
+				const resourceName = ('table' in (model as any) ? (model as any).table : (model as any).name) || 'Resource';
+				throw new ForbiddenError(String(operation), String(resourceName), 'Denied by resource policy');
+			}
 		}
 	};
 
