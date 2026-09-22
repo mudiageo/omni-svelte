@@ -61,7 +61,7 @@ function generateRelationships(schema: Schema): Record<string, any> {
 			let targetModel = 'unknown';
 			try {
 				if (relation.target) {
-					targetModel = relation.target().name;
+					targetModel = typeof relation.target === 'string' ? relation.target : relation.target().name;
 				}
 			} catch (e) {
 				// Target might not be defined if using strings or unresolved references
@@ -72,10 +72,19 @@ function generateRelationships(schema: Schema): Record<string, any> {
 				type: relation.kind,
 				model: targetModel,
 				foreignKey: relation.options?.via || (relation.kind === 'belongsTo' ? `${relationName}Id` : `${schema.name}Id`),
-				localKey: relation.options?.localKey || 'id'
+				localKey: relation.options?.localKey || 'id',
+				...relation.options
 			};
 		});
 	}
+
+	// Legacy field-level relationships (kept for backward compatibility)
+	Object.entries(schema.fields).forEach(([fieldName, field]) => {
+		if (field.relationship) {
+			const relation = field.relationship;
+			relationships[fieldName] = { ...relation };
+		}
+	});
 
 	return relationships;
 }
@@ -389,13 +398,16 @@ ${typeImport}`;
 	private generateBaseModel(): string {
 		const tableName = this.schema.name;
 		const className = this.capitalize(tableName);
-
 		const fillable = this.generateFillableArray();
 		const hidden = this.generateHiddenArray();
 		const casts = this.generateCastsObject();
 		const hooks = this.generateHooks();
+		const relationships = JSON.stringify(generateRelationships(this.schema), null, 2).replace(/\n/g, '\n  ');
 
-		return `export class ${className}Model extends Model {
+		return `
+export interface ${className}Model extends ${className}Type {}
+
+export class ${className}Model extends Model {
   static tableName = '${tableName}';
   static table = ${tableName};
   static validation = {
@@ -407,6 +419,8 @@ ${typeImport}`;
   static fillable = ${fillable};
   static hidden = ${hidden};
   static casts = ${casts};${this.generateRealtimeConfig()}
+  static relationships = ${relationships};
+  
   ${hooks}
 }`;
 	}
@@ -567,7 +581,10 @@ ${computed.join('\n\n')}
 		const modelClass = `
 export class ${className} extends ${baseClass} {
   // Additional model methods and overrides can be added here
-}`;
+}
+
+// Auto-register model with schema name for relationships
+${className}.register('${this.schema.name}');`;
 
 		return this.outputConfig?.format === 'single-file'
 			? modelClass
