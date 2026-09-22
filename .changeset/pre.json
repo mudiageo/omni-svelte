@@ -7,8 +7,10 @@
     "drizzle-barrel-exports",
     "drizzle-upgrade",
     "feat-relations-api",
+    "issue-60-fix",
     "missing-model-hooks",
     "model-relations-fix",
+    "new-patch",
     "pr-1-fixes",
     "relation-unknown-fix",
     "relations-parser-fix"
