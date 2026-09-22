@@ -141,11 +141,31 @@ export class RelationshipLoader {
 		const db = getDatabase();
 		const localKeys = models.map((model) => model.getAttribute(relationship.localKey || 'id'));
 
+		// Resolve serialized table name into a table object
+		let pivotTable = relationship.pivotTable;
+		if (typeof pivotTable === 'string') {
+			// Try to find a registered model for the pivot table first
+			const pivotModel = getModel(pivotTable);
+			if (pivotModel) {
+				pivotTable = pivotModel.table;
+			} else {
+				// Create a dynamic table object for Drizzle
+				const { pgTable, customType } = await import('drizzle-orm/pg-core');
+				const dynamicType = customType<{ data: any }>({ dataType() { return 'text'; } });
+				pivotTable = pgTable(pivotTable, {
+					[relationship.foreignPivotKey]: dynamicType(relationship.foreignPivotKey),
+					[relationship.relatedPivotKey]: dynamicType(relationship.relatedPivotKey)
+				});
+			}
+			// Cache it back on the relationship for future calls
+			relationship.pivotTable = pivotTable;
+		}
+
 		// First, get the pivot relationships
 		const pivotResults = await db
 			.select()
-			.from(relationship.pivotTable)
-			.where(inArray(relationship.pivotTable[relationship.foreignPivotKey], localKeys));
+			.from(pivotTable)
+			.where(inArray(pivotTable[relationship.foreignPivotKey], localKeys));
 
 		if (pivotResults.length === 0) {
 			models.forEach((model) => model.setRelation(relationName, []));
