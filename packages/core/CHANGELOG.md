@@ -1,5 +1,13 @@
 # omni-svelte
 
+## 0.3.0-next.2
+
+### Patch Changes
+
+- fix: defer relationship evaluation in dynamic models to support circular schemas ([#62](https://github.com/mudiageo/omni-svelte/pull/62))
+
+- fix: inject relationships and declaration merging into generated models ([`654aee3`](https://github.com/mudiageo/omni-svelte/commit/654aee38029ab78f4fe95f58810f1e199411a168))
+
 ## 0.3.0-next.1
 
 ### Patch Changes
