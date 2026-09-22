@@ -1,5 +1,11 @@
 # omni-svelte
 
+## 0.2.3
+
+### Patch Changes
+
+- fix: inject relationships and declaration merging into generated models ([#59](https://github.com/mudiageo/omni-svelte/pull/59))
+
 ## 0.2.2
 
 ### Patch Changes
