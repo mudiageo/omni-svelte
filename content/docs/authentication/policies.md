@@ -72,14 +72,14 @@ export const postPolicy = definePolicy(Post, {
 
 ## Using policies in `resource()`
 
-The primary place to enforce policies is via the `authorize` hook in `resource()`. It runs before every database operation and receives the current `user`, the `operation` name, and the `input`:
+The primary place to enforce policies is via the `authorize` hook in `resource()`. It runs before every database operation and receives the current `user`, the `operation` name, the `input`, and the pre-fetched database `record`:
 
 ```ts
 // src/routes/posts/data.remote.ts
 import { resource } from 'omni-svelte/remote';
+import { Post } from '#lib/schema';
+import { postPolicy } from '$lib/policies/post.policy';
 import { can } from 'omni-svelte/auth';
-import { Post } from '$models';
-import { postPolicy } from '$lib/policies/post';
 
 export const {
   list: posts,
@@ -88,16 +88,11 @@ export const {
   update: updatePost,
   remove: deletePost
 } = resource(Post, {
-  authorize: async ({ user, operation, input }) => {
+  authorize: async ({ user, operation, record }) => {
     // Public read access
     if (operation === 'list' || operation === 'get') return true;
 
-    // Load the record for operations that act on an existing post
-    const recordId = typeof input === 'object' ? (input as any)?.id : input;
-    const record = (operation === 'update' || operation === 'remove') && recordId 
-      ? await Post.find(recordId) 
-      : undefined;
-      
+    // The framework automatically fetches the `record` for mutations!
     return can(user, operation, record, postPolicy);
   }
 });
