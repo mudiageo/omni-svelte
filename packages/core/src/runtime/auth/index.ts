@@ -14,3 +14,4 @@ export {
 export type { AuthConfig } from './types.js';
 export * as defaultAuthSchema from './default-schema.js';
 export { authHandle } from './hook.js';
+export { definePolicy, can, authorize, type Policy, type PolicyRule } from './policy.js';
