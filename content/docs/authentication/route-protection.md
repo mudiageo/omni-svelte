@@ -95,3 +95,68 @@ Pass user data down from the layout load:
 
 {@render children()}
 ```
+
+## Rate Limiting
+
+OmniSvelte provides sliding-window rate limiting for remote functions and global routes, powered by `$omni/cache`.
+
+> **Note:** This is separate from Better-Auth's internal rate limiting for auth endpoints.
+
+### Protecting Remote Functions
+
+Wrap any remote function handler with `rateLimit`:
+
+```ts
+import { form } from '$omni/remote';
+import { rateLimit } from '$omni/auth';
+import { z } from 'zod';
+
+export const sendContactMessage = form(
+  contactSchema,
+  rateLimit({ window: '1m', max: 5 }, async (data, ctx) => {
+    await sendSupportTicket(data);
+    return { success: true };
+  })
+);
+```
+
+### Custom Rate Limit Keys
+
+By default, clients are keyed by client IP (`event.getClientAddress()`). You can provide a custom `keyBy` function to rate-limit by user ID:
+
+```ts
+export const createPost = form(
+  postSchema,
+  rateLimit(
+    {
+      window: '1h',
+      max: 20,
+      keyBy: (event) => event.locals.user?.id ?? event.getClientAddress()
+    },
+    async (data) => {
+      return await Post.create(data);
+    }
+  )
+);
+```
+
+### Global Rate Limiting in Hooks
+
+To apply rate limiting across your entire application, configure it in `omniSvelte`:
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  plugins: [
+    omniSvelte({
+      rateLimit: {
+        window: '1m',
+        max: 100,
+        keyBy: (event) => event.getClientAddress()
+      }
+    })
+  ]
+});
+```
+
+When a rate limit is exceeded, OmniSvelte throws a `RateLimitError`, which automatically responds with **HTTP 429 Too Many Requests** and a `Retry-After: <seconds>` header.

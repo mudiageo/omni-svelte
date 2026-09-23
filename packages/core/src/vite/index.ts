@@ -538,6 +538,11 @@ function generateServerHooks(omniConfig: OmniConfig, userHooksServer: string | n
 		hooks.push('loggingHook');
 	}
 
+	if (omniConfig.rateLimit) {
+		imports.push(`import { createRateLimitHandle } from '${pkg}/auth';`);
+		hooks.push(`createRateLimitHandle(${JSON.stringify(omniConfig)})`);
+	}
+
 	if (omniConfig.cors?.enabled) {
 		imports.push(`import { corsHook } from '${pkg}/cors';`);
 		hooks.push('corsHook');
