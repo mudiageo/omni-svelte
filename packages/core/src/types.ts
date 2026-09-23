@@ -28,6 +28,10 @@ export interface OmniConfig {
 	 */
 	cache?: import('./cache/types.js').CacheConfig;
 	/**
+	 * Global rate limiting configuration for remote functions and routes.
+	 */
+	rateLimit?: import('./runtime/auth/rate-limit.js').RateLimitConfig;
+	/**
 	 * Server and client logging settings.
 	 */
 	logging?: { enabled?: boolean; [key: string]: unknown };

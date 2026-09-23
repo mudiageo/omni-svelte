@@ -23,8 +23,8 @@ export class ForbiddenError extends OmniError {
 }
 
 export class RateLimitError extends OmniError {
-	constructor(public retryAfter: number) {
-		super(`Rate limit exceeded, retry after ${retryAfter}s`, { retryAfter });
+	constructor(public retryAfter: number, public limit?: number, public window?: string) {
+		super(`Rate limit exceeded, retry after ${retryAfter}s`, { retryAfter, limit, window });
 	}
 }
 
