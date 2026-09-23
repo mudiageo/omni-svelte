@@ -65,8 +65,8 @@ export class RedisCacheStore implements CacheStore {
     // However, for pure numbers, we can use INCRBYFLOAT.
     // To support `increment` on missing keys or numeric keys natively:
     // We must use a Lua script to parse the JSON `{ data: 5 }`, increment, and save back.
-    // Or we simply store raw numbers if increment is used? 
-    // For simplicity and spec compliance, let's just do a GET, increment, SET. 
+    // TODO Or we simply store raw numbers if increment is used? 
+    // For simplicity, we will just do a GET, increment, SET. 
     // Atomic INCR in Redis on JSON is hard without Lua.
     const script = `
       local current = redis.call('GET', KEYS[1])
