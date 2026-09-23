@@ -1,143 +1,83 @@
-// import { type CacheStore } from '../types.js'
-export interface CacheOptions {
-  ttl?: number; // Time-to-live in seconds
-  forever: boolean; //remember indefinitly
-}
-
-export interface LockOptions {
-  ttl?: number; // Lock validity window in seconds (default 30)
-}
-
-export interface BlockLockOptions {
-  maxWait?: number; // Maximum wait duration in milliseconds (default 10,000)
-  pollInterval?: number; // Polling retry interval in milliseconds (default 250)
-}
-
-export interface CacheStore {
-  get<T>(key: string): Promise<T | null>;
-  set<T>(key: string, value: T, options?: CacheOptions): Promise<void>;
-  delete(key: string): Promise<boolean>;
-  has(key: string): Promise<boolean>;
-  increment(key: string, by?: number): Promise<number>;
-  decrement(key: string, by?: number): Promise<number>;
-  ttl(key: string): Promise<number | null>; // Remaining seconds, null if non-expiring/missing
-  getMany<T>(keys: string[]): Promise<Map<string, T | null>>;
-  setMany<T>(entries: [string, T][], options?: CacheOptions): Promise<void>;
-  tags(...tags: string[]): TaggedCache;
-  lock(key: string, options?: LockOptions): CacheLock;
-  clear(): Promise<void>;
-}
-
-export interface TaggedCache extends Pick<CacheStore, 'get' | 'set' | 'delete' | 'has'> {
-  flush(): Promise<void>;
-}
-
-export interface CacheLock {
-  block<T>(fn: () => Promise<T> | T, options?: BlockLockOptions): Promise<T>;
-  attempt<T>(fn: () => Promise<T> | T): Promise<T | false>;
-  release(): Promise<boolean>;
-}
-
+import type { CacheStore, TaggedCache, CacheLock, LockOptions, CacheOptions, BlockLockOptions } from '../types.js';
 
 export class ArrayCacheStore implements CacheStore {
-  cache = new Map<string, { value: any; expiresAt: number | null }>();
-  tagToKeys = new Map<string, Set<string>>()
-  keyToTags = new Map<string, Set<string>>()
-
   public recorded = {
     gets: [] as string[],
-    sets: [] as { key: string; value: any; ttl?: number }[],
+    sets: [] as { key: string; value: any; options?: CacheOptions }[],
     deletes: [] as string[],
-    flushes: [] as string[][]
+    flushes: [] as string[][], // arrays of tags
   };
 
-  async get<T>(key: string): Promise<T | null> {
-    const record = this.cache.get(key)
-      
-    if (!record) return null
+  private storage = new Map<string, any>();
 
-    if(record.expiresAt && Date.now() > record.expiresAt) {
-      
-      // if expired, cleanup
-      this.cache.delete(key)
-      
-      return null
-    }
-
-    return record.value as T
-  }
-
-  async set<T>(key: string, value: T, options: CacheOptions ){
-
-    const expiresAt = typeof options?.ttl === 'number' ? Date.now() + (options.ttl * 1000) : null
-    
-    const record = { value, expiresAt }
-    
-    this.cache.set(key, record)
+  async get<T>(key: string) {
+    this.recorded.gets.push(key);
+    return (this.storage.get(key) as T) ?? null;
   }
   
-  async delete(key: string): Promise<boolean> {
-    return this.cache.delete(key)
+  async set<T>(key: string, value: T, options?: CacheOptions) {
+    this.recorded.sets.push({ key, value, options });
+    this.storage.set(key, value);
   }
-
-  async has(key: string): Promise<boolean> {
-    return this.cache.has(key)
+  
+  async delete(key: string) {
+    this.recorded.deletes.push(key);
+    return this.storage.delete(key);
   }
-
-  async increment(key: string, by: number = 1): Promise<number> {
-    
-    const current = await this.get(key); //handles ttl eviction automatically 
-
-    const newValue = typeof current === 'number' ? current + by : by
-    
-    const existingRecord = this.cache.get(key)
-    const newRecord = { ...existingRecord, value: newValue }
-    
-    this.cache.set(key, newRecord)
-
-    return newValue
-    
+  
+  async has(key: string) {
+    return this.storage.has(key);
   }
-
-  async decrement(key: string, by?: number): Promise<number> {
-    return this.increment(key, -by)
+  
+  async increment(key: string, by = 1) {
+    const val = (this.storage.get(key) || 0) + by;
+    this.storage.set(key, val);
+    return val;
   }
-
-  async ttl(key: string): Promise<number | null> {
-    const record = this.cache.get(key)
-
-    if(typeof record?.expiresAt === 'number') return null
-
-    
+  
+  async decrement(key: string, by = 1) {
+    return this.increment(key, -by);
   }
-
-  async getMany<T>(keys: string[]): Promise<Map<string, T | null>> {
-    const result = new Map<string, T | null>()
-    for (const key of keys) {
-      result.set(key, await this.get(key))
+  
+  async ttl() { return null; }
+  
+  async getMany<T>(keys: string[]) {
+    const res: Record<string, T | null> = {};
+    for (const k of keys) {
+      this.recorded.gets.push(k);
+      res[k] = (this.storage.get(k) as T) ?? null;
     }
-
-    return result;
-    
+    return res;
   }
-
-  async setMany<T>(entries: [string, T][], options?: CacheOptions): Promise<void> {
-    for (const [key, value] of entries) {
-      await this.set(key, value, options)
+  
+  async setMany<T>(entries: [string, T][], options?: CacheOptions) {
+    for (const [k, v] of entries) {
+      await this.set(k, v, options);
     }
-    
   }
-
+  
   tags(...tags: string[]): TaggedCache {
-    
-  }
-
-  lock(key: string, options?: LockOptions): CacheLock {
-    
-  }
-
-  async clear(): Promise<void> {
-    
+    return {
+      get: this.get.bind(this),
+      set: this.set.bind(this),
+      delete: this.delete.bind(this),
+      has: this.has.bind(this),
+      flush: async () => {
+        this.recorded.flushes.push(tags);
+      }
+    };
   }
   
+  lock(): CacheLock {
+    return {
+      attempt: async <T>(fn: () => Promise<T>|T) => await fn(),
+      block: async <T>(fn: () => Promise<T>|T) => await fn(),
+      release: async () => true
+    };
+  }
+  
+  async clear() {
+    this.storage.clear();
+    this.recorded = { gets: [], sets: [], deletes: [], flushes: [] };
+  }
 }
