@@ -24,6 +24,10 @@ export interface OmniConfig {
 	 */
 	auth?: AuthConfig;
 	/**
+	 * Cache configuration options.
+	 */
+	cache?: import('./cache/types.js').CacheConfig;
+	/**
 	 * Server and client logging settings.
 	 */
 	logging?: { enabled?: boolean; [key: string]: unknown };

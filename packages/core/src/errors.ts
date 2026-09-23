@@ -33,3 +33,16 @@ export class ValidationError extends OmniError {
 		super('Validation failed', { issues });
 	}
 }
+
+export class CacheError extends OmniError {
+  constructor(public key: string, public cause: unknown) {
+    super(`Cache operation failed for key '${key}'`, { key, cause });
+  }
+}
+
+export class LockTimeoutError extends CacheError {
+  constructor(public key: string, public maxWaitMs: number) {
+    super(key, `Lock not acquired within ${maxWaitMs}ms`);
+    this.name = 'LockTimeoutError';
+  }
+}

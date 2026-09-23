@@ -271,9 +271,10 @@ const plugin_auth_resolver = (omniConfig: OmniConfig): Plugin => ({
  * - $models  → server-only (contains DB queries)
  * - $schema  → server-only (Drizzle table definitions)
  * - $db      → server-only (raw database connection)
+ * - $omni/cache → server-only (configured cache manager)
  * - $validation → universal (pure Zod schemas, safe for client/server)
  */
-const SERVER_ONLY_MODULES = ['$db', '$schema', '$models'];
+const SERVER_ONLY_MODULES = ['$db', '$schema', '$models', '$omni/cache'];
 
 const VIRTUAL_PREFIX = '\0virtual:omni:';
 
@@ -368,6 +369,12 @@ const plugin_omni_virtual_aliases = (omniConfig: OmniConfig): Plugin => ({
 			`  export const db: PostgresJsDatabase;`,
 			`}`,
 			``,
+			`// SERVER-ONLY: Configured Cache Manager`,
+			`declare module '$omni/cache' {`,
+			`  import { cache } from 'omni-svelte/cache';`,
+			`  export { cache };`,
+			`}`,
+			``,
 			`// UNIVERSAL: Zod validation schemas (safe for client and server)`,
 			`declare module '$validation' { export * from '${zodIndex}'; }`,
 			`declare module '$validation/*' { export * from '${zodIndex}'; }`
@@ -382,8 +389,8 @@ const plugin_omni_virtual_aliases = (omniConfig: OmniConfig): Plugin => ({
 	},
 
 	resolveId(id) {
-		// Barrel imports: $models, $schema, $validation, $db
-		if (id === '$models' || id === '$schema' || id === '$validation' || id === '$db') {
+		// Barrel imports: $models, $schema, $validation, $db, $omni/cache
+		if (id === '$models' || id === '$schema' || id === '$validation' || id === '$db' || id === '$omni/cache') {
 			return VIRTUAL_PREFIX + id.slice(1); // e.g. \0virtual:omni:models
 		}
 		// Sub-path imports: $models/posts → resolve directly to the file on disk
@@ -402,6 +409,11 @@ const plugin_omni_virtual_aliases = (omniConfig: OmniConfig): Plugin => ({
 		if (key === 'db') {
 			const dbConfig = omniConfig?.database || {};
 			return `import { configureDatabase, getDatabase } from 'omni-svelte/database';\nconfigureDatabase(${JSON.stringify(dbConfig)});\nconst db = getDatabase();\nexport { db };\nexport default db;`;
+		}
+
+		if (key === 'omni/cache') {
+			const cacheConfig = omniConfig?.cache || { default: 'main', stores: { main: { driver: 'memory' } } };
+			return `import { cache } from 'omni-svelte/cache';\ncache.configure(${JSON.stringify(cacheConfig)});\nexport { cache };`;
 		}
 
 		if (key === 'schema') {

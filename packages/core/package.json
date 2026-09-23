@@ -191,6 +191,7 @@
 		"drizzle-orm": "1.0.0-rc.4",
 		"execa": "^9.6.1",
 		"glob": "^11.0.3",
+		"ioredis": "^6.0.0",
 		"package-manager-detector": "^1.6.0",
 		"picocolors": "^1.1.1",
 		"postgres": "^3.4.5",
