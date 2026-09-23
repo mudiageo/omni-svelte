@@ -2,6 +2,8 @@
   "mode": "pre",
   "tag": "next",
   "changesets": [
+    "auth-policies",
+    "cache",
     "default-ast-parser",
     "drizzle-1.0-connection-init",
     "drizzle-barrel-exports",
@@ -12,6 +14,7 @@
     "model-relations-fix",
     "new-patch",
     "pr-1-fixes",
+    "rate-limiting",
     "relation-unknown-fix",
     "relations-parser-fix"
   ]

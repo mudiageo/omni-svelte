@@ -1,5 +1,15 @@
 # omni-svelte
 
+## 0.3.0-next.3
+
+### Minor Changes
+
+- feat: add policy-based authorization with definePolicy, can, and authorize ([#58](https://github.com/mudiageo/omni-svelte/pull/58))
+
+- feat: add caching and distributed locking ([#67](https://github.com/mudiageo/omni-svelte/pull/67))
+
+- feat: add framework-level rate limiting for remote functions and routes ([#68](https://github.com/mudiageo/omni-svelte/pull/68))
+
 ## 0.3.0-next.2
 
 ### Patch Changes
