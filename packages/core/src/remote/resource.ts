@@ -11,6 +11,7 @@ export interface AuthorizeContext<M> {
 	operation: OperationName;
 	model: M;
 	input?: unknown;
+	record?: InstanceType<any>; // The loaded database record
 }
 
 export type MutationMode = 'form' | 'command';
@@ -146,11 +147,11 @@ function getMutationMode(op: 'create' | 'update', options?: ResourceOptions<any>
  */
 export function resource<M extends any, O extends ResourceOptions<M> = {}>(model: M, options?: O) {
 	// Stub out the authorize checker
-	const checkAuth = async (operation: OperationName, input?: any) => {
+	const checkAuth = async (operation: OperationName, input?: any, record?: any) => {
 		if (options?.authorize) {
 			const event = getRequestEvent();
 			const user = (event?.locals as any)?.user ?? null;
-			const ctx: AuthorizeContext<M> = { user, operation, model, input };
+			const ctx: AuthorizeContext<M> = { user, operation, model, input, record };
 			const allowed = await options.authorize(ctx);
 			if (!allowed) {
 				const resourceName =
@@ -222,7 +223,6 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 
 				return fn(z.union([z.string(), z.number()]), async (id: string | number) => {
 					try {
-						await checkAuth('get', id);
 						let q = model.query().where('id', id);
 						if (options?.with) {
 							for (const relation of options.with) {
@@ -231,6 +231,8 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 						}
 						const record = await q.first();
 						if (!record) error(404, 'Not found');
+						
+						await checkAuth('get', id, record);
 						return record;
 					} catch (e) {
 						sanitizeError(e);
@@ -280,9 +282,11 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 				});
 				const updateHandler = async (data: any) => {
 					try {
-						await checkAuth('update', data);
 						const { id, ...updateData } = data;
-						const record = await model.update(id, updateData);
+						const record = await model.findOrFail(id);
+						
+						await checkAuth('update', data, record);
+						await record.update(updateData);
 
 						if (listFn && typeof (listFn as any).refresh === 'function') {
 							(listFn as any).refresh();
@@ -306,8 +310,9 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 		? (() => {
 				return command(z.union([z.string(), z.number()]), async (id: string | number) => {
 					try {
-						await checkAuth('remove', id);
-						await model.delete(id);
+						const record = await model.findOrFail(id);
+						await checkAuth('remove', id, record);
+						await record.delete();
 
 						if (listFn && typeof (listFn as any).refresh === 'function') {
 							(listFn as any).refresh();
