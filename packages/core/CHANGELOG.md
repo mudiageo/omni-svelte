@@ -1,5 +1,23 @@
 # omni-svelte
 
+## 0.3.0-next.3
+
+### Minor Changes
+
+- feat: add policy-based authorization with definePolicy, can, and authorize ([#58](https://github.com/mudiageo/omni-svelte/pull/58))
+
+- feat: add caching and distributed locking ([#67](https://github.com/mudiageo/omni-svelte/pull/67))
+
+- feat: pass fetched record to resource authorize context ([#61](https://github.com/mudiageo/omni-svelte/pull/61))
+
+- feat: add framework-level rate limiting for remote functions and routes ([#68](https://github.com/mudiageo/omni-svelte/pull/68))
+
+### Patch Changes
+
+- fix: synchronize persisted updated_at timestamp with in-memory model attributes on update ([#61](https://github.com/mudiageo/omni-svelte/pull/61))
+
+- fix: instantiate model before applying resource updates or deletes ([#61](https://github.com/mudiageo/omni-svelte/pull/61))
+
 ## 0.3.0-next.2
 
 ### Patch Changes
