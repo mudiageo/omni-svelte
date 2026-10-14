@@ -419,7 +419,10 @@ export abstract class Model {
 		}
 
 		if ((this.constructor as typeof Model).timestamps && Object.keys(dirty).length > 0) {
-			dirty.updated_at = new Date();
+			const timestamp =
+				this.attributes.updated_at instanceof Date ? this.attributes.updated_at : new Date();
+			dirty.updated_at = timestamp;
+			this.setAttribute('updated_at', timestamp);
 		}
 
 		return dirty;
