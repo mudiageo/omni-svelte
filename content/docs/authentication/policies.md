@@ -72,7 +72,7 @@ export const postPolicy = definePolicy(Post, {
 
 ## Using policies in `resource()`
 
-The primary place to enforce policies is via the `authorize` hook in `resource()`. It runs before every database operation and receives the current `user`, the `operation` name, the `input`, and the pre-fetched database `record`:
+The primary place to enforce policies is via the `authorize` hook in `resource()`. For operations targeting an existing record (`get`, `update`, `remove`), the target record is pre-fetched from the database first (returning 404 if not found) and passed to `authorize`, while still enforcing authorization before any mutations execute:
 
 ```ts
 // src/routes/posts/data.remote.ts

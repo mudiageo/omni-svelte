@@ -11,7 +11,7 @@ export interface AuthorizeContext<M> {
 	operation: OperationName;
 	model: M;
 	input?: unknown;
-	record?: InstanceType<any>; // The loaded database record
+	record?: M extends new (...args: any[]) => infer R ? R : any;
 }
 
 export type MutationMode = 'form' | 'command';
@@ -283,8 +283,9 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 				const updateHandler = async (data: any) => {
 					try {
 						const { id, ...updateData } = data;
-						const record = await model.findOrFail(id);
-						
+						const record = await model.find(id);
+						if (!record) error(404, 'Not found');
+
 						await checkAuth('update', data, record);
 						await record.update(updateData);
 
@@ -310,7 +311,8 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 		? (() => {
 				return command(z.union([z.string(), z.number()]), async (id: string | number) => {
 					try {
-						const record = await model.findOrFail(id);
+						const record = await model.find(id);
+						if (!record) error(404, 'Not found');
 						await checkAuth('remove', id, record);
 						await record.delete();
 
