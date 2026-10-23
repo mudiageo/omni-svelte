@@ -18,27 +18,17 @@ export interface RateLimitConfig {
   keyBy?: (event: RequestEvent) => string;
 }
 
+import { parseDuration } from '../../utils/duration.js';
+
 /**
  * Parses a human-readable duration string into seconds.
- * Supports: s (seconds), m (minutes), h (hours), d (days).
  */
 export function parseWindow(window: string | number): number {
   if (typeof window === 'number') return window;
-
-  const match = window.match(/^(\d+)([smhd])$/);
-  if (!match) {
+  try {
+    return Math.floor(parseDuration(window) / 1000);
+  } catch (err) {
     throw new Error(`Invalid rate limit window format: ${window}`);
-  }
-
-  const value = parseInt(match[1], 10);
-  const unit = match[2];
-
-  switch (unit) {
-    case 's': return value;
-    case 'm': return value * 60;
-    case 'h': return value * 3600;
-    case 'd': return value * 86400;
-    default: throw new Error(`Invalid rate limit window format: ${window}`);
   }
 }
 

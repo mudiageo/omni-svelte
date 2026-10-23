@@ -46,3 +46,22 @@ export class LockTimeoutError extends CacheError {
     this.name = 'LockTimeoutError';
   }
 }
+export class QueueError extends OmniError {
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, context);
+  }
+}
+
+export class JobTimeoutError extends QueueError {
+  constructor(public jobName: string, public timeoutMs: number) {
+    super(`Job '${jobName}' exceeded timeout of ${timeoutMs}ms`, { jobName, timeoutMs });
+    this.name = 'JobTimeoutError';
+  }
+}
+
+export class JobMaxAttemptsError extends QueueError {
+  constructor(public jobName: string, public attempts: number, public cause: unknown) {
+    super(`Job '${jobName}' failed after ${attempts} attempts`, { jobName, attempts, cause });
+    this.name = 'JobMaxAttemptsError';
+  }
+}
