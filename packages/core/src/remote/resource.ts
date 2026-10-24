@@ -68,7 +68,7 @@ function sanitizeError(err: any): never {
 
 		// Map our internal ForbiddenError to SvelteKit's 403 HTTP error so it propagates correctly
 		if (err instanceof ForbiddenError) {
-			error(403, { message: err.message });
+			error(403, err.message );
 		}
 
 		let message = err.message;

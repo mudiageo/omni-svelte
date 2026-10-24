@@ -32,7 +32,7 @@ Replace `error(status, { message, ... })` with `error(status, message, { ... })`
 
 #### Files to review
 
-- [ ] `src/remote/resource.ts`
+- [x] `src/remote/resource.ts`
 
 ### CORS for static assets in development is handled by Vite
 
@@ -48,8 +48,8 @@ If you rely on cross-origin access to static assets in dev, configure it in your
 
 ## Final verification
 
-- [ ] Review every migration task and ignore any irrelevant findings.
-- [ ] Resolve remaining `@migration-task` comments.
-- [ ] Run the project's type checker and tests.
-- [ ] Build the project successfully.
+- [x] Review every migration task and ignore any irrelevant findings.
+- [x] Resolve remaining `@migration-task` comments.
+- [x] Run the project's type checker and tests.
+- [x] Build the project successfully.
 - [ ] Delete this file when all migration work is complete.
