@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { createAuthClient } from 'better-auth/svelte';
 import generatedClientConfig from './__generated__/client-config';
 

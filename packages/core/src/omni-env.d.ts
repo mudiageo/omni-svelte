@@ -16,6 +16,12 @@ declare module '$db' {
   export const db: PostgresJsDatabase;
 }
 
+// SERVER-ONLY: Configured Cache Manager
+declare module '$omni/cache' {
+  import { cache } from 'omni-svelte/cache';
+  export { cache };
+}
+
 // UNIVERSAL: Zod validation schemas (safe for client and server)
 declare module '$validation' { export * from '$lib/db/validation/index'; }
 declare module '$validation/*' { export * from '$lib/db/validation/index'; }

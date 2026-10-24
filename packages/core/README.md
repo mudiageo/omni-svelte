@@ -129,9 +129,9 @@ omni-svelte injects virtual modules and path aliases for all generated code. No 
 
 ```ts
 // Before omni-svelte
-import { db } from '$lib/server/database';
-import { auth } from '$lib/server/auth';
-import { users } from '$lib/db/schema';
+import { db } from '#lib/server/database';
+import { auth } from '#lib/server/auth';
+import { users } from '#lib/db/schema';
 
 // After — generated and aliased automatically
 import { db } from '$db';

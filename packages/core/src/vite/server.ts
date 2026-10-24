@@ -1,4 +1,4 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle } from '@sveltejs/kit/hooks';
 
 export function createFrameworkHandler({ hooks = [], config = {}, userHandle = null }): Handle {
 	return async ({ event, resolve }) => {
