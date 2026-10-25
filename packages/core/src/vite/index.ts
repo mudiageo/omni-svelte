@@ -336,7 +336,7 @@ const plugin_omni_virtual_aliases = (omniConfig: OmniConfig): Plugin => ({
 
 		// Convert absolute paths → $lib/... specifiers (non-relative, valid in ambient modules)
 		const toLibAlias = (absPath: string) =>
-			'$lib/' +
+			'#lib/' +
 			absPath
 				.replace(libDir, '')
 				.replace(/^[\\/]/, '')
