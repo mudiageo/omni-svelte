@@ -47,7 +47,7 @@ omni-svelte watches these files and generates:
 
 ```ts
 // +page.server.ts
-import { PostModel } from '$lib/db/models/posts';
+import { PostModel } from '#lib/db/models/posts';
 
 export async function load() {
 	const posts = await PostModel.findMany({

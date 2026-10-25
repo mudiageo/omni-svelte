@@ -157,10 +157,10 @@ If you import from sub-paths like `$models/posts.model` and see a red underline,
 ```ts
 // test-env.d.ts  (or src/app.d.ts)
 declare module '$models/posts.model' {
-	export * from '$lib/db/models/posts.model';
+	export * from '#lib/db/models/posts.model';
 }
 ```
 
-> **Important**: always use the `$lib/...` alias (non-relative) inside `declare module` blocks. TypeScript forbids relative paths (`./`) in ambient module declarations.
+> **Important**: always use the `#lib/...` alias (non-relative) inside `declare module` blocks. TypeScript forbids relative paths (`./`) in ambient module declarations.
 
 The auto-generated `src/omni-env.d.ts` handles the barrel imports (`$models`, `$schema`, `$validation`, `$db`) — you only need `test-env.d.ts` for individual sub-path shims during development.

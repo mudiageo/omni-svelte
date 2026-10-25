@@ -135,7 +135,7 @@ Let's render a real-time list of feedback on our product page. OmniSvelte provid
 
 ```svelte
 <script lang="ts">
-  import { getFeedbackLive } from '$lib/server/feedback.remote';
+  import { getFeedbackLive } from '#lib/server/feedback.remote';
   
   let { data } = $props();
   

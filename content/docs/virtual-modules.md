@@ -117,13 +117,13 @@ omni-svelte writes this file automatically on dev-server start. It declares the 
 ```ts
 // src/omni-env.d.ts  ← do not edit manually
 declare module '$models' {
-	export * from '$lib/db/models/index';
+	export * from '#lib/db/models/index';
 }
 declare module '$schema' {
-	export * from '$lib/db/server/schema';
+	export * from '#lib/db/server/schema';
 }
 declare module '$validation' {
-	export * from '$lib/db/validation/index';
+	export * from '#lib/db/validation/index';
 }
 declare module '$db' {
 	export const db: PostgresJsDatabase;
@@ -137,7 +137,7 @@ For per-file sub-path imports the IDE can't auto-resolve, add a `test-env.d.ts` 
 ```ts
 // test-env.d.ts
 declare module '$models/posts.model' {
-	export * from '$lib/db/models/posts.model'; // ← must be $lib/..., not ./
+	export * from '#lib/db/models/posts.model'; // ← must be #lib/..., not ./
 }
 ```
 

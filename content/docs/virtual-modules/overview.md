@@ -30,9 +30,9 @@ OmniSvelte injects a set of **virtual modules** and **path aliases** so you can 
 
 ```ts
 // Before OmniSvelte — hardcoded paths, easy to break
-import { db }    from '$lib/server/database';
-import { auth }  from '$lib/server/auth';
-import { users } from '$lib/db/schema';
+import { db }    from '#lib/server/database';
+import { auth }  from '#lib/server/auth';
+import { users } from '#lib/db/schema';
 
 // After OmniSvelte — always correct, no path management
 import { db }         from '$db';
@@ -52,13 +52,13 @@ On first `pnpm dev`, OmniSvelte writes `src/omni-env.d.ts`:
 ```ts
 // src/omni-env.d.ts — auto-generated, do not edit
 declare module '$models' {
-  export * from '$lib/db/models/index';
+  export * from '#lib/db/models/index';
 }
 declare module '$schema' {
-  export * from '$lib/db/server/schema';
+  export * from '#lib/db/server/schema';
 }
 declare module '$validation' {
-  export * from '$lib/db/validation/index';
+  export * from '#lib/db/validation/index';
 }
 declare module '$db' {
   export const db: PostgresJsDatabase;
@@ -70,7 +70,7 @@ For sub-path imports like `$models/posts.model`, add a `test-env.d.ts`:
 ```ts
 // test-env.d.ts (project root)
 declare module '$models/posts.model' {
-  export * from '$lib/db/models/posts.model'; // must use $lib/..., not ./
+  export * from '#lib/db/models/posts.model'; // must use #lib/..., not ./
 }
 ```
 

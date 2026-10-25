@@ -126,7 +126,7 @@ console.log(post.comments.length);
 ## Factories (testing)
 
 ```ts
-import { PostFactory } from '$lib/db/models/posts.factory';
+import { PostFactory } from '#lib/db/models/posts.factory';
 
 // Generate unsaved plain object
 const data = PostFactory.make({ published: true });
