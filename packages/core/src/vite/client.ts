@@ -1,4 +1,5 @@
-import type { Config, HandleClientError, HandleFetch } from '@sveltejs/kit';
+import type { Config } from '@sveltejs/kit';
+import type { HandleClientError, HandleFetch } from '@sveltejs/kit/hooks';
 
 interface ClientHandlerConfig {
 	hooks: {

@@ -1,4 +1,4 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle } from '@sveltejs/kit/hooks';
 import { checkRateLimit } from './rate-limit.js';
 import type { OmniConfig } from '../../types.js';
 import { RateLimitError } from '../../errors.js';
@@ -17,14 +17,14 @@ export function createRateLimitHandle(config: OmniConfig): Handle {
               window: err.window 
             }),
             {
-              status: 429,
-              headers: {
-                'Content-Type': 'application/json',
-                'Retry-After': String(err.retryAfter)
-              }
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Retry-After': String(err.retryAfter)
             }
-          );
+          });
         }
+
         throw err;
       }
     }

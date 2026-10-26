@@ -61,69 +61,6 @@ export type ResourceExports<M> = {
 // SvelteKit query exports have .set, .refresh, etc.
 type QueryType = ReturnType<typeof query>;
 
-function sanitizeError(err: any): never {
-	if (err && err instanceof Error) {
-		// let intentional SvelteKit HttpErrors (like error(404)) pass through unmodified
-		if ('status' in err && 'body' in err) throw err;
-
-		// Map our internal ForbiddenError to SvelteKit's 403 HTTP error so it propagates correctly
-		if (err instanceof ForbiddenError) {
-			error(403, { message: err.message });
-		}
-
-		let message = err.message;
-		let modifiedMessage = false;
-
-		// provide friendly hints for known, common framework errors like missing db tables
-		if (message.includes('relation') && message.includes('does not exist')) {
-			message = `${message}\n\n💡 Hint: It looks like this table hasn't been created in your database. Did you forget to run \`omni db push\` or \`omni db migrate\`?`;
-			modifiedMessage = true;
-		}
-
-		// check if the stack is read-only (this is what crashes SvelteKit's Server Functions)
-		let isStackReadOnly = false;
-		try {
-			// This safely detects read-only properties even if they are on the prototype chain
-			err.stack = err.stack;
-		} catch (e) {
-			isStackReadOnly = true;
-		}
-
-		if (isStackReadOnly) {
-			// universal safety net: reconstruct all escaping errors into a standard Error object
-			// this ensures the `stack` property is writable. if third-party libraries (like postgres-js)
-			// throw errors with read-only stacks, SvelteKit's Server Functions will crash with a TypeError
-			// when trying to serialize them for the client
-			const safeErr = new Error(message, { cause: err });
-			safeErr.name = err.name || 'Error';
-			safeErr.stack = err.stack;
-
-			// copy all original metadata properties (e.g. Postgres DB fields)
-			const skip = new Set(['message', 'name', 'stack', 'cause']);
-			for (const key of Object.getOwnPropertyNames(err)) {
-				if (!skip.has(key)) {
-					Object.defineProperty(safeErr, key, {
-						value: (err as any)[key],
-						writable: true,
-						configurable: true,
-						enumerable: Object.prototype.propertyIsEnumerable.call(err, key)
-					});
-				}
-			}
-			throw safeErr;
-		}
-
-		if (modifiedMessage) {
-			try {
-				err.message = message;
-			} catch (_) {}
-		}
-
-		throw err;
-	}
-	throw err;
-}
-
 function shouldInclude(op: OperationName, options?: ResourceOptions<any>) {
 	if (options?.only && !options.only.includes(op)) return false;
 	if (options?.exclude && options.exclude.includes(op)) return false;
@@ -181,37 +118,33 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 				});
 
 				return fn(listInputSchema, async (input: ListInput) => {
-					try {
-						await checkAuth('list', input);
-						let q = model.query();
-						if (options?.with) {
-							for (const relation of options.with) {
-								q = q.with(relation);
-							}
+					await checkAuth('list', input);
+					let q = model.query();
+					if (options?.with) {
+						for (const relation of options.with) {
+							q = q.with(relation);
 						}
-
-						if (input?.search && typeof q.search === 'function') {
-							q = q.search(input.search);
-						}
-
-						if (input?.filters) {
-							for (const [key, value] of Object.entries(input.filters)) {
-								if (value !== null && value !== undefined) {
-									q = q.where(key, value);
-								}
-							}
-						}
-
-						if (options?.listQuery) {
-							q = options.listQuery(q, input ?? {});
-						}
-
-						const perPage = input?.perPage ?? options?.pagination?.perPage ?? 20;
-						const page = input?.page ?? 1;
-						return await q.paginate(perPage, page);
-					} catch (e) {
-						sanitizeError(e);
 					}
+
+					if (input?.search && typeof q.search === 'function') {
+						q = q.search(input.search);
+					}
+
+					if (input?.filters) {
+						for (const [key, value] of Object.entries(input.filters)) {
+							if (value !== null && value !== undefined) {
+								q = q.where(key, value);
+							}
+						}
+					}
+
+					if (options?.listQuery) {
+						q = options.listQuery(q, input ?? {});
+					}
+
+					const perPage = input?.perPage ?? options?.pagination?.perPage ?? 20;
+					const page = input?.page ?? 1;
+					return await q.paginate(perPage, page);
 				});
 			})()
 		: undefined;
@@ -222,21 +155,17 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 				const fn = isLive ? (query as any).live : query;
 
 				return fn(z.union([z.string(), z.number()]), async (id: string | number) => {
-					try {
-						let q = model.query().where('id', id);
-						if (options?.with) {
-							for (const relation of options.with) {
-								q = q.with(relation);
-							}
+					let q = model.query().where('id', id);
+					if (options?.with) {
+						for (const relation of options.with) {
+							q = q.with(relation);
 						}
-						const record = await q.first();
-						if (!record) error(404, 'Not found');
-						
-						await checkAuth('get', id, record);
-						return record;
-					} catch (e) {
-						sanitizeError(e);
 					}
+					const record = await q.first();
+					if (!record) error(404, 'Not found');
+					
+					await checkAuth('get', id, record);
+					return record;
 				});
 			})()
 		: undefined;
@@ -249,18 +178,14 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 					fillable === 'auto' ? undefined : { pick: fillable }
 				);
 				const createHandler = async (data: any) => {
-					try {
-						await checkAuth('create', data);
-						const record = await model.create(data);
+					await checkAuth('create', data);
+					const record = await model.create(data);
 
-						if (listFn && typeof (listFn as any).refresh === 'function') {
-							(listFn as any).refresh();
-						}
-
-						return { success: true, record };
-					} catch (e) {
-						sanitizeError(e);
+					if (listFn && typeof (listFn as any).refresh === 'function') {
+						(listFn as any).refresh();
 					}
+
+					return { success: true, record };
 				};
 				return createMode === 'command'
 					? command(fSchema, createHandler)
@@ -281,25 +206,21 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 					id: z.union([z.string(), z.number()])
 				});
 				const updateHandler = async (data: any) => {
-					try {
-						const { id, ...updateData } = data;
-						const record = await model.find(id);
-						if (!record) error(404, 'Not found');
+					const { id, ...updateData } = data;
+					const record = await model.find(id);
+					if (!record) error(404, 'Not found');
 
-						await checkAuth('update', data, record);
-						await record.update(updateData);
+					await checkAuth('update', data, record);
+					await record.update(updateData);
 
-						if (listFn && typeof (listFn as any).refresh === 'function') {
-							(listFn as any).refresh();
-						}
-						if (getFn && typeof (getFn as any).refresh === 'function') {
-							(getFn as any).refresh(id);
-						}
-
-						return { success: true, record };
-					} catch (e) {
-						sanitizeError(e);
+					if (listFn && typeof (listFn as any).refresh === 'function') {
+						(listFn as any).refresh();
 					}
+					if (getFn && typeof (getFn as any).refresh === 'function') {
+						(getFn as any).refresh(id);
+					}
+
+					return { success: true, record };
 				};
 				return updateMode === 'command'
 					? command(updateSchema, updateHandler)
@@ -310,20 +231,16 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 	const removeFn = shouldInclude('remove', options)
 		? (() => {
 				return command(z.union([z.string(), z.number()]), async (id: string | number) => {
-					try {
-						const record = await model.find(id);
-						if (!record) error(404, 'Not found');
-						await checkAuth('remove', id, record);
-						await record.delete();
+					const record = await model.find(id);
+					if (!record) error(404, 'Not found');
+					await checkAuth('remove', id, record);
+					await record.delete();
 
-						if (listFn && typeof (listFn as any).refresh === 'function') {
-							(listFn as any).refresh();
-						}
-
-						return { success: true };
-					} catch (e) {
-						sanitizeError(e);
+					if (listFn && typeof (listFn as any).refresh === 'function') {
+						(listFn as any).refresh();
 					}
+
+					return { success: true };
 				});
 			})()
 		: undefined;

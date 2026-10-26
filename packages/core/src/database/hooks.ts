@@ -1,4 +1,5 @@
-import type { Handle, RequestEvent, ServerInit } from '@sveltejs/kit';
+import type { Handle, ServerInit } from '@sveltejs/kit/hooks';
+import type { RequestEvent } from '@sveltejs/kit';
 import { configureDatabase, getDatabase } from './database.js';
 import { QueryBuilder } from './query-builder.js';
 import type { DatabaseConfig } from './database.js';

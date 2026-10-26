@@ -78,7 +78,7 @@ The primary place to enforce policies is via the `authorize` hook in `resource()
 // src/routes/posts/data.remote.ts
 import { resource } from 'omni-svelte/remote';
 import { Post } from '#lib/schema';
-import { postPolicy } from '$lib/policies/post.policy';
+import { postPolicy } from '#lib/policies/post.policy';
 import { can } from 'omni-svelte/auth';
 
 export const {
@@ -112,7 +112,7 @@ When writing custom remote functions, use `authorize()` (the throwing variant) a
 // src/routes/posts/data.remote.ts
 import { query, getRequestEvent } from '$app/server';
 import { authorize } from 'omni-svelte/auth';
-import { postPolicy } from '$lib/policies/post';
+import { postPolicy } from '#lib/policies/post';
 import { z } from 'zod';
 
 export const adminPosts = query(z.any(), async (input) => {
@@ -128,7 +128,7 @@ export const adminPosts = query(z.any(), async (input) => {
 // src/routes/posts/data.remote.ts
 import { form, getRequestEvent } from '$app/server';
 import { authorize } from 'omni-svelte/auth';
-import { postPolicy } from '$lib/policies/post';
+import { postPolicy } from '#lib/policies/post';
 import { postFormSchema } from './schema';
 
 export const updatePost = form(postFormSchema, async (input) => {
@@ -145,7 +145,7 @@ export const updatePost = form(postFormSchema, async (input) => {
 // src/routes/posts/data.remote.ts
 import { command, getRequestEvent } from '$app/server';
 import { authorize } from 'omni-svelte/auth';
-import { postPolicy } from '$lib/policies/post';
+import { postPolicy } from '#lib/policies/post';
 import { z } from 'zod';
 
 export const removePost = command(z.number(), async (id) => {
