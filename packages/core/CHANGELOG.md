@@ -1,5 +1,13 @@
 # omni-svelte
 
+## 0.3.0-next.4
+
+### Minor Changes
+
+- breaking: migrate to SvelteKit 3 stable ([#70](https://github.com/mudiageo/omni-svelte/pull/70))
+
+- breaking: replace `$lib` with `#lib` imports ([#70](https://github.com/mudiageo/omni-svelte/pull/70))
+
 ## 0.3.0-next.3
 
 ### Minor Changes
