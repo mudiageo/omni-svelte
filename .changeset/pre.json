@@ -8,6 +8,7 @@
     "drizzle-1.0-connection-init",
     "drizzle-barrel-exports",
     "drizzle-upgrade",
+    "dry-ads-doubt",
     "feat-relations-api",
     "feat-resource-authorize-record",
     "fix-model-updated-at-timestamp",
@@ -17,6 +18,7 @@
     "model-relations-fix",
     "new-patch",
     "pr-1-fixes",
+    "public-pots-send",
     "rate-limiting",
     "relation-unknown-fix",
     "relations-parser-fix"
