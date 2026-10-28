@@ -3,7 +3,7 @@ import { toSnakeCase } from '../../cli/commands/generate.js';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { addAllowBuildsIfPnpm } from '$pkg/cli/utils/package-manager.js';
+import { addAllowBuildsIfPnpm } from '../../cli/utils/package-manager.js';
 
 describe('CLI utilities', () => {
 	describe('toSnakeCase', () => {
@@ -64,7 +64,7 @@ describe('package manager utilites', () => {
 
 		})
 
-		it('dshould create pnpm-workspace.yaml for pnpm', () => {
+		it('should create pnpm-workspace.yaml for pnpm', () => {
 			addAllowBuildsIfPnpm({
 				cwd: tempRoot,
 				packageManager: 'pnpm',
