@@ -4,6 +4,7 @@ import { addOmniToViteConfig, hasPackageJson, hasViteConfig, isSvelteKitProject 
 import {
 	type PackageManager,
 	SUPPORTED_PACKAGE_MANAGERS,
+	addAllowBuildsIfPnpm,
 	installDependencies
 } from '../utils/package-manager.js';
 import { runStep } from '../utils/run-step.js';
@@ -97,12 +98,19 @@ async function runSvelteKitMigration(cwd: string, options: MigrateCommandOptions
 	}
 
 	if (
-		!(await runStep('Installing omni-svelte', () =>
-			installDependencies([options.omniPkg ?? 'omni-svelte'], {
+		!(await runStep('Installing omni-svelte', () => {
+			addAllowBuildsIfPnpm({
+				cwd,
+				packageManager,
+				packages: ['@prisma/client', 'better-sqlite3']
+			});
+
+			return installDependencies([options.omniPkg ?? 'omni-svelte'], {
 				cwd,
 				dev: Boolean(options.dev),
 				packageManager
 			})
+		}
 		))
 	)
 		return;

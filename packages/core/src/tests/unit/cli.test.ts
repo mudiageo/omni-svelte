@@ -1,5 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { toSnakeCase } from '../../cli/commands/generate.js';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { addAllowBuildsIfPnpm } from '../../cli/utils/package-manager.js';
 
 describe('CLI utilities', () => {
 	describe('toSnakeCase', () => {
@@ -34,3 +38,81 @@ describe('CLI utilities', () => {
 		});
 	});
 });
+
+const tempRoot = join(tmpdir(), `omni-package-manager-${Date.now()}`)
+
+describe('package manager utilites', () => {
+	beforeEach(() => {
+		mkdirSync(tempRoot, { recursive: true })
+	})
+
+	afterEach(() => {
+		rmSync(tempRoot, { recursive: true, force: true })
+	})
+
+	describe('addAllowBuildsIfPnpm', () => {
+		const workspacePath =  join(tempRoot, 'pnpm-workspace.yaml')
+
+		it('does nothing for npm', () => {
+			addAllowBuildsIfPnpm({
+				cwd: tempRoot,
+				packageManager: 'npm',
+				packages: ['better-sqlite3']
+			})
+
+			expect(existsSync(workspacePath)).toBe(false)
+
+		})
+
+		it('should create pnpm-workspace.yaml for pnpm', () => {
+			addAllowBuildsIfPnpm({
+				cwd: tempRoot,
+				packageManager: 'pnpm',
+				packages: ['@prisma/client', 'better-sqlite3']
+			})
+
+			expect(existsSync(workspacePath)).toBe(true)
+
+			const content = readFileSync(workspacePath, 'utf-8')
+			expect(content).toContain('@prisma/client')
+			expect(content).toContain('better-sqlite3')
+
+		})
+
+		it('should update already existing pnpm-workspace.yaml', () => {
+
+			const workspaceFile = `packages:
+  - 'apps/*'
+  - 'packages/*'
+allowBuilds:
+  '@prisma/client': true
+  better-sqlite3: true
+minimumReleaseAgeExclude:
+  - '@sveltejs/kit@3.0.0'
+`
+			writeFileSync(workspacePath, workspaceFile, 'utf-8');
+
+			expect(existsSync(workspacePath)).toBe(true)
+			expect(readFileSync(workspacePath, 'utf-8')).toBe(workspaceFile)
+
+			addAllowBuildsIfPnpm({
+				cwd: tempRoot,
+				packageManager: 'pnpm',
+				packages: ['esbuild']
+			})
+
+			const updatedWorkspaceFile = `packages:
+  - 'apps/*'
+  - 'packages/*'
+allowBuilds:
+  '@prisma/client': true
+  better-sqlite3: true
+  esbuild: true
+minimumReleaseAgeExclude:
+  - '@sveltejs/kit@3.0.0'
+`
+
+			expect(readFileSync(workspacePath, 'utf-8')).toBe(updatedWorkspaceFile)
+		})
+	})
+})

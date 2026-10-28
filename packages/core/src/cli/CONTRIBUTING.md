@@ -317,6 +317,7 @@ All PM-specific logic lives in [`utils/package-manager.ts`](./utils/package-mana
 | `runScript(script, args, cwd, pm?)` | Run a `package.json` script |
 | `getInstallArgs(pm, pkgs, dev)` | *(unit-testable)* Returns `{ command, args }` for install |
 | `getExecArgs(pm, pkg, args)` | *(unit-testable)* Returns `{ command, args }` for exec |
+| `addAllowBuildsIfPnpm(options)` | Injects package build approval into `pnpm-workspace.yaml` when using pnpm / vp |
 
 All functions throw a descriptive `Error` on non-zero subprocess exit.
 All subprocess calls use `cleanup: true` so child processes die with the parent.
