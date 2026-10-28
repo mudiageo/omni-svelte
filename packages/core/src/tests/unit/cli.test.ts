@@ -51,6 +51,8 @@ describe('package manager utilites', () => {
 	})
 
 	describe('addAllowBuildsIfPnpm', () => {
+		const workspacePath =  join(tempRoot, 'pnpm-workspace.yaml')
+
 		it('does nothing for npm', () => {
 			addAllowBuildsIfPnpm({
 				cwd: tempRoot,
@@ -58,13 +60,28 @@ describe('package manager utilites', () => {
 				packages: ['better-sqlite3']
 			})
 
-			expect(existsSync(join(tempRoot, 'pnpm-workspace.yaml'))).toBe(false)
+			expect(existsSync(workspacePath)).toBe(false)
+
+		})
+
+		it('dshould create pnpm-workspace.yaml for pnpm', () => {
+			addAllowBuildsIfPnpm({
+				cwd: tempRoot,
+				packageManager: 'pnpm',
+				packages: ['@prisma/client', 'better-sqlite3']
+			})
+
+			expect(existsSync(workspacePath)).toBe(true)
+
+			const content = readFileSync(workspacePath, 'utf-8')
+			expect(content).toContain('@prisma/client')
+			expect(content).toContain('better-sqlite3')
 
 		})
 
 		it('should update already existing pnpm-workspace.yaml', () => {
 
-			const pnpmWorkspaceYaml = `packages:
+			const workspaceFile = `packages:
   - 'apps/*'
   - 'packages/*'
 allowBuilds:
@@ -73,11 +90,10 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@sveltejs/kit@3.0.0'
 `
-			const pnpmWorkspaceYamlPath =  join(tempRoot, 'pnpm-workspace.yaml')
-			writeFileSync(pnpmWorkspaceYamlPath, pnpmWorkspaceYaml, 'utf-8');
+			writeFileSync(workspacePath, workspaceFile, 'utf-8');
 
-			expect(existsSync(join(tempRoot, 'pnpm-workspace.yaml'))).toBe(true)
-			expect(readFileSync(pnpmWorkspaceYamlPath, 'utf-8')).toBe(pnpmWorkspaceYaml)
+			expect(existsSync(workspacePath)).toBe(true)
+			expect(readFileSync(workspacePath, 'utf-8')).toBe(workspaceFile)
 
 			addAllowBuildsIfPnpm({
 				cwd: tempRoot,
@@ -85,7 +101,7 @@ minimumReleaseAgeExclude:
 				packages: ['esbuild']
 			})
 
-			const updatedPnpmWorkspaceYaml = `packages:
+			const updatedWorkspaceFile = `packages:
   - 'apps/*'
   - 'packages/*'
 allowBuilds:
@@ -96,7 +112,7 @@ minimumReleaseAgeExclude:
   - '@sveltejs/kit@3.0.0'
 `
 
-			expect(readFileSync(pnpmWorkspaceYamlPath, 'utf-8')).toBe(updatedPnpmWorkspaceYaml)
+			expect(readFileSync(workspacePath, 'utf-8')).toBe(updatedWorkspaceFile)
 		})
 	})
 })
