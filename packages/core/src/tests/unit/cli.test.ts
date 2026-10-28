@@ -1,5 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { toSnakeCase } from '../../cli/commands/generate.js';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { addAllowBuildsIfPnpm } from '$pkg/cli/utils/package-manager.js';
 
 describe('CLI utilities', () => {
 	describe('toSnakeCase', () => {
@@ -34,3 +38,65 @@ describe('CLI utilities', () => {
 		});
 	});
 });
+
+const tempRoot = join(tmpdir(), `omni-package-manager-${Date.now()}`)
+
+describe('package manager utilites', () => {
+	beforeEach(() => {
+		mkdirSync(tempRoot, { recursive: true })
+	})
+
+	afterEach(() => {
+		rmSync(tempRoot, { recursive: true, force: true })
+	})
+
+	describe('addAllowBuildsIfPnpm', () => {
+		it('does nothing for npm', () => {
+			addAllowBuildsIfPnpm({
+				cwd: tempRoot,
+				packageManager: 'npm',
+				packages: ['better-sqlite3']
+			})
+
+			expect(existsSync(join(tempRoot, 'pnpm-workspace.yaml'))).toBe(false)
+
+		})
+
+		it('should update already existing pnpm-workspace.yaml', () => {
+
+			const pnpmWorkspaceYaml = `packages:
+  - 'apps/*'
+  - 'packages/*'
+allowBuilds:
+  '@prisma/client': true
+  better-sqlite3: true
+minimumReleaseAgeExclude:
+  - '@sveltejs/kit@3.0.0'
+`
+			const pnpmWorkspaceYamlPath =  join(tempRoot, 'pnpm-workspace.yaml')
+			writeFileSync(pnpmWorkspaceYamlPath, pnpmWorkspaceYaml, 'utf-8');
+
+			expect(existsSync(join(tempRoot, 'pnpm-workspace.yaml'))).toBe(true)
+			expect(readFileSync(pnpmWorkspaceYamlPath, 'utf-8')).toBe(pnpmWorkspaceYaml)
+
+			addAllowBuildsIfPnpm({
+				cwd: tempRoot,
+				packageManager: 'pnpm',
+				packages: ['esbuild']
+			})
+
+			const updatedPnpmWorkspaceYaml = `packages:
+  - 'apps/*'
+  - 'packages/*'
+allowBuilds:
+  '@prisma/client': true
+  better-sqlite3: true
+  esbuild: true
+minimumReleaseAgeExclude:
+  - '@sveltejs/kit@3.0.0'
+`
+
+			expect(readFileSync(pnpmWorkspaceYamlPath, 'utf-8')).toBe(updatedPnpmWorkspaceYaml)
+		})
+	})
+})

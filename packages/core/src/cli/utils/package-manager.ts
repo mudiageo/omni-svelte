@@ -103,23 +103,22 @@ export async function installDependencies(
 	const args = getInstallArgs(pm.name, packages, options.dev ?? false);
 
 	const result = await execa(args.command, args.args, {
-    cwd,
-    stdout: 'inherit',
-    stderr:  'inherit',
-    all: true, // Merges stdout and stderr into result.all chronologically
+		cwd,
+		stdout: 'inherit',
+		stderr:  'inherit',
+		all: true, // Merges stdout and stderr into result.all chronologically
 
-    // Kill child process when the parent exits (e.g. Ctrl+C)
-    cleanup: true,
-    reject: false
-  });
+		// Kill child process when the parent exits (e.g. Ctrl+C)
+		cleanup: true,
+		reject: false
+	});
 
-// Detect the pnpm blocked builds error from the output
-if ((pm.name === 'pnpm' || pm.name === 'vp') && result.all && result.all.includes('ERR_PNPM_IGNORED_BUILDS')) {
-  p.log.warn(
+	// Detect the pnpm blocked builds error from the output
+	if ((pm.name === 'pnpm' || pm.name === 'vp') && result.all && result.all?.includes('ERR_PNPM_IGNORED_BUILDS')) {
+		p.log.warn(
 			`Some build scripts were skipped. Run ${color.command(`${pm.name === 'vp' ? 'vp pm' : pm.name } approve-builds`)} to approve them.`
 		);
-		return pm;
-}
+	}
 
 	if (result.exitCode !== 0) {
 		throw new Error(
@@ -132,8 +131,7 @@ if ((pm.name === 'pnpm' || pm.name === 'vp') && result.all && result.all.include
 }
 export function addAllowBuildsIfPnpm(options: { cwd: string, packageManager: string, packages: string[] }): void {
 	const { cwd, packageManager, packages } = options;
-	if (packageManager !== 'vp' || packageManager !== 'vp') return;
-
+	if (packageManager !== 'pnpm' && packageManager !== 'vp') return;
 	const filePath = find.up('pnpm-workspace.yaml', { cwd }) ?? join(cwd, 'pnpm-workspace.yaml');
 	transformFile(filePath, pnpm.allowBuilds({ cwd, packages }));
 
@@ -146,26 +144,24 @@ export async function runPackageScript(
 ): Promise<PackageManagerContext> {
 	const pm = await detectPackageManager(cwd);
 	const command = getRunScriptArgs(pm.name, script, args);
-  const result = await execa(command.command, command.args, {
-    cwd,
-    stdout: 'inherit',
-    stderr: 'inherit',
-    all: true, // Merges stdout and stderr into result.all chronologically
+	const result = await execa(command.command, command.args, {
+		cwd,
+		stdout: 'inherit',
+		stderr: 'inherit',
+		all: true, // Merges stdout and stderr into result.all chronologically
 
-    // Kill child process when the parent exits (e.g. Ctrl+C)
-    cleanup: true,
-    reject: false
-  });
+		// Kill child process when the parent exits (e.g. Ctrl+C)
+		cleanup: true,
+		reject: false
+	});
 
 
-// Detect the pnpm blocked builds error from the output
-if ((pm.name === 'pnpm' || pm.name === 'vp') && result.all && result.all.includes('ERR_PNPM_IGNORED_BUILDS')) {
-
+	// Detect the pnpm blocked builds error from the output
+	if ((pm.name === 'pnpm' || pm.name === 'vp') && result.all && result.all?.includes('ERR_PNPM_IGNORED_BUILDS')) {
 		p.log.warn(
 			`Some build scripts were skipped. Run ${color.command(`${pm.name === 'vp' ? 'vp pm' : pm.name } approve-builds`)} to approve them.`
 		);
-		return pm;
-}
+	}
 
 
 	if (result.exitCode !== 0) {
@@ -174,7 +170,8 @@ if ((pm.name === 'pnpm' || pm.name === 'vp') && result.all && result.all.include
 		);
 	}
 
-  p.log.success(`Installed dependencies with ${color.command(pm.name)}`);
+	p.log.success(`Installed dependencies with ${color.command(pm.name)}`);
+
 	return pm;
 }
 
@@ -188,32 +185,32 @@ export async function runPackageInstall(
 	const pm = packageManager ? { name: packageManager, cwd } : await detectPackageManager(cwd);
 	const command = getInstallCommandArgs(pm.name);
 
-  const result = await execa(command.command, command.args, {
-    cwd,
-    stdout: inherit',
-    stderr: inherit',
-    all: true, // Merges stdout and stderr into result.all chronologically
+	const result = await execa(command.command, command.args, {
+		cwd,
+		stdout: 'inherit',
+		stderr: 'inherit',
+		all: true, // Merges stdout and stderr into result.all chronologically
 
-    // Kill child process when the parent exits (e.g. Ctrl+C)
-    cleanup: true,
-    reject: false
-  });
+		// Kill child process when the parent exits (e.g. Ctrl+C)
+		cleanup: true,
+		reject: false
+	});
 
-// Detect the pnpm blocked builds error from the output
-if ((pm.name === 'pnpm' || pm.name === 'vp') && result.all && result.all.includes('ERR_PNPM_IGNORED_BUILDS')) {
-
+	// Detect the pnpm blocked builds error from the output
+	if ((pm.name === 'pnpm' || pm.name === 'vp') && result.all && result.all?.includes('ERR_PNPM_IGNORED_BUILDS')) {
 		p.log.warn(
 			`Some build scripts were skipped. Run ${color.command(`${pm.name === 'vp' ? 'vp pm' : pm.name } approve-builds`)} to approve them.`
 		);
-		return pm;
-}
-    p.log.success(`Installed dependencies with ${color.command(pm.name)}`);
+	}
 
 	if (result.exitCode !== 0) {
 		throw new Error(
 			`Command failed with exit code ${result.exitCode}: ${command.command} ${command.args.join(' ')}`
 		);
 	}
+
+	p.log.success(`Installed dependencies with ${color.command(pm.name)}`);
+
 	return pm;
 }
 
@@ -318,7 +315,7 @@ function getExecArgs(name: PackageManager, packageName: string, args: string[]) 
 /** Missing file is treated as empty, so the transform can create it. */
 function transformFile(filePath: string, transform: TransformFn): void {
 	const content = existsSync(filePath) ? readFileSync(filePath, 'utf-8') : '';
-	const newContent = transform(); // TODO seems like transform doesn't require content passed as parameter, in fact passing content doesn't produce the desired result. To be investigated.
+	const newContent = transform(content);
 
 	if (newContent && newContent !== content) writeFileSync(filePath, newContent, 'utf-8');
 

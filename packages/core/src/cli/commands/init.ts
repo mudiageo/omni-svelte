@@ -130,11 +130,19 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 		}
 	} else {
 		if (
-			!(await runStep('Installing omni-svelte', () =>
-			addAllowBuildsIfPnpm({ cwd: projectPath, packageManager, packages: ['@prisma/client', 'better-sqlite3'] }) ||	installDependencies([options.omniPkg ?? 'omni-svelte'], {
+			!(await runStep('Installing omni-svelte', () => {
+
+				addAllowBuildsIfPnpm({
+					cwd: projectPath,
+					packageManager,
+					packages: ['@prisma/client', 'better-sqlite3']
+				});
+
+				return installDependencies([options.omniPkg ?? 'omni-svelte'], {
 					cwd: projectPath,
 					packageManager
 				})
+			}
 
 			))
 		) {
