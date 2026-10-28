@@ -1,5 +1,11 @@
 # omni-svelte
 
+## 0.3.0-next.6
+
+### Patch Changes
+
+- refactor: move `drizzle-kit`, `@sveltejs/sv-utils`, and `empathic` to dependencies and directly export `defineConfig` in `./drizzle/kit` ([`63efd7f`](https://github.com/mudiageo/omni-svelte/commit/63efd7f3d7f8c55471f49a60affec442e38245f3))
+
 ## 0.3.0-next.5
 
 ### Minor Changes
