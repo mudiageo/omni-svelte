@@ -24,6 +24,7 @@
     "public-pots-send",
     "rate-limiting",
     "relation-unknown-fix",
-    "relations-parser-fix"
+    "relations-parser-fix",
+    "slick-dragons-hope"
   ]
 }
