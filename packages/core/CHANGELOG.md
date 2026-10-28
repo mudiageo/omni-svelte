@@ -1,5 +1,17 @@
 # omni-svelte
 
+## 0.3.0-next.5
+
+### Minor Changes
+
+- feat(cli): detect `ERR_PNPM_IGNORED_BUILDS` output and display actionable guidance to run `approve-builds` ([#73](https://github.com/mudiageo/omni-svelte/pull/73))
+
+- feat: re-export `drizzle-kit` from `omni-svelte/drizzle/kit` and update generated drizzle config to use it, preventing module resolution errors ([#72](https://github.com/mudiageo/omni-svelte/pull/72))
+
+### Patch Changes
+
+- fix(cli): automatically configure `allowBuilds` in `pnpm-workspace.yaml` for `@prisma/client` and `better-sqlite3` during `omni init` and `omni migrate` ([#73](https://github.com/mudiageo/omni-svelte/pull/73))
+
 ## 0.3.0-next.4
 
 ### Minor Changes
