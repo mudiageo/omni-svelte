@@ -56,8 +56,8 @@ function buildDrizzleConfigContent(
 ): string {
 	return [
 		`${MARKER} Run \`pnpm dev\` to refresh.`,
-		`// Source: svelte.config.js → omni.schema.output.drizzle`,
-		`import { defineConfig } from 'drizzle-kit';`,
+		`// Source: vite.config.ts → omniSvelte plugin option schema.output.drizzle`,
+		`import { defineConfig } from 'omni-svelte/drizzle/kit';`,
 		``,
 		`if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');`,
 		``,

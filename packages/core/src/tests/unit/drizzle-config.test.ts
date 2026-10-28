@@ -133,7 +133,7 @@ describe('buildDrizzleConfigContent', () => {
 
 	it('includes drizzle-kit defineConfig import', () => {
 		const content = buildDrizzleConfigContent('./schema.ts', './drizzle', 'postgresql');
-		expect(content).toContain("from 'drizzle-kit'");
+		expect(content).toContain("from 'omni-svelte/drizzle/kit'");
 	});
 });
 
