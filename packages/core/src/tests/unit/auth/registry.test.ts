@@ -1,6 +1,6 @@
-import { mkdtemp, mkdir, copyFile, readFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, copyFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { beforeEach, describe, it, expect } from 'vitest';
 import * as pgFixture from '../../fixtures/auth/auth-schema.pg';
 import * as plural from '../../fixtures/auth/auth-schema.plural.pg';
@@ -112,23 +112,33 @@ describe('buildAuthRegistry', () => {
   beforeEach(() => resetAuthRegistryCache());
 
   it('writes a deterministic .d.ts and caches by hash without loadModule', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'omni-auth-'));
-    await mkdir(join(root, '.omni'));
-    await copyFile(
-      join(__dirname, '../../fixtures/auth/auth-schema.pg.ts'),
-      join(root, '.omni', 'auth-schema.ts')
-    );
-
-    const a = await buildAuthRegistry({ root, dialect: 'pg', usePlural: false });
-    const dts = await readFile(join(root, '.omni', 'auth-registry.d.ts'), 'utf8');
-
-    expect(dts).toContain("declare module 'omni-svelte/schema'");
-    expect(dts).toContain('"user": true;');
-    expect(dts).toContain('"session": true;');
-    expect(getAuthRegistry()).toBe(a);
-
-    const b = await buildAuthRegistry({ root, dialect: 'pg', usePlural: false });
-    expect(b).toBe(a); // Cache hit returns same object
+  // Anchor to packages/core using __dirname rather than process.cwd()
+    const packageRoot = resolve(__dirname, '../..');
+    const root = join(packageRoot, 'test-auth-schema');
+  
+    // Ensure clean state before running
+    await rm(root, { recursive: true, force: true });
+    await mkdir(join(root, '.omni'), { recursive: true });
+  
+    try {
+      await copyFile(
+        join(__dirname, '../../fixtures/auth/auth-schema.pg.ts'),
+        join(root, '.omni', 'auth-schema.ts')
+      );
+  
+      const a = await buildAuthRegistry({ root, dialect: 'pg', usePlural: false });
+      const dts = await readFile(join(root, '.omni', 'auth-registry.d.ts'), 'utf8');
+  
+      expect(dts).toContain("declare module 'omni-svelte/schema'");
+      expect(dts).toContain('"user": true;');
+      expect(dts).toContain('"session": true;');
+      expect(getAuthRegistry()).toBe(a);
+  
+      const b = await buildAuthRegistry({ root, dialect: 'pg', usePlural: false });
+      expect(b).toBe(a); // Cache hit returns same object
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it('supports optional custom loadModule override', async () => {
