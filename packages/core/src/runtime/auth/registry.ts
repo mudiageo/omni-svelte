@@ -8,7 +8,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { read, write_if_changed } from '../../utils/filesystem.js';
-import { AuthDiagnostic } from './diagnostics';
+import { AuthDiagnostic } from './diagnostics.js';
 
 
 export type PkType = 'text' | 'uuid' | 'integer' | 'serial' | 'bigint';
