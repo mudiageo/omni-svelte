@@ -4,12 +4,13 @@ import type { FSWatcher as ViteFSWatcher, Plugin, ResolvedConfig } from 'vite';
 import type { FSWatcher } from 'chokidar';
 import type { Schema } from '../schema/types.js';
 import { existsSync, readFileSync } from 'fs';
-import { resolve } from 'path';
+import { resolve, join } from 'path';
 import { pathToFileURL } from 'url';
 import { generateSchemaFiles, initializeSchemaConfig, setupSchemaWatcher } from './schema.js';
 import { generateDrizzleConfig } from './drizzle-config.js';
 import { runtime_directory } from '../utils/index.js';
 import { generateAuthConfig } from '../runtime/auth/generator.js';
+import { buildAuthRegistry } from '../runtime/auth/registry.js';
 import { omniMigrationsPlugin } from './migrations.js';
 import type { KitConfig } from '@sveltejs/kit';
 
@@ -114,6 +115,23 @@ function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 						);
 					}
 				}
+			}
+
+			// Introspect Better Auth schema and build AuthRegistry if .omni/auth-schema.ts exists
+			const authSchemaFile = join(config.root, '.omni/auth-schema.ts');
+			if (existsSync(authSchemaFile)) {
+				const schemaDialect = omniConfig.schema?.generation?.drizzle?.dialect ?? 'postgresql';
+				const dialect = schemaDialect.startsWith('mysql')
+					? 'mysql'
+					: schemaDialect.startsWith('sqlite')
+						? 'sqlite'
+						: 'pg';
+
+				await buildAuthRegistry({
+					root: config.root,
+					dialect,
+					usePlural: Boolean((omniConfig.auth as any)?.advanced?.usePlural ?? omniConfig.auth?.usePlural)
+				});
 			}
 
 			// Check if user has existing hooks

@@ -221,3 +221,28 @@ export function write(file, code) {
 	mkdirp(path.dirname(file));
 	fs.writeFileSync(file, code);
 }
+
+/**
+ * Atomically writes file using a temporary file and renameSync.
+ * Prevents partial reads and race conditions.
+ * @param {string} file
+ * @param {string} code
+ */
+export function atomic_write(file, code) {
+	previous_contents.set(file, code);
+	mkdirp(path.dirname(file));
+	const tmp = `${file}.${process.pid}.${Date.now()}.tmp`;
+	fs.writeFileSync(tmp, code);
+	fs.renameSync(tmp, file);
+}
+
+/**
+ * Atomically writes file only if contents differ from previous write.
+ * @param {string} file
+ * @param {string} code
+ */
+export function write_if_changed_atomic(file, code) {
+	if (code !== previous_contents.get(file)) {
+		atomic_write(file, code);
+	}
+}
