@@ -221,6 +221,9 @@ export interface BuildRegistryOptions extends IntrospectOptions {
 /** Process-level cache — invalidated whenever the file content hash changes. */
 let cached: AuthRegistry | null = null;
 
+// used to track options too in the hash, so if they chage the registry is rebuilt
+let cachedKey: string | null = null;
+
 /**
  * Returns the most recently built `AuthRegistry`, or `null` if
  * `buildAuthRegistry` has not been called yet in this process.
@@ -257,7 +260,9 @@ export async function buildAuthRegistry(opts: BuildRegistryOptions): Promise<Aut
   }
 
   const hash = createHash('sha256').update(source).digest('hex').slice(0, 16);
-  if (cached && cached.hash === hash) return cached;
+  const cacheKey = JSON.stringify([opts.root, opts.dialect, opts.usePlural, opts.pluginTables ?? {}, hash]);
+  if (cached && cachedKey === cacheKey) return cached;
+
 
   const mod = opts.loadModule
     ? await opts.loadModule(file)
@@ -273,9 +278,10 @@ export async function buildAuthRegistry(opts: BuildRegistryOptions): Promise<Aut
   // preventing unnecessary filesystem churn on repeated builds.
   write_if_changed(join(opts.root, '.omni', 'auth-registry.d.ts'), renderRegistryDts(registry));
   cached = registry;
+  cachedKey = cacheKey;
   return registry;
 }
 
-/** Clears the process-level cache. Call in `beforeEach` for tests that need a clean slate. */
-export function resetAuthRegistryCache() { cached = null; }
+/** Clears the process-level cache and cachedKey. Call in `beforeEach` for tests that need a clean slate. */
+export function resetAuthRegistryCache() { cached = cachedKey = null; }
 
