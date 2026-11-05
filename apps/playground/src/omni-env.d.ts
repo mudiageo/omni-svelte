@@ -8,7 +8,7 @@ declare module '$models' { export * from '#lib/db/models/index'; }
 declare module '$models/*' { export * from '#lib/db/models/index'; }
 
 // SERVER-ONLY: Drizzle schema table definitions
-declare module '$schema' { export * from '#lib/db/server/schema.js'; }
+declare module '$schema' { export * from '#lib/db/server/schema'; }
 
 // SERVER-ONLY: Raw database connection
 declare module '$db' {

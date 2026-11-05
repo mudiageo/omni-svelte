@@ -17,3 +17,22 @@ export { authHandle } from './hook.js';
 export { definePolicy, can, authorize, type Policy, type PolicyRule } from './policy.js';
 export * from './rate-limit.js';
 export * from './rate-limit-hook.js';
+
+export {
+  buildAuthRegistry,
+  getAuthRegistry,
+  resetAuthRegistryCache,
+  introspectAuthModule,
+  deriveKey,
+  normalizePkType,
+  renderRegistryDts,
+  type AuthRegistry,
+  type SystemSchema,
+  type SystemColumn,
+  type PkType,
+  type Dialect,
+  type IntrospectOptions,
+  type BuildRegistryOptions
+} from './registry.js';
+
+export { AuthDiagnostic, type AuthDiagnosticCode } from './diagnostics.js';
