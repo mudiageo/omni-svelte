@@ -16,6 +16,7 @@
     "fix-cli-pnpm-allow-builds",
     "fix-model-updated-at-timestamp",
     "fix-resource-mutations",
+    "funky-taxes-double",
     "issue-60-fix",
     "missing-model-hooks",
     "model-relations-fix",
