@@ -1,5 +1,11 @@
 # omni-svelte
 
+## 0.3.0-next.7
+
+### Minor Changes
+
+- feat(auth): add auth registry to introspect better-auth drizzle schema ([#76](https://github.com/mudiageo/omni-svelte/pull/76))
+
 ## 0.3.0-next.6
 
 ### Patch Changes
