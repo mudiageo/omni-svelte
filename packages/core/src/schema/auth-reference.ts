@@ -65,7 +65,14 @@ export function resolveReference(
     // Fallback: target schema object directly contains PK info or defaults to serial/integer id
     const r = typeof target.resolve === 'function' ? target.resolve() : target;
     const pkCol = Object.entries((r as any)?.fields ?? {}).find(([_, f]: any) => f?.primary);
-    const pkType = pkCol ? ((pkCol[1] as any)?.type === 'uuid' ? 'uuid' : 'integer') : 'serial';
+    const fieldType = (pkCol?.[1] as any)?.type;
+    const pkType = !pkCol
+      ? 'serial'
+      : fieldType === 'uuid'
+        ? 'uuid'
+        : ['string', 'email', 'password', 'url', 'slug'].includes(fieldType)
+          ? 'text'
+          : 'integer';
     return {
       kind: 'user',
       tableName: userTable,
