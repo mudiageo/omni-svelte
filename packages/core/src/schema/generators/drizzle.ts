@@ -113,9 +113,9 @@ function generateColumn(
 
 					const pkType = reference.pk.type;
 					let colFn: any = text;
-					if (pkType === 'uuid') colFn = (pg as any).uuid ?? text;
+					if (pkType === 'uuid') colFn = pg.uuid;
 					else if (pkType === 'integer' || pkType === 'serial') colFn = integer;
-					else if (pkType === 'bigint') colFn = (pg as any).bigint ?? integer;
+					else if (pkType === 'bigint') colFn = (name: string) => pg.bigint(name, { mode: 'number' });
 
 					column = colFn(fieldName);
 					// Dynamic reference
