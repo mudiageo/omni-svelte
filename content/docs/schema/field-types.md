@@ -28,24 +28,50 @@ Complete reference for the `field.*` builder API.
 
 ### `field.reference(target)`
 
-Creates an integer foreign-key column with a database-level constraint pointing at the target schema's primary key. Use this alongside a `relation.belongsTo` declaration to wire up the physical column and the virtual ORM association together.
+Creates a foreign-key column with a database-level constraint pointing at the target schema or auth table's primary key. The column type is **automatically inferred from the target primary key**:
+- `text` primary key &rarr; `text()` / `varchar(255)`
+- `uuid` primary key &rarr; `uuid()` / `varchar(36)` / `text()`
+- `serial` / `integer` primary key &rarr; `integer()` / `int()`
+- `bigint` primary key &rarr; `bigint()`
+
+#### Referencing Other Schemas
 
 ```ts
-authorId: field.reference(() => userSchema).required()
+import { defineSchema, field } from 'omni-svelte/schema';
+import authorSchema from './author.schema.js';
+
+export const postSchema = defineSchema('posts', {
+  id: field.serial().primaryKey(),
+  title: field.string().required(),
+  authorId: field.reference(() => authorSchema).required(),
+});
 ```
 
-Accepts the same modifiers as `field.integer()`:
+#### Referencing Auth Tables
+
+You can reference Better Auth tables using the typed `auth` proxy handle or by string key:
 
 ```ts
-field.reference(() => userSchema)
-  .required()    // NOT NULL
-  .unsigned()    // UNSIGNED — useful for auto-increment PKs
-  .default(1)    // column default
+import { defineSchema, field, auth } from 'omni-svelte/schema';
+
+export const postSchema = defineSchema('posts', {
+  id: field.serial().primaryKey(),
+  title: field.string().required(),
+  // Type-safe reference to auth 'user' table
+  authorId: field.reference(() => auth.user).required(),
+  // Or using string key:
+  // authorId: field.reference('user').required(),
+});
 ```
 
-| Field | Type | Description |
+Modifiers:
+- `.required()` adds a `NOT NULL` constraint.
+- `.unsigned()` can be applied to integer/serial references (throws if applied to non-integer targets).
+- `.default(...)` specifies a column default.
+
+| Parameter | Type | Description |
 | --- | --- | --- |
-| `target` | `() => Schema` | Thunk returning the referenced schema |
+| `target` | `(() => Schema \| SystemSchemaRef) \| (keyof AuthTables & string)` | Target schema thunk, `auth.<table-name>` handle, or auth table string key |
 
 > See the [Relations](/docs/schema/relations) page for the full pattern including `relation.belongsTo`, `manyToMany`, and polymorphic associations.
 
