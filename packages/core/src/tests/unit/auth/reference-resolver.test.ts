@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import * as pgFixture from '../fixtures/auth/auth-schema.pg';
-import * as compositeFixture from '../fixtures/auth/auth-schema.composite.pg';
-import { introspectAuthModule, type AuthRegistry } from '../../runtime/auth/registry.js';
-import { resolveReference, auth } from '../../schema/auth-reference.js';
-import { AuthDiagnostic } from '../../runtime/auth/diagnostics.js';
+import * as pgFixture from '../../fixtures/auth/auth-schema.pg';
+import * as compositeFixture from '../../fixtures/auth/auth-schema.composite.pg';
+import { introspectAuthModule, type AuthRegistry } from '../../../runtime/auth/registry.js';
+import { resolveReference, auth } from '../../../schema/auth-reference.js';
+import { AuthDiagnostic } from '../../../runtime/auth/diagnostics.js';
 
 describe('resolveReference', () => {
   let registry: AuthRegistry;
