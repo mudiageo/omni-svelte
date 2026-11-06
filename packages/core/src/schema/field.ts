@@ -1,3 +1,5 @@
+import type { AuthTables, SystemSchemaRef } from './auth-reference.js';
+import type { defineSchema } from './index.js';
 import type { FieldDefinition, FieldType, ValidationRules } from './types.js';
 
 /**
@@ -211,9 +213,13 @@ export const field = {
 	 * 
 	 * @param target A thunk returning the target schema, e.g. `() => userSchema`
 	 */
-	reference: (target: () => any) => {
+	reference: (target: ReferenceTarget<ReturnType<typeof defineSchema>>) => {
 		const b = make('reference');
-		(b as any).def.target = target;
+		(b as any).def.target =  typeof target === 'string' ? { kind: 'system' as const, key: target } : { kind: 'thunk' as const, resolve: target };
 		return b;
 	}
 } as const;
+
+type ReferenceTarget<S> =
+  | (() => S | SystemSchemaRef)
+  | (keyof AuthTables & string);
