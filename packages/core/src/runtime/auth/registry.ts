@@ -285,3 +285,6 @@ export async function buildAuthRegistry(opts: BuildRegistryOptions): Promise<Aut
 /** Clears the process-level cache and cachedKey. Call in `beforeEach` for tests that need a clean slate. */
 export function resetAuthRegistryCache() { cached = cachedKey = null; }
 
+/** Sets the in-memory cached registry directly (useful for unit tests without filesystem access). */
+export function setAuthRegistry(reg: AuthRegistry | null) { cached = reg; }
+

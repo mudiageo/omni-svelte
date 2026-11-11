@@ -50,11 +50,21 @@ export function resolveReference(
   let sys: string | null = null;
   let userTable: string | null = null;
 
-  if (target.kind === 'system') sys = target.key;
-  else {
-    const r = target.resolve();
-    if (isSystemRef(r)) sys = r.key;
-    else userTable = (r as any).tableName ?? (r as any).name;   // adapt to your Schema shape
+  if (target && typeof target === 'object' && target.kind === 'system') {
+    sys = target.key;
+  } else if (typeof target === 'string') {
+    sys = target;
+  } else {
+    const fn = typeof target?.resolve === 'function' ? target.resolve : (typeof target === 'function' ? target : null);
+    if (!fn) {
+      throw new Error(`Invalid reference target`);
+    }
+    const r = fn();
+    if (isSystemRef(r) || (r && typeof r === 'object' && (r as any).__omniSystem === true)) {
+      sys = (r as any).key;
+    } else {
+      userTable = (r as any)?.tableName ?? (r as any)?.name;
+    }
   }
 
   if (userTable) {
@@ -63,7 +73,8 @@ export function resolveReference(
       return { kind: 'user', tableName: u.tableName, exportName: u.tableName, pk: u.pk };
     }
     // Fallback: target schema object directly contains PK info or defaults to serial/integer id
-    const r = typeof target.resolve === 'function' ? target.resolve() : target;
+    const fn = typeof target?.resolve === 'function' ? target.resolve : (typeof target === 'function' ? target : null);
+    const r = fn ? fn() : target;
     const pkCol = Object.entries((r as any)?.fields ?? {}).find(([_, f]: any) => f?.primary);
     const fieldType = (pkCol?.[1] as any)?.type;
     const pkType = !pkCol

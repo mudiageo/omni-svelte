@@ -21,6 +21,7 @@ export * from './rate-limit-hook.js';
 export {
   buildAuthRegistry,
   getAuthRegistry,
+  setAuthRegistry,
   resetAuthRegistryCache,
   introspectAuthModule,
   deriveKey,
