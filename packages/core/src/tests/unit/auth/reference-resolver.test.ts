@@ -1,3 +1,4 @@
+/// <reference path="../../../../.omni/auth-registry.d.ts" />
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as pgFixture from '../../fixtures/auth/auth-schema.pg';
 import * as compositeFixture from '../../fixtures/auth/auth-schema.composite.pg';

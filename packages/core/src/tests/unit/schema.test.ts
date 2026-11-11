@@ -6,6 +6,9 @@ import { DrizzleGenerator } from '../../schema/generators/drizzle.js';
 import { ZodGenerator } from '../../schema/generators/zod.js';
 import { ModelGenerator } from '../../schema/generators/model.js';
 import type { Schema } from '../../schema/types.js';
+import { auth } from '../../schema/auth-reference.js';
+import { setAuthRegistry, resetAuthRegistryCache, introspectAuthModule } from '../../runtime/auth/index.js';
+import * as pgFixture from '../fixtures/auth/auth-schema.pg.js';
 
 // ─── Test fixtures ──────────────────────────────────────────────
 const mockUserSchema: Schema = {
@@ -84,6 +87,7 @@ describe('Schema System', () => {
 	let tempDir: string;
 
 	beforeEach(() => {
+		resetAuthRegistryCache();
 		tempDir = path.join(process.cwd(), 'test-output');
 		if (!fs.existsSync(tempDir)) {
 			fs.mkdirSync(tempDir, { recursive: true });
@@ -91,6 +95,7 @@ describe('Schema System', () => {
 	});
 
 	afterEach(() => {
+		resetAuthRegistryCache();
 		if (fs.existsSync(tempDir)) {
 			fs.rmSync(tempDir, { recursive: true, force: true });
 		}
@@ -240,6 +245,99 @@ describe('Schema System', () => {
 			expect(output).toContain(`.references(() => posts.id)`);
 		});
 
+		it('should generate text column with .references() when referencing auth.user', () => {
+			const authRegistry = {
+				dialect: 'pg' as const,
+				schemas: introspectAuthModule(pgFixture, { dialect: 'pg', usePlural: false }),
+				hash: 'test-hash'
+			};
+			setAuthRegistry(authRegistry);
+
+			const schema: Schema = {
+				name: 'posts',
+				fields: {
+					id: { type: 'serial', primary: true },
+					authorId: { type: 'reference', target: () => auth.user, required: true }
+				},
+				config: {}
+			};
+			const generator = new DrizzleGenerator(schema);
+			const output = generator.generate();
+			expect(output).toContain("text('authorId')");
+			expect(output).toContain(".references(() => user.id)");
+			expect(output).toContain(".notNull()");
+		});
+
+		it('should generate uuid column with .references() when referencing schema with uuid PK', () => {
+			const uuidSchema: Schema = {
+				name: 'organizations',
+				fields: {
+					id: { type: 'uuid', primary: true }
+				},
+				config: {}
+			};
+			const schema: Schema = {
+				name: 'memberships',
+				fields: {
+					id: { type: 'serial', primary: true },
+					orgId: { type: 'reference', target: () => uuidSchema }
+				},
+				config: {}
+			};
+			const generator = new DrizzleGenerator(schema);
+			const output = generator.generate();
+			expect(output).toContain("uuid('orgId')");
+			expect(output).toContain(".references(() => organizations.id)");
+		});
+
+		it('should throw AUTH007 when .unsigned() is used on non-integer reference', () => {
+			const authRegistry = {
+				dialect: 'pg' as const,
+				schemas: introspectAuthModule(pgFixture, { dialect: 'pg', usePlural: false }),
+				hash: 'test-hash'
+			};
+			setAuthRegistry(authRegistry);
+
+			const schema: Schema = {
+				name: 'profiles',
+				fields: {
+					id: { type: 'serial', primary: true },
+					userId: { type: 'reference', target: () => auth.user, unsigned: true }
+				},
+				config: {}
+			};
+			const generator = new DrizzleGenerator(schema);
+			expect(() => generator.generate()).toThrowError(/\[AUTH007\]/);
+		});
+
+		it('should re-export auth tables in generateFiles when auth references are present', async () => {
+			const authRegistry = {
+				dialect: 'pg' as const,
+				schemas: introspectAuthModule(pgFixture, { dialect: 'pg', usePlural: false }),
+				hash: 'test-hash'
+			};
+			setAuthRegistry(authRegistry);
+
+			const schema: Schema = {
+				name: 'profiles',
+				fields: {
+					id: { type: 'serial', primary: true },
+					userId: { type: 'reference', target: () => auth.user, required: true }
+				},
+				config: {}
+			};
+			const generator = new DrizzleGenerator(schema);
+			const outputs = await generator.generateFiles([schema], {
+				format: 'single-file',
+				path: path.join(tempDir, 'schema.ts')
+			});
+
+			expect(outputs).toHaveLength(1);
+			expect(outputs[0].content).toContain("export * from '");
+			expect(outputs[0].content).toContain(".omni/auth-schema';");
+			expect(outputs[0].content).toContain("import { user } from '");
+		});
+
 		// ── relations ────────────────────────────────────────────────
 		it('should generate correct belongsTo syntax with r.one.target', () => {
 			const schema: Schema = {
@@ -360,7 +458,7 @@ describe('Schema System', () => {
 			});
 
 			const content = outputs[0].content;
-			expect(content).toContain(`import { defineRelations } from 'drizzle-orm'`);
+			expect(content).toContain(`import { defineRelations } from 'omni-svelte/drizzle/pg'`);
 			expect(content).toContain('schemaRelations = defineRelations(');
 			expect(content).toContain('users, posts');
 			// Correct Drizzle 1.0 syntax
@@ -426,6 +524,41 @@ describe('Schema System', () => {
 			expect(importMatches).toHaveLength(1);
 		});
 
+		it('should generate string validator for reference to auth.user', () => {
+			const authRegistry = {
+				dialect: 'pg' as const,
+				schemas: introspectAuthModule(pgFixture, { dialect: 'pg', usePlural: false }),
+				hash: 'test-hash'
+			};
+			setAuthRegistry(authRegistry);
+
+			const schema: Schema = {
+				name: 'posts',
+				fields: {
+					id: { type: 'serial', primary: true },
+					authorId: { type: 'reference', target: () => auth.user, required: true }
+				},
+				config: {}
+			};
+			const generator = new ZodGenerator(schema);
+			const content = generator.generate();
+			expect(content).toContain('authorId: z.string()');
+		});
+
+		it('should generate number validator for reference to serial user schema', () => {
+			const schema: Schema = {
+				name: 'comments',
+				fields: {
+					id: { type: 'serial', primary: true },
+					postId: { type: 'reference', target: () => mockPostSchema, required: true }
+				},
+				config: {}
+			};
+			const generator = new ZodGenerator(schema);
+			const content = generator.generate();
+			expect(content).toContain('postId: z.number().int()');
+		});
+
 		it('should generate per-schema files', async () => {
 			const generator = new ZodGenerator(mockUserSchema);
 			const outputs = await generator.generateFiles([mockUserSchema, mockPostSchema], {
@@ -447,11 +580,11 @@ describe('Schema System', () => {
 			const content = generator.generate();
 
 			expect(content).toContain('static relationships =');
-			expect(content).toContain('posts:');
-			expect(content).toContain("type: 'hasMany'");
-			expect(content).toContain("model: 'posts'");
-			expect(content).toContain("foreignKey: 'usersId'");
-			expect(content).toContain("localKey: 'id'");
+			expect(content).toContain('"posts":');
+			expect(content).toContain('"type": "hasMany"');
+			expect(content).toContain('"model": "posts"');
+			expect(content).toContain('"foreignKey": "usersId"');
+			expect(content).toContain('"localKey": "id"');
 		});
 
 		it('should generate model with correct class name', () => {
