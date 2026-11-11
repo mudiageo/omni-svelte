@@ -1,5 +1,5 @@
 import * as pg from 'drizzle-orm/pg-core';
-import { relative } from 'node:path';
+import { relative, resolve, dirname } from 'node:path';
 import type { Schema, FieldDefinition, GeneratedOutput } from '../types.js';
 import { PathResolver } from '../utils/path-resolver.js';
 import { resolveReference } from '../auth-reference.js';
@@ -121,7 +121,8 @@ function generateColumn(
 					// Dynamic reference
 					column = column.references(() => (reference as any).schema?.drizzle?.table?.[reference.pk.property ?? 'id'] ?? (reference as any).schema?.table?.[reference.pk.property ?? 'id']);
 				} catch {
-					column = integer(fieldName);
+					const isAuth = (field.target as any)?.kind === 'system' || (typeof (field.target as any)?.resolve === 'function' && (field.target as any).resolve()?.__omniSystem);
+					column = isAuth ? text(fieldName) : integer(fieldName);
 				}
 			} else {
 				column = integer(fieldName);
@@ -172,6 +173,21 @@ function generateIndexes(schema: Schema, table: any) {
 export class DrizzleGenerator {
 	constructor(private schema: Schema, private databaseType: string = 'pg') {}
 
+	private resolveTargetName(targetFn?: () => any): string {
+		if (!targetFn) return 'unknown';
+		try {
+			const r = targetFn();
+			if (r && typeof r === 'object') {
+				if ((r as any).__omniSystem && (r as any).key) return String((r as any).key);
+				if ((r as any).tableName) return String((r as any).tableName);
+				if ((r as any).name) return String((r as any).name);
+			}
+			return 'unknown';
+		} catch {
+			return 'unknown';
+		}
+	}
+
 	generate(): string {
 		const relationsBlock = this.generateRelations();
 		
@@ -179,9 +195,10 @@ export class DrizzleGenerator {
 		if (relationsBlock) {
 			const targetTables = new Set<string>();
 			for (const rel of Object.values(this.schema.relations || {})) {
-				try {
-					targetTables.add(rel.target().name);
-				} catch (e) {}
+				const t = this.resolveTargetName(rel.target);
+				if (t && t !== 'unknown') {
+					targetTables.add(t);
+				}
 			}
 			targetTables.delete(this.schema.name); // don't import self
 			
@@ -189,7 +206,7 @@ export class DrizzleGenerator {
 				relativeImports = `// TODO: replace relative cross-schema imports with virtual module imports\n`;
 				relativeImports += Array.from(targetTables).map(t => `import { ${t} } from './${t}';`).join('\n');
 			}
-			relativeImports += `\nimport { defineRelationsPart } from 'drizzle-orm';`;
+			relativeImports += `\nimport { defineRelationsPart } from 'omni-svelte/drizzle/${this.databaseType}';`;
 		}
 
 		return [
@@ -221,10 +238,9 @@ export class DrizzleGenerator {
 		const lines: string[] = [];
 
 		for (const [key, rel] of Object.entries(this.schema.relations)) {
-			let targetTable = 'unknown';
+			let targetTable = this.resolveTargetName(rel.target);
 
 			if (rel.kind === 'belongsTo') {
-				try { targetTable = rel.target().name; } catch (_e) {}
 				// FK sits on this table; convention: `${key}Id` unless overridden via `via`
 				const localKey = rel.options?.via ?? `${key}Id`;
 				lines.push(`    ${key}: r.one.${targetTable}({`);
@@ -234,12 +250,10 @@ export class DrizzleGenerator {
 				lines.push(`    }),`);
 
 			} else if (rel.kind === 'hasMany') {
-				try { targetTable = rel.target().name; } catch (_e) {}
 				// Drizzle infers FK direction from the corresponding belongsTo on the target
 				lines.push(`    ${key}: r.many.${targetTable}(),`);
 
 			} else if (rel.kind === 'hasOne') {
-				try { targetTable = rel.target().name; } catch (_e) {}
 				// FK sits on the target table; convention: `${tableName}Id`
 				const fkOnTarget = rel.options?.via ?? `${tableName}Id`;
 				lines.push(`    ${key}: r.one.${targetTable}({`);
@@ -249,9 +263,7 @@ export class DrizzleGenerator {
 				lines.push(`    }),`);
 
 			} else if (rel.kind === 'manyToMany') {
-				let pivotTable = 'unknown';
-				try { targetTable = rel.target().name; } catch (_e) {}
-				try { pivotTable = rel.options?.through().name; } catch (_e) {}
+				const pivotTable = this.resolveTargetName(rel.options?.through);
 				lines.push(`    ${key}: r.many.${targetTable}({`);
 				lines.push(`      from: r.${tableName}.id.through(r.${pivotTable}.${tableName}Id),`);
 				lines.push(`      to: r.${targetTable}.id.through(r.${pivotTable}.${targetTable}Id),`);
@@ -291,6 +303,23 @@ export class DrizzleGenerator {
 			const allRelations: string[] = [];
 			let hasRelations = false;
 
+			// Prepare userSchemaByTable for PK and reference resolution
+			const userSchemaByTable = new Map<string, any>();
+			schemas.forEach((s) => {
+				const pkField = Object.entries(s.fields).find(([_, f]) => f.primary);
+				const pkType = pkField
+					? ((pkField[1] as any).type === 'uuid' ? 'uuid' : ((pkField[1] as any).type === 'serial' ? 'serial' : 'integer'))
+					: 'serial';
+				userSchemaByTable.set(s.name, {
+					tableName: s.name,
+					pk: {
+						column: pkField ? pkField[0] : 'id',
+						property: pkField ? pkField[0] : 'id',
+						type: pkType
+					}
+				});
+			});
+
 			// Collect all necessary pg-core imports and detect relations
 			schemas.forEach((schema) => {
 				const generator = new DrizzleGenerator(schema);
@@ -313,47 +342,57 @@ export class DrizzleGenerator {
 				if (rel) allRelations.push(`  ${schema.name}: {\n${rel}\n  }`);
 			});
 
-			const dbType = outputConfig.databaseType || 'pg';
-			const drizzleOrmImport = hasRelations
-				? `\nimport { defineRelations } from 'omni-svelte/drizzle/${dbType}';`
-				: '';
-
-			const relationsBlock = hasRelations
-				? `\nexport const schemaRelations = defineRelations({ ${schemas.map((s) => s.name).join(', ')} }, (r) => ({\n${allRelations.join(',\n')}\n}));\n`
-				: '';
-
-			// Check if any schema references auth tables
+			// Check if any schema references auth tables (via fields or relations)
 			const referencedAuthTables = new Set<string>();
 			const registry = getAuthRegistry();
-			if (registry) {
-				schemas.forEach((schema) => {
-					Object.entries(schema.fields).forEach(([fieldName, field]) => {
-						if (field.type === 'reference' && field.target) {
-							try {
-								const ref = resolveReference(field.target, {
-									registry,
-									userSchemaByTable: new Map(),
-									where: `${schema.name}.${fieldName}`
-								});
-								if (ref.kind === 'system') {
-									referencedAuthTables.add(ref.exportName);
-								}
-							} catch {}
-						}
-					});
+			schemas.forEach((schema) => {
+				Object.entries(schema.fields).forEach(([fieldName, field]) => {
+					if (field.type === 'reference' && field.target) {
+						try {
+							const ref = resolveReference(field.target, {
+								registry,
+								userSchemaByTable,
+								where: `${schema.name}.${fieldName}`
+							});
+							if (ref.kind === 'system') {
+								referencedAuthTables.add(ref.exportName);
+							}
+						} catch {}
+					}
 				});
-			}
+				if (schema.relations) {
+					Object.values(schema.relations).forEach((rel: any) => {
+						try {
+							const t = typeof rel.target === 'function' ? rel.target() : null;
+							if (t && typeof t === 'object' && (t as any).__omniSystem && (t as any).key) {
+								referencedAuthTables.add(String((t as any).key));
+							}
+						} catch {}
+					});
+				}
+			});
+
+			const dbType = outputConfig.databaseType || 'pg';
+			const drizzleOrmImport = hasRelations
+				? `\nimport { defineRelations } from 'omni-svelte/drizzle/${this.databaseType}';`
+				: '';
+
+			const allRelationTables = [...schemas.map((s) => s.name), ...Array.from(referencedAuthTables)].join(', ');
+			const relationsBlock = hasRelations
+				? `\nexport const schemaRelations = defineRelations({ ${allRelationTables} }, (r) => ({\n${allRelations.join(',\n')}\n}));\n`
+				: '';
 
 			let authReExport = '';
 			if (referencedAuthTables.size > 0 && outputConfig.path) {
 				// Relative path from output file directory to .omni/auth-schema
 				const outputPath = outputConfig.path;
-				const outputDir = outputPath.includes('/') ? outputPath.slice(0, outputPath.lastIndexOf('/')) : '.';
-				const relPath = relative(outputDir, '.omni/auth-schema').replace(/\\/g, '/');
-				const normalizedRelPath = relPath.startsWith('.') ? relPath : `./${relPath}`;
+				const outputDir = dirname(resolve(process.cwd(), outputPath));
+				const authSchemaPath = resolve(process.cwd(), '.omni/auth-schema');
+				let relPath = relative(outputDir, authSchemaPath).replace(/\\/g, '/');
+				if (!relPath.startsWith('.')) relPath = `./${relPath}`;
 				const namedImports = Array.from(referencedAuthTables).sort().join(', ');
 
-				authReExport = `export * from '${normalizedRelPath}';\nimport { ${namedImports} } from '${normalizedRelPath}';\n\n`;
+				authReExport = `export * from '${relPath}';\nimport { ${namedImports} } from '${relPath}';\n\n`;
 			}
 
 			const content = `// Auto-generated by omni-svelte
