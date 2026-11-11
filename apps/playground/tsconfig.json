@@ -1,6 +1,7 @@
 {
   "extends": "$app/tsconfig",
   "include": [
-    "src"
+    "src",
+    ".omni/**/*.d.ts"
   ]
 }

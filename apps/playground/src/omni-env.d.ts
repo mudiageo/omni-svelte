@@ -18,7 +18,7 @@ declare module '$db' {
 
 // SERVER-ONLY: Configured Cache Manager
 declare module '$omni/cache' {
-  import { cache } from '../cache';
+  import { cache } from 'omni-svelte/cache';
   export { cache };
 }
 
