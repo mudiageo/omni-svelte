@@ -10,11 +10,19 @@ export interface SystemSchemaRef<K extends string = string> {
   readonly key: K;
 }
 
-// Auth tanles ref
+/**
+ * Typed proxy for referencing Better Auth system tables in `field.reference(() => auth.user)`.
+ */
 export const auth = new Proxy({} as { readonly [K in keyof AuthTables & string]: SystemSchemaRef<K> }, {
   get: (_t, key) => ({ __omniSystem: true as const, key: String(key) }),
 }) as { readonly [K in keyof AuthTables & string]: SystemSchemaRef<K> };
 
+/**
+ * Type guard to check if an object is a `SystemSchemaRef`.
+ *
+ * @param v - Unknown value to check
+ * @returns True if `v` represents a system schema reference
+ */
 export function isSystemRef(v: unknown): v is SystemSchemaRef {
   return !!v && typeof v === 'object' && (v as any).__omniSystem === true;
 }
@@ -77,13 +85,15 @@ export function resolveReference(
     const r = fn ? fn() : target;
     const pkCol = Object.entries((r as any)?.fields ?? {}).find(([_, f]: any) => f?.primary);
     const fieldType = (pkCol?.[1] as any)?.type;
-    const pkType = !pkCol
+    const pkType: PkType = !pkCol
       ? 'serial'
       : fieldType === 'uuid'
         ? 'uuid'
-        : ['string', 'email', 'password', 'url', 'slug'].includes(fieldType)
-          ? 'text'
-          : 'integer';
+        : fieldType === 'bigint'
+          ? 'bigint'
+          : ['string', 'text', 'email', 'password', 'url', 'slug'].includes(fieldType)
+            ? 'text'
+            : 'integer';
     return {
       kind: 'user',
       tableName: userTable,
@@ -91,7 +101,7 @@ export function resolveReference(
       pk: {
         column: pkCol ? pkCol[0] : 'id',
         property: pkCol ? pkCol[0] : 'id',
-        type: pkType as any
+        type: pkType
       }
     };
   }

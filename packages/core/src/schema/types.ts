@@ -4,7 +4,7 @@ import type { generateModel } from './generators/model.js';
 import type { Relationship } from '../database/relationships.js';
 import type { RelationDefinition } from './relation.js';
 import type { defineSchema } from './index.js';
-import type { ResolvedReference } from './auth-reference.js';
+import type { ResolvedReference, SystemSchemaRef } from './auth-reference.js';
 
 export type FieldType =
 	| 'string'
@@ -51,8 +51,8 @@ export interface FieldDefinition {
 	target?: {
 		kind: 'system' | 'thunk';
 		key?: string;
-		resolve?: () => typeof defineSchema;
-	} // For foreign key references
+		resolve?: () => ReturnType<typeof defineSchema> | SystemSchemaRef;
+	}; // For foreign key references
 }
 export interface StorageConfig {
 	type?: 'local' | 's3' | 'gcs';

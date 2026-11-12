@@ -3,6 +3,7 @@ import type { Schema, FieldDefinition, GeneratedOutput } from '../types.js';
 import { PathResolver } from '../utils/path-resolver.js';
 import { resolveReference } from '../auth-reference.js';
 import { getAuthRegistry } from '../../runtime/auth/registry.js';
+import { AuthDiagnostic } from '../../runtime/auth/diagnostics.js';
 
 export function generateZodSchemas(schema: Schema) {
 	const createSchema = generateCreateSchema(schema);
@@ -106,7 +107,8 @@ function generateZodField(field: FieldDefinition): z.ZodTypeAny | null {
 						zodField = z.number().int();
 						if (field.unsigned) zodField = (zodField as z.ZodNumber).min(0);
 					}
-				} catch {
+				} catch (e) {
+					if (e instanceof AuthDiagnostic) throw e;
 					zodField = z.number().int();
 					if (field.unsigned) zodField = (zodField as z.ZodNumber).min(0);
 				}
@@ -368,7 +370,8 @@ export type ${this.capitalize(tableName)}Update = z.infer<typeof ${tableName}Upd
 							validation = 'z.number().int()';
 							if (field.unsigned) validation += '.positive()';
 						}
-					} catch {
+					} catch (e) {
+						if (e instanceof AuthDiagnostic) throw e;
 						validation = 'z.number().int()';
 						if (field.unsigned) validation += '.positive()';
 					}
