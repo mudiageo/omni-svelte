@@ -11,7 +11,8 @@ export default defineConfig({
 			kit: {
 				adapter: adapter(),
 				alias: {
-					$pkg: 'src'
+					$pkg: 'src',
+					'omni-svelte':'src'
 				},
 				experimental: {
 					// Disable remoteFunctions for the core package build to bypass a SvelteKit bug 
