@@ -3,6 +3,7 @@ import { error } from '@sveltejs/kit';
 import { z } from 'zod';
 import { formSchema } from './form-schema.js';
 import { ForbiddenError } from '../errors.js';
+import { AuthDiagnostic } from '../runtime/auth/diagnostics.js';
 
 export type OperationName = 'list' | 'get' | 'create' | 'update' | 'remove';
 
@@ -23,6 +24,7 @@ export interface ResourceOptions<M> {
 	with?: string[];
 	pagination?: { perPage?: number; strategy?: 'offset' | 'cursor' };
 	authorize?: (ctx: AuthorizeContext<M>) => boolean | Promise<boolean>;
+	names?: Partial<Record<OperationName, string>>;
 	live?: OperationName[];
 	/**
 	 * Controls how `create` and `update` mutations are generated.
@@ -83,6 +85,28 @@ function getMutationMode(op: 'create' | 'update', options?: ResourceOptions<any>
  * @returns An object containing the generated remote functions
  */
 export function resource<M extends any, O extends ResourceOptions<M> = {}>(model: M, options?: O) {
+	const isReadonly = Boolean((model as any)?.readonly);
+	const key = (model as any)?.tableName || (model as any)?.table?.name || (model as any)?.name || 'auth';
+
+	if (isReadonly && options?.only) {
+		const writeOps: OperationName[] = ['create', 'update', 'remove'];
+		if (options.only.some((op) => writeOps.includes(op))) {
+			throw new AuthDiagnostic(
+				'AUTH009',
+				`Cannot write to auth table "${key}" using resource.`,
+				'Use the Better Auth API (sign-up, update-user, admin plugin, ...).'
+			);
+		}
+	}
+
+	const throwAuth009 = () => {
+		throw new AuthDiagnostic(
+			'AUTH009',
+			`Cannot write to auth table "${key}" using resource.`,
+			'Use the Better Auth API (sign-up, update-user, admin plugin, ...).'
+		);
+	};
+
 	// Stub out the authorize checker
 	const checkAuth = async (operation: OperationName, input?: any, record?: any) => {
 		if (options?.authorize) {
@@ -170,7 +194,7 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 			})()
 		: undefined;
 
-	const createFn = shouldInclude('create', options)
+	const createFn = (!isReadonly && shouldInclude('create', options))
 		? (() => {
 				const fillable = options?.fillable?.create || (model as any).fillable;
 				const fSchema = formSchema(
@@ -193,7 +217,7 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 			})()
 		: undefined;
 
-	const updateFn = shouldInclude('update', options)
+	const updateFn = (!isReadonly && shouldInclude('update', options))
 		? (() => {
 				const fillable = options?.fillable?.update || (model as any).fillable;
 				const baseFSchema = formSchema(
@@ -228,7 +252,7 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 			})()
 		: undefined;
 
-	const removeFn = shouldInclude('remove', options)
+	const removeFn = (!isReadonly && shouldInclude('remove', options))
 		? (() => {
 				return command(z.union([z.string(), z.number()]), async (id: string | number) => {
 					const record = await model.find(id);
@@ -245,13 +269,21 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 			})()
 		: undefined;
 
-	const defaultExports = {
-		...(listFn && { list: listFn }),
-		...(getFn && { get: getFn }),
-		...(createFn && { create: createFn }),
-		...(updateFn && { update: updateFn }),
-		...(removeFn && { remove: removeFn })
-	};
+	const getName = (op: OperationName) => options?.names?.[op] || op;
+
+	const defaultExports: Record<string, any> = {};
+	if (listFn) defaultExports[getName('list')] = listFn;
+	if (getFn) defaultExports[getName('get')] = getFn;
+
+	if (isReadonly) {
+		defaultExports[getName('create')] = throwAuth009;
+		defaultExports[getName('update')] = throwAuth009;
+		defaultExports[getName('remove')] = throwAuth009;
+	} else {
+		if (createFn) defaultExports[getName('create')] = createFn;
+		if (updateFn) defaultExports[getName('update')] = updateFn;
+		if (removeFn) defaultExports[getName('remove')] = removeFn;
+	}
 
 	type CreateFn = typeof createFn;
 	type CreateForm = Extract<CreateFn, { for: any }>;
@@ -273,8 +305,23 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 			? UpdateCommand
 			: UpdateForm;
 
-	return defaultExports as Omit<typeof defaultExports, 'create' | 'update'> & {
+	type StandardReturn = Omit<ResourceExports<M>, 'create' | 'update'> & {
 		create: typeof createFn extends undefined ? undefined : NarrowedCreate;
 		update: typeof updateFn extends undefined ? undefined : NarrowedUpdate;
 	};
+
+	type ReadonlyReturn = {
+		list?: ReturnType<typeof query>;
+		get?: ReturnType<typeof query>;
+	};
+
+	type Result = M extends { readonly: true }
+		? O extends { names: Record<string, any> }
+			? ReadonlyReturn & Record<string, any>
+			: ReadonlyReturn
+		: O extends { names: Record<string, any> }
+			? StandardReturn & Record<string, any>
+			: StandardReturn;
+
+	return defaultExports as Result;
 }
