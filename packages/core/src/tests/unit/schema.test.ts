@@ -9,6 +9,7 @@ import type { Schema } from '../../schema/types.js';
 import { auth } from '../../schema/auth-reference.js';
 import { setAuthRegistry, resetAuthRegistryCache, introspectAuthModule } from '../../runtime/auth/index.js';
 import * as pgFixture from '../fixtures/auth/auth-schema.pg.js';
+import * as pluralPgFixture from '../fixtures/auth/auth-schema.plural.pg.js';
 
 // ─── Test fixtures ──────────────────────────────────────────────
 const mockUserSchema: Schema = {
@@ -364,6 +365,39 @@ describe('Schema System', () => {
 			expect(outputs[0].content).toContain("import { user } from '");
 			expect(outputs[0].content).toContain(".omni/auth-schema';");
 			expect(outputs[0].content).not.toContain("export * from '");
+		});
+
+		it('should resolve auth relations using exportName when usePlural is true', async () => {
+			const authRegistry = {
+				dialect: 'pg' as const,
+				schemas: introspectAuthModule(pluralPgFixture, { dialect: 'pg', usePlural: true }),
+				hash: 'test-plural-hash'
+			};
+			setAuthRegistry(authRegistry);
+
+			const schema: Schema = {
+				name: 'posts',
+				fields: {
+					id: { type: 'serial', primary: true },
+					authorId: { type: 'reference', target: () => auth.user, required: true }
+				},
+				relations: {
+					author: { kind: 'belongsTo', target: () => auth.user }
+				},
+				config: {}
+			};
+			const generator = new DrizzleGenerator(schema);
+			const outputs = await generator.generateFiles([schema], {
+				format: 'per-schema',
+				path: path.join(tempDir, 'schemas')
+			});
+
+			expect(outputs).toHaveLength(1);
+			// Must import `users` (the exportName), not `user`
+			expect(outputs[0].content).toContain("import { users } from '");
+			expect(outputs[0].content).not.toContain("import { user } from '");
+			expect(outputs[0].content).not.toContain("from './users'");
+			expect(outputs[0].content).toContain("r.one.users(");
 		});
 
 		// ── relations ────────────────────────────────────────────────

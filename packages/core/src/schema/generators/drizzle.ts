@@ -178,7 +178,11 @@ export class DrizzleGenerator {
 		try {
 			const r = targetFn();
 			if (r && typeof r === 'object') {
-				if ((r as any).__omniSystem && (r as any).key) return String((r as any).key);
+				if ((r as any).__omniSystem && (r as any).key) {
+					const reg = getAuthRegistry();
+					const entry = reg?.schemas.get(String((r as any).key));
+					return entry?.exportName ?? String((r as any).key);
+				}
 				if ((r as any).tableName) return String((r as any).tableName);
 				if ((r as any).name) return String((r as any).name);
 			}
@@ -210,7 +214,8 @@ export class DrizzleGenerator {
 				try {
 					const t = typeof rel.target === 'function' ? rel.target() : null;
 					if (t && typeof t === 'object' && (t as any).__omniSystem && (t as any).key) {
-						referencedAuthTables.add(String((t as any).key));
+						const entry = registry?.schemas.get(String((t as any).key));
+						referencedAuthTables.add(entry?.exportName ?? String((t as any).key));
 					}
 				} catch {}
 			});
@@ -406,7 +411,8 @@ export class DrizzleGenerator {
 						try {
 							const t = typeof rel.target === 'function' ? rel.target() : null;
 							if (t && typeof t === 'object' && (t as any).__omniSystem && (t as any).key) {
-								referencedAuthTables.add(String((t as any).key));
+								const entry = registry?.schemas.get(String((t as any).key));
+								referencedAuthTables.add(entry?.exportName ?? String((t as any).key));
 							}
 						} catch {}
 					});
