@@ -72,12 +72,7 @@ export abstract class ReadonlyModel {
 		instance.attributes = { ...attributes };
 		instance.exists = true;
 		instance.isDirty = false;
-		if ('syncOriginal' in instance && typeof (instance as any).syncOriginal === 'function') {
-			(instance as any).syncOriginal();
-		}
-		if ('setupAttributeAccessors' in instance && typeof (instance as any).setupAttributeAccessors === 'function') {
-			(instance as any).setupAttributeAccessors();
-		}
+		instance.setupAttributeAccessors();
 		return instance;
 	}
 

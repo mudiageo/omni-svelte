@@ -72,7 +72,8 @@ async function loadSchemaConfigFile(root: string): Promise<UserSchemaConfig> {
 export function setupSchemaWatcher(
 	server: ViteDevServer,
 	schemaConfig: SchemaConfig,
-	schemasRef: { current: Schema[] }
+	schemasRef: { current: Schema[] },
+	omniConfig?: any
 ): FSWatcher | null {
 	// Close existing watcher
 	if (schemaWatcher) {
@@ -95,7 +96,7 @@ export function setupSchemaWatcher(
 		schemasRef.current.splice(0, schemasRef.current.length, ...newSchemas);
 
 		// Regenerate files
-		await generateSchemaFiles(schemasRef.current, schemaConfig, [filePath]);
+		await generateSchemaFiles(schemasRef.current, schemaConfig, [filePath], omniConfig);
 
 		// Trigger HMR
 		if (schemaConfig.dev?.hotReload !== false) {

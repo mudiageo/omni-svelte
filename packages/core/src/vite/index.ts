@@ -196,7 +196,7 @@ function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 
 			// Set up schema file watching
 			if (omniConfig.schema?.dev?.watch !== false) {
-				schemaWatcher = setupSchemaWatcher(server, omniConfig.schema, schemasRef);
+				schemaWatcher = setupSchemaWatcher(server, omniConfig.schema, schemasRef, omniConfig);
 			}
 
 			server.watcher.on('change', async (file) => {
@@ -227,7 +227,7 @@ function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 						}
 
 						if (omniConfig.schema?.dev?.watch !== false) {
-							schemaWatcher = setupSchemaWatcher(server, omniConfig.schema, schemasRef);
+							schemaWatcher = setupSchemaWatcher(server, omniConfig.schema, schemasRef, omniConfig);
 						}
 					}
 				}
