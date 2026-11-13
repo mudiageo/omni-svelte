@@ -141,7 +141,7 @@ function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 		async buildStart() {
 			// Generate schema files
 			if (omniConfig.schema && omniConfig.schema.dev?.generateOnStart !== false) {
-				await generateSchemaFiles(schemasRef.current, omniConfig.schema);
+				await generateSchemaFiles(schemasRef.current, omniConfig.schema, undefined, omniConfig);
 				// Auto-generate / update drizzle.config.ts based on schema output path
 				await generateDrizzleConfig(config.root, omniConfig.schema, omniConfig);
 			}

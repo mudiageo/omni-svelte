@@ -97,6 +97,23 @@ export interface AuthConfig {
 		strategy?: 'push' | 'migrate';
 	};
 
+	/**
+	 * Whether Better Auth uses plural table names (e.g. `users` instead of `user`).
+	 */
+	usePlural?: boolean;
+
+	/**
+	 * Custom overrides for auth code generation per auth table key.
+	 * Default: `{ model: 'readonly', factory: false }`.
+	 */
+	generate?: Record<
+		string,
+		{
+			model?: 'readonly' | false;
+			factory?: boolean;
+		}
+	>;
+
 	// Schema Sync Configuration
 	schemaSync?: {
 		/**
