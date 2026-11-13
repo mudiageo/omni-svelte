@@ -3,6 +3,8 @@ import type { generateZodSchemas } from './generators/zod.js';
 import type { generateModel } from './generators/model.js';
 import type { Relationship } from '../database/relationships.js';
 import type { RelationDefinition } from './relation.js';
+import type { defineSchema } from './index.js';
+import type { ResolvedReference, SystemSchemaRef } from './auth-reference.js';
 
 export type FieldType =
 	| 'string'
@@ -46,7 +48,11 @@ export interface FieldDefinition {
 	get?: (record: any) => any;
 	relationship?: Relationship;
 	isAuthField?: boolean; // Mark fields managed by auth system
-	target?: () => any; // For foreign key references
+	target?: {
+		kind: 'system' | 'thunk';
+		key?: string;
+		resolve?: () => ReturnType<typeof defineSchema> | SystemSchemaRef;
+	}; // For foreign key references
 }
 export interface StorageConfig {
 	type?: 'local' | 's3' | 'gcs';

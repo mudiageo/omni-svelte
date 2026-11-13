@@ -298,6 +298,35 @@ export class RegexSchemaParser implements ISchemaParser {
 				if (fieldDef.includes('.unique()')) field.unique = true;
 				if (fieldDef.includes('.optional()')) field.optional = true;
 				if (fieldDef.includes('.hidden()')) field.hidden = true;
+
+				if (field.type === 'reference') {
+					const stringMatch = fieldDef.match(/field\.reference\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/);
+					if (stringMatch) {
+						field.target = { kind: 'system', key: stringMatch[1] };
+					} else {
+						const thunkMatch = fieldDef.match(/field\.reference\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?\s*\)/);
+						if (thunkMatch) {
+							const targetIdentifier = thunkMatch[1];
+							if (targetIdentifier.startsWith('auth.')) {
+								const authKey = targetIdentifier.split('.')[1];
+								field.target = { kind: 'system', key: authKey };
+							} else {
+								let targetTableName = targetIdentifier.replace(/Schema$/i, '');
+								if (!targetTableName.endsWith('s')) targetTableName += 's';
+								if (fullContent) {
+									const tableMatch = new RegExp(targetIdentifier + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(fullContent);
+									if (tableMatch) {
+										targetTableName = tableMatch[1];
+									}
+								}
+								field.target = {
+									kind: 'thunk',
+									resolve: () => ({ name: targetTableName, tableName: targetTableName })
+								};
+							}
+						}
+					}
+				}
 			}
 
 			// Extract relation from fluent relation API
@@ -305,27 +334,45 @@ export class RegexSchemaParser implements ISchemaParser {
 			if (relationMatch) {
 				field.kind = relationMatch[1];
 				
-				const fullMatch = fieldDef.match(/relation\.\w+\s*\(\s*\(\s*\)\s*=>\s*([a-zA-Z0-9_]+)(?:\s*,\s*(\{.*?\}))?\s*\)/);
+				const fullMatch = fieldDef.match(/relation\.\w+\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?(?:\s*,\s*(\{[\s\S]*?\}))?\s*\)/);
 				if (fullMatch) {
 					const targetVar = fullMatch[1];
 					const optionsRaw = fullMatch[2];
 					
-					let targetTableName = targetVar.replace(/Schema$/i, '');
-					if (!targetTableName.endsWith('s')) targetTableName += 's';
-					
-					if (fullContent) {
-						const tableMatch = new RegExp(targetVar + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(fullContent);
-						if (tableMatch) {
-							targetTableName = tableMatch[1];
+					if (targetVar.startsWith('auth.')) {
+						const authKey = targetVar.split('.')[1];
+						field.target = () => ({ __omniSystem: true, key: authKey, name: authKey });
+					} else {
+						let targetTableName = targetVar.replace(/Schema$/i, '');
+						if (!targetTableName.endsWith('s')) targetTableName += 's';
+						
+						if (fullContent) {
+							const tableMatch = new RegExp(targetVar + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(fullContent);
+							if (tableMatch) {
+								targetTableName = tableMatch[1];
+							}
 						}
+						
+						field.target = () => ({ name: targetTableName });
 					}
-					
-					field.target = () => ({ name: targetTableName });
 					
 					if (optionsRaw) {
 						const viaMatch = optionsRaw.match(/via:\s*['"`]([^'"`]+)['"`]/);
 						if (viaMatch) {
-							field.options = { via: viaMatch[1] };
+							field.options = { ...field.options, via: viaMatch[1] };
+						}
+						const throughMatch = optionsRaw.match(/through:\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_]+)/);
+						if (throughMatch) {
+							const pivotVar = throughMatch[1];
+							let pivotTableName = pivotVar.replace(/Schema$/i, '');
+							if (!pivotTableName.endsWith('s')) pivotTableName += 's';
+							if (fullContent) {
+								const tableMatch = new RegExp(pivotVar + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(fullContent);
+								if (tableMatch) {
+									pivotTableName = tableMatch[1];
+								}
+							}
+							field.options = { ...field.options, through: () => ({ name: pivotTableName }) };
 						}
 					}
 				}
@@ -646,6 +693,37 @@ export class ASTSchemaParser implements ISchemaParser {
 				if (text.includes('.unique()')) fieldDef.unique = true;
 				if (text.includes('.optional()')) fieldDef.optional = true;
 				if (text.includes('.hidden()')) fieldDef.hidden = true;
+
+				if (fieldDef.type === 'reference') {
+					const stringMatch = text.match(/field\.reference\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/);
+					if (stringMatch) {
+						fieldDef.target = { kind: 'system', key: stringMatch[1] };
+					} else {
+						const thunkMatch = text.match(/field\.reference\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?\s*\)/);
+						if (thunkMatch) {
+							const targetIdentifier = thunkMatch[1];
+							if (targetIdentifier.startsWith('auth.')) {
+								const authKey = targetIdentifier.split('.')[1];
+								fieldDef.target = { kind: 'system', key: authKey };
+							} else {
+								let targetTableName = targetIdentifier.replace(/Schema$/i, '');
+								if (!targetTableName.endsWith('s')) targetTableName += 's';
+								if (this.sourceFile) {
+									const sourceCode = this.sourceFile.getFullText();
+									const tableMatch = new RegExp(targetIdentifier + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(sourceCode);
+									if (tableMatch) {
+										targetTableName = tableMatch[1];
+									}
+								}
+								fieldDef.target = {
+									kind: 'thunk',
+									resolve: () => ({ name: targetTableName, tableName: targetTableName })
+								};
+							}
+						}
+					}
+				}
+
 				return fieldDef as FieldDefinition;
 			}
 			
@@ -654,28 +732,47 @@ export class ASTSchemaParser implements ISchemaParser {
 			if (relationMatch) {
 				fieldDef.kind = relationMatch[1];
 				
-				const fullMatch = text.match(/relation\.\w+\s*\(\s*\(\s*\)\s*=>\s*([a-zA-Z0-9_]+)(?:\s*,\s*(\{.*?\}))?\s*\)/);
+				const fullMatch = text.match(/relation\.\w+\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?(?:\s*,\s*(\{[\s\S]*?\}))?\s*\)/);
 				if (fullMatch) {
 					const targetVar = fullMatch[1];
 					const optionsRaw = fullMatch[2];
 					
-					let targetTableName = targetVar.replace(/Schema$/i, '');
-					if (!targetTableName.endsWith('s')) targetTableName += 's';
-					
-					if (this.sourceFile) {
-						const sourceCode = this.sourceFile.getFullText();
-						const tableMatch = new RegExp(targetVar + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(sourceCode);
-						if (tableMatch) {
-							targetTableName = tableMatch[1];
+					if (targetVar.startsWith('auth.')) {
+						const authKey = targetVar.split('.')[1];
+						fieldDef.target = () => ({ __omniSystem: true, key: authKey, name: authKey });
+					} else {
+						let targetTableName = targetVar.replace(/Schema$/i, '');
+						if (!targetTableName.endsWith('s')) targetTableName += 's';
+						
+						if (this.sourceFile) {
+							const sourceCode = this.sourceFile.getFullText();
+							const tableMatch = new RegExp(targetVar + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(sourceCode);
+							if (tableMatch) {
+								targetTableName = tableMatch[1];
+							}
 						}
+						
+						fieldDef.target = () => ({ name: targetTableName });
 					}
-					
-					fieldDef.target = () => ({ name: targetTableName });
 					
 					if (optionsRaw) {
 						const viaMatch = optionsRaw.match(/via:\s*['"`]([^'"`]+)['"`]/);
 						if (viaMatch) {
-							fieldDef.options = { via: viaMatch[1] };
+							fieldDef.options = { ...fieldDef.options, via: viaMatch[1] };
+						}
+						const throughMatch = optionsRaw.match(/through:\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_]+)/);
+						if (throughMatch) {
+							const pivotVar = throughMatch[1];
+							let pivotTableName = pivotVar.replace(/Schema$/i, '');
+							if (!pivotTableName.endsWith('s')) pivotTableName += 's';
+							if (this.sourceFile) {
+								const sourceCode = this.sourceFile.getFullText();
+								const tableMatch = new RegExp(pivotVar + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(sourceCode);
+								if (tableMatch) {
+									pivotTableName = tableMatch[1];
+								}
+							}
+							fieldDef.options = { ...fieldDef.options, through: () => ({ name: pivotTableName }) };
 						}
 					}
 				}

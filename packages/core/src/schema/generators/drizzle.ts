@@ -1,4 +1,12 @@
-import {
+import * as pg from 'drizzle-orm/pg-core';
+import { relative, resolve, dirname } from 'node:path';
+import type { Schema, FieldDefinition, GeneratedOutput } from '../types.js';
+import { PathResolver } from '../utils/path-resolver.js';
+import { resolveReference } from '../auth-reference.js';
+import { getAuthRegistry } from '../../runtime/auth/registry.js';
+import { AuthDiagnostic } from '../../runtime/auth/diagnostics.js';
+
+const {
 	pgTable,
 	serial,
 	text,
@@ -11,9 +19,7 @@ import {
 	pgEnum,
 	index,
 	uniqueIndex
-} from 'drizzle-orm/pg-core';
-import type { Schema, FieldDefinition, GeneratedOutput } from '../types.js';
-import { PathResolver } from '../utils/path-resolver.js';
+} = pg
 
 export function generateDrizzleSchema(schema: Schema) {
 	const columns: Record<string, any> = {};
@@ -96,10 +102,30 @@ function generateColumn(
 			column = json(fieldName); // Store as JSON array
 			break;
 		case 'reference':
-			// Default to integer for now as primary keys are 'serial' by default
-			column = integer(fieldName);
 			if (field.target) {
-				column = column.references(() => field.target().drizzle.table.id);
+				try {
+					const registry = getAuthRegistry();
+					const reference = resolveReference(field.target, {
+						registry,
+						userSchemaByTable: new Map(),
+						where: `${tableName}.${fieldName}`
+					});
+
+					const pkType = reference.pk.type;
+					let colFn: any = text;
+					if (pkType === 'uuid') colFn = pg.uuid;
+					else if (pkType === 'integer' || pkType === 'serial') colFn = integer;
+					else if (pkType === 'bigint') colFn = (name: string) => pg.bigint(name, { mode: 'number' });
+
+					column = colFn(fieldName);
+					// Dynamic reference
+					column = column.references(() => (reference as any).schema?.drizzle?.table?.[reference.pk.property ?? 'id'] ?? (reference as any).schema?.table?.[reference.pk.property ?? 'id']);
+				} catch {
+					const isAuth = (field.target as any)?.kind === 'system' || (typeof (field.target as any)?.resolve === 'function' && (field.target as any).resolve()?.__omniSystem);
+					column = isAuth ? text(fieldName) : integer(fieldName);
+				}
+			} else {
+				column = integer(fieldName);
 			}
 			break;
 		default:
@@ -147,6 +173,21 @@ function generateIndexes(schema: Schema, table: any) {
 export class DrizzleGenerator {
 	constructor(private schema: Schema, private databaseType: string = 'pg') {}
 
+	private resolveTargetName(targetFn?: () => any): string {
+		if (!targetFn) return 'unknown';
+		try {
+			const r = targetFn();
+			if (r && typeof r === 'object') {
+				if ((r as any).__omniSystem && (r as any).key) return String((r as any).key);
+				if ((r as any).tableName) return String((r as any).tableName);
+				if ((r as any).name) return String((r as any).name);
+			}
+			return 'unknown';
+		} catch {
+			return 'unknown';
+		}
+	}
+
 	generate(): string {
 		const relationsBlock = this.generateRelations();
 		
@@ -154,9 +195,10 @@ export class DrizzleGenerator {
 		if (relationsBlock) {
 			const targetTables = new Set<string>();
 			for (const rel of Object.values(this.schema.relations || {})) {
-				try {
-					targetTables.add(rel.target().name);
-				} catch (e) {}
+				const t = this.resolveTargetName(rel.target);
+				if (t && t !== 'unknown') {
+					targetTables.add(t);
+				}
 			}
 			targetTables.delete(this.schema.name); // don't import self
 			
@@ -164,7 +206,7 @@ export class DrizzleGenerator {
 				relativeImports = `// TODO: replace relative cross-schema imports with virtual module imports\n`;
 				relativeImports += Array.from(targetTables).map(t => `import { ${t} } from './${t}';`).join('\n');
 			}
-			relativeImports += `\nimport { defineRelationsPart } from 'drizzle-orm';`;
+			relativeImports += `\nimport { defineRelationsPart } from 'omni-svelte/drizzle/${this.databaseType}';`;
 		}
 
 		return [
@@ -196,10 +238,9 @@ export class DrizzleGenerator {
 		const lines: string[] = [];
 
 		for (const [key, rel] of Object.entries(this.schema.relations)) {
-			let targetTable = 'unknown';
+			let targetTable = this.resolveTargetName(rel.target);
 
 			if (rel.kind === 'belongsTo') {
-				try { targetTable = rel.target().name; } catch (_e) {}
 				// FK sits on this table; convention: `${key}Id` unless overridden via `via`
 				const localKey = rel.options?.via ?? `${key}Id`;
 				lines.push(`    ${key}: r.one.${targetTable}({`);
@@ -209,12 +250,10 @@ export class DrizzleGenerator {
 				lines.push(`    }),`);
 
 			} else if (rel.kind === 'hasMany') {
-				try { targetTable = rel.target().name; } catch (_e) {}
 				// Drizzle infers FK direction from the corresponding belongsTo on the target
 				lines.push(`    ${key}: r.many.${targetTable}(),`);
 
 			} else if (rel.kind === 'hasOne') {
-				try { targetTable = rel.target().name; } catch (_e) {}
 				// FK sits on the target table; convention: `${tableName}Id`
 				const fkOnTarget = rel.options?.via ?? `${tableName}Id`;
 				lines.push(`    ${key}: r.one.${targetTable}({`);
@@ -224,9 +263,7 @@ export class DrizzleGenerator {
 				lines.push(`    }),`);
 
 			} else if (rel.kind === 'manyToMany') {
-				let pivotTable = 'unknown';
-				try { targetTable = rel.target().name; } catch (_e) {}
-				try { pivotTable = rel.options?.through().name; } catch (_e) {}
+				const pivotTable = this.resolveTargetName(rel.options?.through);
 				lines.push(`    ${key}: r.many.${targetTable}({`);
 				lines.push(`      from: r.${tableName}.id.through(r.${pivotTable}.${tableName}Id),`);
 				lines.push(`      to: r.${targetTable}.id.through(r.${pivotTable}.${targetTable}Id),`);
@@ -266,6 +303,23 @@ export class DrizzleGenerator {
 			const allRelations: string[] = [];
 			let hasRelations = false;
 
+			// Prepare userSchemaByTable for PK and reference resolution
+			const userSchemaByTable = new Map<string, any>();
+			schemas.forEach((s) => {
+				const pkField = Object.entries(s.fields).find(([_, f]) => f.primary);
+				const pkType = pkField
+					? ((pkField[1] as any).type === 'uuid' ? 'uuid' : ((pkField[1] as any).type === 'serial' ? 'serial' : 'integer'))
+					: 'serial';
+				userSchemaByTable.set(s.name, {
+					tableName: s.name,
+					pk: {
+						column: pkField ? pkField[0] : 'id',
+						property: pkField ? pkField[0] : 'id',
+						type: pkType
+					}
+				});
+			});
+
 			// Collect all necessary pg-core imports and detect relations
 			schemas.forEach((schema) => {
 				const generator = new DrizzleGenerator(schema);
@@ -288,18 +342,62 @@ export class DrizzleGenerator {
 				if (rel) allRelations.push(`  ${schema.name}: {\n${rel}\n  }`);
 			});
 
+			// Check if any schema references auth tables (via fields or relations)
+			const referencedAuthTables = new Set<string>();
+			const registry = getAuthRegistry();
+			schemas.forEach((schema) => {
+				Object.entries(schema.fields).forEach(([fieldName, field]) => {
+					if (field.type === 'reference' && field.target) {
+						try {
+							const ref = resolveReference(field.target, {
+								registry,
+								userSchemaByTable,
+								where: `${schema.name}.${fieldName}`
+							});
+							if (ref.kind === 'system') {
+								referencedAuthTables.add(ref.exportName);
+							}
+						} catch {}
+					}
+				});
+				if (schema.relations) {
+					Object.values(schema.relations).forEach((rel: any) => {
+						try {
+							const t = typeof rel.target === 'function' ? rel.target() : null;
+							if (t && typeof t === 'object' && (t as any).__omniSystem && (t as any).key) {
+								referencedAuthTables.add(String((t as any).key));
+							}
+						} catch {}
+					});
+				}
+			});
+
 			const dbType = outputConfig.databaseType || 'pg';
 			const drizzleOrmImport = hasRelations
-				? `\nimport { defineRelations } from 'omni-svelte/drizzle/${dbType}';`
+				? `\nimport { defineRelations } from 'omni-svelte/drizzle/${this.databaseType}';`
 				: '';
 
+			const allRelationTables = [...schemas.map((s) => s.name), ...Array.from(referencedAuthTables)].join(', ');
 			const relationsBlock = hasRelations
-				? `\nexport const schemaRelations = defineRelations({ ${schemas.map((s) => s.name).join(', ')} }, (r) => ({\n${allRelations.join(',\n')}\n}));\n`
+				? `\nexport const schemaRelations = defineRelations({ ${allRelationTables} }, (r) => ({\n${allRelations.join(',\n')}\n}));\n`
 				: '';
+
+			let authReExport = '';
+			if (referencedAuthTables.size > 0 && outputConfig.path) {
+				// Relative path from output file directory to .omni/auth-schema
+				const outputPath = outputConfig.path;
+				const outputDir = dirname(resolve(process.cwd(), outputPath));
+				const authSchemaPath = resolve(process.cwd(), '.omni/auth-schema');
+				let relPath = relative(outputDir, authSchemaPath).replace(/\\/g, '/');
+				if (!relPath.startsWith('.')) relPath = `./${relPath}`;
+				const namedImports = Array.from(referencedAuthTables).sort().join(', ');
+
+				authReExport = `export * from '${relPath}';\nimport { ${namedImports} } from '${relPath}';\n\n`;
+			}
 
 			const content = `// Auto-generated by omni-svelte
 
-import { ${Array.from(allImports).join(', ')} } from 'omni-svelte/drizzle/${dbType}';${drizzleOrmImport}
+${authReExport}import { ${Array.from(allImports).join(', ')} } from 'omni-svelte/drizzle/${dbType}';${drizzleOrmImport}
 
 ${allSchemas.join('\n\n')}
 ${relationsBlock}
@@ -331,7 +429,7 @@ ${allTypes.join('\n\n')}`;
 	private generateImports(): string {
 		const types = new Set<string>();
 
-		Object.values(this.schema.fields).forEach((field) => {
+		Object.entries(this.schema.fields).forEach(([fieldName, field]) => {
 			switch (field.type) {
 				case 'string':
 				case 'email':
@@ -342,9 +440,6 @@ ${allTypes.join('\n\n')}`;
 					if (field.length) types.add('varchar');
 					break;
 				case 'integer':
-					types.add('integer');
-					break;
-				case 'reference':
 					types.add('integer');
 					break;
 				case 'serial':
@@ -365,6 +460,40 @@ ${allTypes.join('\n\n')}`;
 					break;
 				case 'money':
 					types.add('decimal');
+					break;
+				case 'reference':
+					if (field.target) {
+						try {
+							const registry = getAuthRegistry();
+							const ref = resolveReference(field.target, {
+								registry,
+								userSchemaByTable: new Map(),
+								where: `${this.schema.name}.${fieldName}`
+							});
+							const pkType = ref.pk.type;
+
+							if (pkType === 'text') {
+								if (this.databaseType === 'mysql') types.add('varchar');
+								else types.add('text');
+							} else if (pkType === 'uuid') {
+								if (this.databaseType === 'pg') types.add('uuid');
+								else if (this.databaseType === 'mysql') types.add('varchar');
+								else types.add('text');
+							} else if (pkType === 'integer' || pkType === 'serial') {
+								if (this.databaseType === 'mysql') types.add('int');
+								else types.add('integer');
+							} else if (pkType === 'bigint') {
+								if (this.databaseType === 'sqlite') types.add('integer');
+								else types.add('bigint');
+							} else {
+								types.add('text');
+							}
+						} catch {
+							types.add('integer');
+						}
+					} else {
+						types.add('integer');
+					}
 					break;
 				default:
 					if (field.type.startsWith('enum:')) {
@@ -472,15 +601,30 @@ ${allTypes.join('\n\n')}`;
 				columnDef = `decimal('${name}', { precision: 10, scale: 2 })`;
 				break;
 			case 'reference':
-				columnDef = `integer('${name}')`;
 				if (field.target) {
 					try {
-						const targetSchema = field.target();
-						columnDef += `.references(() => ${targetSchema.name}.id)`;
+						const registry = getAuthRegistry();
+						const ref = resolveReference(field.target, {
+							registry,
+							userSchemaByTable: new Map(),
+							where: `${this.schema.name}.${name}`
+						});
+
+						if (field.unsigned && ref.pk.type !== 'integer' && ref.pk.type !== 'serial') {
+							throw new AuthDiagnostic(
+								'AUTH007',
+								`Cannot apply .unsigned() to reference ${this.schema.name}.${name} with non-integer PK type ${ref.pk.type}.`
+							);
+						}
+
+						columnDef = this.generateRefColumnDef(ref.pk.type, name);
+						columnDef += `.references(() => ${ref.exportName}.${ref.pk.property})`;
 					} catch (e) {
-						// fallback if thunk cannot be evaluated statically
-						columnDef += `.references(() => /* targetSchema */ id)`;
+						if (e instanceof AuthDiagnostic) throw e;
+						columnDef = `integer('${name}').references(() => /* targetSchema */ id)`;
 					}
+				} else {
+					columnDef = `integer('${name}')`;
 				}
 				break;
 			default:
@@ -521,6 +665,48 @@ ${allTypes.join('\n\n')}`;
 		}
 
 		return `${name}: ${columnDef}`;
+	}
+ 
+	private generateRefColumnDef(type: string, name: string): string {
+		let columnDef = '';
+
+		switch (type)  {
+			case 'text':
+				columnDef = `text('${name}')`
+
+				if (this.databaseType === 'mysql') columnDef = `varchar('${name}', { length: 255 })`;  // handle mysql case
+
+				break;
+
+			case 'uuid':
+				if (this.databaseType === 'pg') columnDef = `uuid('${name}')`
+
+				else if (this.databaseType === 'mysql') columnDef = `varchar('${name}', { length: 36 })`;  
+				else if (this.databaseType === 'sqlite') columnDef = `text('${name}')`; 
+
+				break;
+
+			case 'integer':
+			case 'serial':
+				columnDef = `integer('${name}')`
+				if (this.databaseType === 'mysql') columnDef = `int('${name}')`;  
+
+				break;
+			
+			case 'bigint':
+				columnDef = `bigint('${name}', { mode: 'number' })`
+
+				if (this.databaseType === 'sqlite') columnDef = `integer('${name}')`; 
+
+				break;
+
+			default: 
+				columnDef = `text('${name}')`;
+				break;
+		}
+		
+		return columnDef;
+
 	}
 
 	private generateExports(): string {

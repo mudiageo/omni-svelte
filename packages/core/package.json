@@ -118,6 +118,11 @@
 		},
 		"./remote": {
 			"types": "./dist/remote/index.d.ts",
+			"browser": {
+				"types": "./dist/remote/index.d.ts",
+				"svelte": "./dist/remote/url-params.js",
+				"default": "./dist/remote/url-params.js"
+			},
 			"svelte": "./dist/remote/index.js",
 			"default": "./dist/remote/index.js"
 		},

@@ -10,6 +10,8 @@ export { ModelGenerator } from './generators/model.js';
 export { field } from './field.js';
 export { relation } from './relation.js';
 
+export { auth, type AuthTables, type SystemSchemaRef } from './auth-reference.js'
+
 export function defineSchema(
 	name: string,
 	definitions: Record<string, any>,

@@ -1,16 +1,17 @@
 import type { PageServerLoad } from './$types';
-import { User, Post } from '#lib/schema';
+import { Profile, Post } from '#lib/schema';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	try {
 		// Test direct model queries
-		const totalUsers = await User.query().count();
+		const totalProfiles = await Profile.query().count();
 		const totalPosts = await Post.query().count();
 
 		// Test using locals.query for registered models
-		const recentUsers = await locals.query
-			.model(User)
+		const recentProfiles = await locals.query
+			.model(Profile)
 			.where('active', true)
+      .with(['user'])
 			.orderBy('created_at', 'desc')
 			.limit(5)
 			.get();
@@ -18,7 +19,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		const publishedPosts = await locals.query
 			.model(Post)
 			.where('published', true)
-			.with(['author'])
+			.with(['author']) // author is now a belongsTo -> profileSchema
 			.latest()
 			.limit(3)
 			.get();
@@ -31,11 +32,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 		return {
 			stats: {
-				totalUsers,
+				totalProfiles,
+				totalUsers: totalProfiles,
 				totalPosts,
 				publishedPosts: stats.published
 			},
-			recentUsers: recentUsers.map((user) => user.toJSON()),
+			recentProfiles: recentProfiles.map((profile) => profile.toJSON()),
+			recentUsers: recentProfiles.map((profile) => profile.toJSON()),
 			publishedPosts: publishedPosts.map((post) => post.toJSON())
 		};
 	} catch (error) {
@@ -43,10 +46,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 		return {
 			stats: {
+				totalProfiles: 0,
 				totalUsers: 0,
 				totalPosts: 0,
 				publishedPosts: 0
 			},
+			recentProfiles: [],
 			recentUsers: [],
 			publishedPosts: [],
 			error: 'Failed to load data from database'

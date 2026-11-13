@@ -20,4 +20,3 @@ export const userSchema = defineSchema('users', {
 }, {
   timestamps: true,
   softDeletes: false,
-});

@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import type { Schema, FieldDefinition, GeneratedOutput } from '../types.js';
 import { PathResolver } from '../utils/path-resolver.js';
+import { resolveReference } from '../auth-reference.js';
+import { getAuthRegistry } from '../../runtime/auth/registry.js';
+import { AuthDiagnostic } from '../../runtime/auth/diagnostics.js';
 
 export function generateZodSchemas(schema: Schema) {
 	const createSchema = generateCreateSchema(schema);
@@ -86,6 +89,33 @@ function generateZodField(field: FieldDefinition): z.ZodTypeAny | null {
 			break;
 		case 'url':
 			zodField = z.string().url();
+			break;
+		case 'reference':
+			if (field.target) {
+				try {
+					const registry = getAuthRegistry();
+					const ref = resolveReference(field.target, {
+						registry,
+						userSchemaByTable: new Map(),
+						where: `field.reference`
+					});
+					if (ref.pk.type === 'text') {
+						zodField = z.string();
+					} else if (ref.pk.type === 'uuid') {
+						zodField = z.string().uuid();
+					} else {
+						zodField = z.number().int();
+						if (field.unsigned) zodField = (zodField as z.ZodNumber).min(0);
+					}
+				} catch (e) {
+					if (e instanceof AuthDiagnostic) throw e;
+					zodField = z.number().int();
+					if (field.unsigned) zodField = (zodField as z.ZodNumber).min(0);
+				}
+			} else {
+				zodField = z.number().int();
+				if (field.unsigned) zodField = (zodField as z.ZodNumber).min(0);
+			}
 			break;
 		case 'integer':
 		case 'serial':
@@ -322,6 +352,33 @@ export type ${this.capitalize(tableName)}Update = z.infer<typeof ${tableName}Upd
 				break;
 			case 'url':
 				validation = 'z.string().url()';
+				break;
+			case 'reference':
+				if (field.target) {
+					try {
+						const registry = getAuthRegistry();
+						const ref = resolveReference(field.target, {
+							registry,
+							userSchemaByTable: new Map(),
+							where: `${this.schema.name}.${name}`
+						});
+						if (ref.pk.type === 'text') {
+							validation = 'z.string()';
+						} else if (ref.pk.type === 'uuid') {
+							validation = 'z.string().uuid()';
+						} else {
+							validation = 'z.number().int()';
+							if (field.unsigned) validation += '.positive()';
+						}
+					} catch (e) {
+						if (e instanceof AuthDiagnostic) throw e;
+						validation = 'z.number().int()';
+						if (field.unsigned) validation += '.positive()';
+					}
+				} else {
+					validation = 'z.number().int()';
+					if (field.unsigned) validation += '.positive()';
+				}
 				break;
 			case 'integer':
 			case 'serial':

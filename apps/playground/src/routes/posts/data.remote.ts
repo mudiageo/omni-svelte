@@ -3,7 +3,7 @@ import { definePolicy, can } from 'omni-svelte/auth';
 import { Post } from '#lib/schema';
 
 // Define our authorization rules for posts
-export const postPolicy = definePolicy(Post, {
+const postPolicy = definePolicy(Post, {
 	create: (user) => !!user,
 	update: (user, post) => user?.id === post?.userId,
 	remove: (user, post) => user?.id === post?.userId

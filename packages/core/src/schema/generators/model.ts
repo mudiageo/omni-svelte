@@ -78,6 +78,7 @@ function generateRelationships(schema: Schema): Record<string, any> {
 		});
 	}
 
+	// TODO deprecate
 	// Legacy field-level relationships (kept for backward compatibility)
 	Object.entries(schema.fields).forEach(([fieldName, field]) => {
 		if (field.relationship) {
