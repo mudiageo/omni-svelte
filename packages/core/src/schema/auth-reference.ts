@@ -61,7 +61,22 @@ export function resolveReference(
   if (target && typeof target === 'object' && target.kind === 'system') {
     sys = target.key;
   } else if (typeof target === 'string') {
-    sys = target;
+    // String reference: user schema takes precedence over auth table if there is a match
+    if (ctx.userSchemaByTable?.has(target)) {
+      userTable = target;
+      if (ctx.registry?.schemas.has(target)) {
+        console.warn(
+          new AuthDiagnostic(
+            'AUTH006',
+            `Schema "${target}" has the same name as the auth table "${target}".`,
+            `Use auth.${target} to reference the auth table, or rename your schema.`,
+            'warning'
+          ).message
+        );
+      }
+    } else {
+      sys = target;
+    }
   } else {
     const fn = typeof target?.resolve === 'function' ? target.resolve : (typeof target === 'function' ? target : null);
     if (!fn) {
@@ -119,4 +134,65 @@ export function resolveReference(
     throw new AuthDiagnostic('AUTH003', `${ctx.where}: "${sys}" has a composite or missing primary key; cannot reference it.`);
   }
   return { kind: 'system', tableName: s.tableName, exportName: s.exportName, pk: s.primaryKey };
+}
+
+/**
+ * Validates user schemas against the AuthRegistry to detect naming collisions and shadows.
+ *
+ * - Warning: if user schema name or table name matches an auth table key (e.g. user schema named 'user' when Better Auth has table 'users').
+ * - Error: if user schema would generate the exact same Drizzle DB table name as an auth table.
+ */
+export function checkAuthShadowing(
+  userSchemas: ({ name: string; tableName?: string })[],
+  registry: AuthRegistry | null,
+  options?: {
+    warn?: (d: AuthDiagnostic) => void;
+    throwOnError?: boolean;
+  }
+): AuthDiagnostic[] {
+  if (!registry) return [];
+  const diagnostics: AuthDiagnostic[] = [];
+  const authTableNames = new Map<string, string>(); // tableName -> key
+  for (const [key, schema] of registry.schemas) {
+    authTableNames.set(schema.tableName, key);
+  }
+
+  const warnFn = options?.warn || ((d: AuthDiagnostic) => console.warn(d.message));
+  const throwOnError = options?.throwOnError !== false;
+
+  for (const s of userSchemas) {
+    const tableName = s.tableName ?? s.name;
+    const name = s.name;
+
+    // 1. Escalate to an error if both would generate a Drizzle table with the same name
+    if (authTableNames.has(tableName)) {
+      const authKey = authTableNames.get(tableName)!;
+      const diag = new AuthDiagnostic(
+        'AUTH006',
+        `Schema "${name}" generates the same Drizzle table name as auth table "${tableName}".`,
+        'Rename your schema to avoid database table collision.',
+        'error'
+      );
+      diagnostics.push(diag);
+      if (throwOnError) {
+        throw diag;
+      }
+      continue;
+    }
+
+    // 2. Warning if user schema has the same key as a registry entry
+    if (registry.schemas.has(name) || registry.schemas.has(tableName)) {
+      const matchedKey = registry.schemas.has(name) ? name : tableName;
+      const diag = new AuthDiagnostic(
+        'AUTH006',
+        `Schema "${name}" has the same name as the auth table "${matchedKey}".`,
+        `Use auth.${matchedKey} to reference the auth table, or rename your schema.`,
+        'warning'
+      );
+      diagnostics.push(diag);
+      warnFn(diag);
+    }
+  }
+
+  return diagnostics;
 }
