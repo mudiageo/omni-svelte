@@ -1,5 +1,21 @@
 # omni-svelte
 
+## 0.3.0-next.7
+
+### Minor Changes
+
+- feat(schema): add auth reference api supporting auth schema and string references ([#78](https://github.com/mudiageo/omni-svelte/pull/78))
+
+- feat(auth): add auth registry to introspect better-auth drizzle schema ([#76](https://github.com/mudiageo/omni-svelte/pull/76))
+
+- feat(schema): infer foreign key column types from target primary keys ([#78](https://github.com/mudiageo/omni-svelte/pull/78))
+
+### Patch Changes
+
+- fix: include .omni/auth-schema in drizzle config and per-schema imports ([#79](https://github.com/mudiageo/omni-svelte/pull/79))
+
+- fix(remote): add browser export condition to prevent importing server-only modules in client bundles ([#78](https://github.com/mudiageo/omni-svelte/pull/78))
+
 ## 0.3.0-next.6
 
 ### Patch Changes

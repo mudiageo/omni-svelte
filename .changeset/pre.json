@@ -3,6 +3,7 @@
   "tag": "next",
   "changesets": [
     "auth-policies",
+    "auth-reference-api",
     "cache",
     "default-ast-parser",
     "drizzle-1.0-connection-init",
@@ -14,8 +15,11 @@
     "feat-relations-api",
     "feat-resource-authorize-record",
     "fix-cli-pnpm-allow-builds",
+    "fix-drizzle-config-auth-schema",
     "fix-model-updated-at-timestamp",
+    "fix-remote-browser-export",
     "fix-resource-mutations",
+    "funky-taxes-double",
     "issue-60-fix",
     "missing-model-hooks",
     "model-relations-fix",
@@ -23,6 +27,7 @@
     "pr-1-fixes",
     "public-pots-send",
     "rate-limiting",
+    "reference-infers-pk-type",
     "relation-unknown-fix",
     "relations-parser-fix",
     "slick-dragons-hope"
