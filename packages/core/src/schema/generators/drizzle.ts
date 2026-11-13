@@ -188,7 +188,47 @@ export class DrizzleGenerator {
 		}
 	}
 
-	generate(): string {
+	generate(outputPath?: string): string {
+		const referencedAuthTables = new Set<string>();
+		const registry = getAuthRegistry();
+		Object.entries(this.schema.fields).forEach(([fieldName, field]) => {
+			if (field.type === 'reference' && field.target) {
+				try {
+					const ref = resolveReference(field.target, {
+						registry,
+						userSchemaByTable: new Map(),
+						where: `${this.schema.name}.${fieldName}`
+					});
+					if (ref.kind === 'system') {
+						referencedAuthTables.add(ref.exportName);
+					}
+				} catch {}
+			}
+		});
+		if (this.schema.relations) {
+			Object.values(this.schema.relations).forEach((rel: any) => {
+				try {
+					const t = typeof rel.target === 'function' ? rel.target() : null;
+					if (t && typeof t === 'object' && (t as any).__omniSystem && (t as any).key) {
+						referencedAuthTables.add(String((t as any).key));
+					}
+				} catch {}
+			});
+		}
+
+		let authImports = '';
+		if (referencedAuthTables.size > 0) {
+			let relPath = './.omni/auth-schema';
+			if (outputPath) {
+				const outputDir = dirname(resolve(process.cwd(), outputPath));
+				const authSchemaPath = resolve(process.cwd(), '.omni/auth-schema');
+				relPath = relative(outputDir, authSchemaPath).replace(/\\/g, '/');
+				if (!relPath.startsWith('.')) relPath = `./${relPath}`;
+			}
+			const namedImports = Array.from(referencedAuthTables).sort().join(', ');
+			authImports = `import { ${namedImports} } from '${relPath}';`;
+		}
+
 		const relationsBlock = this.generateRelations();
 		
 		let relativeImports = '';
@@ -196,7 +236,7 @@ export class DrizzleGenerator {
 			const targetTables = new Set<string>();
 			for (const rel of Object.values(this.schema.relations || {})) {
 				const t = this.resolveTargetName(rel.target);
-				if (t && t !== 'unknown') {
+				if (t && t !== 'unknown' && !referencedAuthTables.has(t)) {
 					targetTables.add(t);
 				}
 			}
@@ -210,6 +250,7 @@ export class DrizzleGenerator {
 		}
 
 		return [
+			authImports,
 			this.generateImports(),
 			relativeImports,
 			this.generateTableDefinition(),
@@ -412,8 +453,8 @@ ${allTypes.join('\n\n')}`;
 			// Generate per-schema files
 			for (const schema of schemas) {
 				const generator = new DrizzleGenerator(schema, outputConfig.databaseType);
-				const content = generator.generate();
 				const filePath = pathResolver.getOutputPath('drizzle', schema.name);
+				const content = generator.generate(filePath);
 
 				outputs.push({
 					type: 'drizzle',

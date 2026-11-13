@@ -135,6 +135,20 @@ describe('buildDrizzleConfigContent', () => {
 		const content = buildDrizzleConfigContent('./schema.ts', './drizzle', 'postgresql');
 		expect(content).toContain("from 'omni-svelte/drizzle/kit'");
 	});
+
+	it('includes authSchemaPath in schema array when provided', () => {
+		const content = buildDrizzleConfigContent(
+			'./src/lib/db/server/**/*.ts',
+			'./drizzle',
+			'postgresql',
+			true,
+			true,
+			'./.omni/auth-schema.ts'
+		);
+		expect(content).toContain(
+			"schema: ['./src/lib/db/server/**/*.ts', './.omni/auth-schema.ts'],"
+		);
+	});
 });
 
 describe('generateDrizzleConfig', () => {
@@ -212,5 +226,25 @@ describe('generateDrizzleConfig', () => {
 
 		const content = readFileSync(configPath, 'utf-8');
 		expect(content).toContain('**/*.ts');
+	});
+
+	it('includes .omni/auth-schema.ts when it exists', async () => {
+		const configPath = join(ROOT, 'drizzle.config.ts');
+		const omniDir = join(ROOT, '.omni');
+		mkdirSync(omniDir, { recursive: true });
+		writeFileSync(join(omniDir, 'auth-schema.ts'), '// dummy auth schema', 'utf-8');
+
+		const config = makeSchemaConfig({
+			output: {
+				drizzle: { path: './src/lib/db/server', format: 'per-schema' }
+			}
+		});
+
+		await generateDrizzleConfig(ROOT, config, makeOmniConfig());
+
+		const content = readFileSync(configPath, 'utf-8');
+		expect(content).toContain(
+			"schema: ['./src/lib/db/server/**/*.ts', './.omni/auth-schema.ts'],"
+		);
 	});
 });

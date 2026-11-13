@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { resolve, relative, dirname } from 'path';
+import { resolve, relative, join } from 'path';
 import type { SchemaConfig } from '../schema/types.js';
 import type { OmniConfig } from '../types.js';
 
@@ -46,14 +46,25 @@ function resolveDialect(schemaConfig: SchemaConfig): string {
 
 /**
  * Build the full content of the drizzle.config.ts file.
+ *
+ * When `authSchemaPath` is provided (e.g. `./.omni/auth-schema.ts`), the schema
+ * field is emitted as an array so Drizzle Kit discovers both user schemas and
+ * auth tables in a single run:
+ *
+ *   schema: ['./src/lib/db/server/**\/*.ts', './.omni/auth-schema.ts'],
  */
 function buildDrizzleConfigContent(
 	schemaGlob: string,
 	migrationsOut: string,
 	dialect: string,
 	verbose = true,
-	strict = true
+	strict = true,
+	authSchemaPath?: string
 ): string {
+	const schemaLine = authSchemaPath
+		? `\tschema: ['${schemaGlob}', '${authSchemaPath}'],`
+		: `\tschema: '${schemaGlob}',`;
+
 	return [
 		`${MARKER} Run \`pnpm dev\` to refresh.`,
 		`// Source: vite.config.ts → omniSvelte plugin option schema.output.drizzle`,
@@ -62,7 +73,7 @@ function buildDrizzleConfigContent(
 		`if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');`,
 		``,
 		`export default defineConfig({`,
-		`\tschema: '${schemaGlob}',`,
+		schemaLine,
 		`\tout: '${migrationsOut}',`,
 		`\tdialect: '${dialect}',`,
 		`\tdbCredentials: { url: process.env.DATABASE_URL },`,
@@ -112,7 +123,17 @@ export async function generateDrizzleConfig(
 	const verbose = (schemaConfig.output as any)?.drizzleConfig?.verbose ?? true;
 	const strict = (schemaConfig.output as any)?.drizzleConfig?.strict ?? true;
 
-	const newContent = buildDrizzleConfigContent(schemaGlob, migrationsOut, dialect, verbose, strict);
+	const authSchemaFile = resolve(root, '.omni/auth-schema.ts');
+	const authSchemaPath = existsSync(authSchemaFile) ? './.omni/auth-schema.ts' : undefined;
+
+	const newContent = buildDrizzleConfigContent(
+		schemaGlob,
+		migrationsOut,
+		dialect,
+		verbose,
+		strict,
+		authSchemaPath
+	);
 
 	// Idempotency check — skip write if content is unchanged
 	if (existsSync(configPath)) {
@@ -123,7 +144,8 @@ export async function generateDrizzleConfig(
 	writeFileSync(configPath, newContent, 'utf-8');
 
 	if (schemaConfig.dev?.logLevel !== 'silent') {
-		console.log(`⚙️  [omni-svelte] Generated drizzle.config.ts (schema: ${schemaGlob})`);
+		const schemaDesc = authSchemaPath ? `[${schemaGlob}, ${authSchemaPath}]` : schemaGlob;
+		console.log(`⚙️  [omni-svelte] Generated drizzle.config.ts (schema: ${schemaDesc})`);
 	}
 }
 

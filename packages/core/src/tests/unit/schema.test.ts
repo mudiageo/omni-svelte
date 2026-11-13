@@ -338,6 +338,34 @@ describe('Schema System', () => {
 			expect(outputs[0].content).toContain("import { user } from '");
 		});
 
+		it('should emit direct auth import in per-schema format without export *', async () => {
+			const authRegistry = {
+				dialect: 'pg' as const,
+				schemas: introspectAuthModule(pgFixture, { dialect: 'pg', usePlural: false }),
+				hash: 'test-hash'
+			};
+			setAuthRegistry(authRegistry);
+
+			const schema: Schema = {
+				name: 'profiles',
+				fields: {
+					id: { type: 'serial', primary: true },
+					userId: { type: 'reference', target: () => auth.user, required: true }
+				},
+				config: {}
+			};
+			const generator = new DrizzleGenerator(schema);
+			const outputs = await generator.generateFiles([schema], {
+				format: 'per-schema',
+				path: path.join(tempDir, 'schemas')
+			});
+
+			expect(outputs).toHaveLength(1);
+			expect(outputs[0].content).toContain("import { user } from '");
+			expect(outputs[0].content).toContain(".omni/auth-schema';");
+			expect(outputs[0].content).not.toContain("export * from '");
+		});
+
 		// ── relations ────────────────────────────────────────────────
 		it('should generate correct belongsTo syntax with r.one.target', () => {
 			const schema: Schema = {
