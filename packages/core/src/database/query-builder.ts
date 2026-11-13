@@ -26,10 +26,10 @@ import {
 } from 'drizzle-orm';
 import { getDatabase } from './database.js';
 import { RelationshipLoader } from './relationships.js';
-import type { Model } from './model.js';
+import type { Model, ReadonlyModel } from './model.js';
 import type { PgTable, PgColumn } from 'drizzle-orm/pg-core';
 
-export class QueryBuilder<T extends typeof Model> {
+export class QueryBuilder<T extends typeof ReadonlyModel = typeof Model> {
 	private modelClass: T;
 	private queryBuilder: any;
 	private relations: string[] = [];
