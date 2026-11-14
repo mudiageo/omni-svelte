@@ -686,7 +686,7 @@ export class ${className} extends ReadonlyModel {
   }
 }
 
-${className}.register('${key}');
+${className}.register('auth.${key}');
 
 export default ${className};
 `;

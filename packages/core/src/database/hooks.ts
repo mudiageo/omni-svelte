@@ -27,7 +27,7 @@ export const registerModel = (name: string, modelClass: typeof Model) => {
 };
 
 export const getModel = (name: string): typeof Model | undefined => {
-	return modelRegistry.get(name);
+	return modelRegistry.get(name) || modelRegistry.get(`auth.${name}`);
 };
 export const initDb = (config: DatabaseConfig) => {
 	// Initialize database connection

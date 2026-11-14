@@ -35,6 +35,34 @@ export interface ResolvedReference {
   schema?: ReturnType<typeof defineSchema>;
 }
 
+export function buildUserSchemaMap(
+  schemas: ({ name: string; fields?: Record<string, any> })[]
+): Map<string, { tableName: string; pk: ResolvedReference['pk'] }> {
+  const map = new Map<string, { tableName: string; pk: ResolvedReference['pk'] }>();
+  for (const s of schemas) {
+    const pkCol = Object.entries(s.fields ?? {}).find(([_, f]: any) => f?.primary);
+    const fieldType = (pkCol?.[1] as any)?.type;
+    const pkType: PkType = !pkCol
+      ? 'serial'
+      : fieldType === 'uuid'
+        ? 'uuid'
+        : fieldType === 'bigint'
+          ? 'bigint'
+          : ['string', 'text', 'email', 'password', 'url', 'slug'].includes(fieldType)
+            ? 'text'
+            : 'integer';
+    map.set(s.name, {
+      tableName: s.name,
+      pk: {
+        column: pkCol ? pkCol[0] : 'id',
+        property: pkCol ? pkCol[0] : 'id',
+        type: pkType
+      }
+    });
+  }
+  return map;
+}
+
 /**
  * Resolves a reference target (either a user schema thunk or a system auth reference)
  * into a normalized reference definition containing target table name, export identifier,

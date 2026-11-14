@@ -2,7 +2,7 @@ import * as pg from 'drizzle-orm/pg-core';
 import { relative, resolve, dirname } from 'node:path';
 import type { Schema, FieldDefinition, GeneratedOutput } from '../types.js';
 import { PathResolver } from '../utils/path-resolver.js';
-import { resolveReference } from '../auth-reference.js';
+import { resolveReference, buildUserSchemaMap, type ResolvedReference } from '../auth-reference.js';
 import { getAuthRegistry } from '../../runtime/auth/registry.js';
 import { AuthDiagnostic } from '../../runtime/auth/diagnostics.js';
 
@@ -21,9 +21,13 @@ const {
 	uniqueIndex
 } = pg
 
-export function generateDrizzleSchema(schema: Schema) {
+export function generateDrizzleSchema(
+	schema: Schema,
+	userSchemaByTable?: Map<string, { tableName: string; pk: ResolvedReference['pk'] }>
+) {
 	const columns: Record<string, any> = {};
 	const enums: Record<string, any> = {};
+	const schemaMap = userSchemaByTable || buildUserSchemaMap([schema]);
 
 	// Generate enums first
 	Object.entries(schema.fields).forEach(([fieldName, field]) => {
@@ -39,7 +43,7 @@ export function generateDrizzleSchema(schema: Schema) {
 	Object.entries(schema.fields).forEach(([fieldName, field]) => {
 		if (field.computed) return; // Skip computed fields
 
-		columns[fieldName] = generateColumn(fieldName, field, enums, schema.name);
+		columns[fieldName] = generateColumn(fieldName, field, enums, schema.name, schemaMap);
 	});
 
 	const table = pgTable(schema.name, columns);
@@ -59,7 +63,8 @@ function generateColumn(
 	fieldName: string,
 	field: FieldDefinition,
 	enums: Record<string, any>,
-	tableName: string
+	tableName: string,
+	userSchemaByTable?: Map<string, { tableName: string; pk: ResolvedReference['pk'] }>
 ) {
 	let column: any;
 
@@ -107,7 +112,7 @@ function generateColumn(
 					const registry = getAuthRegistry();
 					const reference = resolveReference(field.target, {
 						registry,
-						userSchemaByTable: new Map(),
+						userSchemaByTable: userSchemaByTable || new Map(),
 						where: `${tableName}.${fieldName}`
 					});
 
@@ -171,7 +176,11 @@ function generateIndexes(schema: Schema, table: any) {
 
 //We could potentially generate the file
 export class DrizzleGenerator {
-	constructor(private schema: Schema, private databaseType: string = 'pg') {}
+	constructor(
+		private schema: Schema,
+		private databaseType: string = 'pg',
+		private userSchemaByTable: Map<string, { tableName: string; pk: ResolvedReference['pk'] }> = new Map()
+	) {}
 
 	private resolveTargetName(targetFn?: () => any): string {
 		if (!targetFn) return 'unknown';
@@ -200,7 +209,7 @@ export class DrizzleGenerator {
 				try {
 					const ref = resolveReference(field.target, {
 						registry,
-						userSchemaByTable: new Map(),
+						userSchemaByTable: this.userSchemaByTable,
 						where: `${this.schema.name}.${fieldName}`
 					});
 					if (ref.kind === 'system') {
@@ -350,25 +359,11 @@ export class DrizzleGenerator {
 			let hasRelations = false;
 
 			// Prepare userSchemaByTable for PK and reference resolution
-			const userSchemaByTable = new Map<string, any>();
-			schemas.forEach((s) => {
-				const pkField = Object.entries(s.fields).find(([_, f]) => f.primary);
-				const pkType = pkField
-					? ((pkField[1] as any).type === 'uuid' ? 'uuid' : ((pkField[1] as any).type === 'serial' ? 'serial' : 'integer'))
-					: 'serial';
-				userSchemaByTable.set(s.name, {
-					tableName: s.name,
-					pk: {
-						column: pkField ? pkField[0] : 'id',
-						property: pkField ? pkField[0] : 'id',
-						type: pkType
-					}
-				});
-			});
+			const userSchemaByTable = buildUserSchemaMap(schemas);
 
 			// Collect all necessary pg-core imports and detect relations
 			schemas.forEach((schema) => {
-				const generator = new DrizzleGenerator(schema);
+				const generator = new DrizzleGenerator(schema, outputConfig.databaseType, userSchemaByTable);
 				const imports = generator.generateImports();
 				const importMatch = imports.match(/import\s*\{\s*([^}]+)\s*\}/);
 				if (importMatch) {
@@ -381,7 +376,7 @@ export class DrizzleGenerator {
 
 			// Generate content for each schema
 			schemas.forEach((schema) => {
-				const generator = new DrizzleGenerator(schema, outputConfig.databaseType);
+				const generator = new DrizzleGenerator(schema, outputConfig.databaseType, userSchemaByTable);
 				allSchemas.push(generator.generateTableDefinition());
 				allTypes.push(generator.generateExports());
 				const rel = generator.generateRelationsInternal();
@@ -456,9 +451,10 @@ ${allTypes.join('\n\n')}`;
 				content
 			});
 		} else {
+			const userSchemaByTable = buildUserSchemaMap(schemas);
 			// Generate per-schema files
 			for (const schema of schemas) {
-				const generator = new DrizzleGenerator(schema, outputConfig.databaseType);
+				const generator = new DrizzleGenerator(schema, outputConfig.databaseType, userSchemaByTable);
 				const filePath = pathResolver.getOutputPath('drizzle', schema.name);
 				const content = generator.generate(filePath);
 
@@ -514,7 +510,7 @@ ${allTypes.join('\n\n')}`;
 							const registry = getAuthRegistry();
 							const ref = resolveReference(field.target, {
 								registry,
-								userSchemaByTable: new Map(),
+								userSchemaByTable: this.userSchemaByTable,
 								where: `${this.schema.name}.${fieldName}`
 							});
 							const pkType = ref.pk.type;
@@ -653,7 +649,7 @@ ${allTypes.join('\n\n')}`;
 						const registry = getAuthRegistry();
 						const ref = resolveReference(field.target, {
 							registry,
-							userSchemaByTable: new Map(),
+							userSchemaByTable: this.userSchemaByTable,
 							where: `${this.schema.name}.${name}`
 						});
 

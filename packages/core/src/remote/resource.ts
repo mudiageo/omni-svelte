@@ -305,23 +305,34 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 			? UpdateCommand
 			: UpdateForm;
 
-	type StandardReturn = Omit<ResourceExports<M>, 'create' | 'update'> & {
-		create: typeof createFn extends undefined ? undefined : NarrowedCreate;
-		update: typeof updateFn extends undefined ? undefined : NarrowedUpdate;
+	type StandardReturn = {
+		list?: typeof listFn;
+		get?: typeof getFn;
+		create?: NarrowedCreate;
+		update?: NarrowedUpdate;
+		remove?: typeof removeFn;
 	};
 
 	type ReadonlyReturn = {
-		list?: ReturnType<typeof query>;
-		get?: ReturnType<typeof query>;
+		list?: typeof listFn;
+		get?: typeof getFn;
+	};
+
+	type ResolveOpName<Op extends string> = O extends { names: infer N }
+		? N extends Record<string, any>
+			? N[Op] extends string
+				? N[Op]
+				: Op
+			: Op
+		: Op;
+
+	type RemapOperations<Ops extends Record<string, any>> = {
+		[K in keyof Ops as ResolveOpName<K & string>]?: Ops[K];
 	};
 
 	type Result = M extends { readonly: true }
-		? O extends { names: Record<string, any> }
-			? ReadonlyReturn & Record<string, any>
-			: ReadonlyReturn
-		: O extends { names: Record<string, any> }
-			? StandardReturn & Record<string, any>
-			: StandardReturn;
+		? RemapOperations<ReadonlyReturn>
+		: RemapOperations<StandardReturn>;
 
 	return defaultExports as Result;
 }

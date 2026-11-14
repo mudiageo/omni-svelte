@@ -84,7 +84,7 @@ describe('PR 3: Read-only model generation and diagnostics', () => {
       expect(content).toContain('static override findMany(ids?: any[]) {');
 
       // Registration & default export
-      expect(content).toContain("User.register('user');");
+      expect(content).toContain("User.register('auth.user');");
       expect(content).toContain('export default User;');
 
       // Must NOT contain mutators or write-related properties

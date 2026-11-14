@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { deepEqual } from '../utils/index.js';
 
 export abstract class ReadonlyModel {
-	static readonly = true as const;
+	static readonly: boolean = true;
 	static table: any;
 	static tableName: string;
 	static primaryKey = 'id';
@@ -28,11 +28,11 @@ export abstract class ReadonlyModel {
 		this.setupAttributeAccessors();
 	}
 
-	static query() {
-		return new QueryBuilder(this as any);
+	static query<T extends typeof ReadonlyModel>(this: T): QueryBuilder<T> {
+		return new QueryBuilder(this);
 	}
 
-	static with(relations: string[]) {
+	static with<T extends typeof ReadonlyModel>(this: T, relations: string[]) {
 		return this.query().with(relations);
 	}
 
@@ -41,26 +41,26 @@ export abstract class ReadonlyModel {
 		return getDatabase();
 	}
 
-	static all() {
+	static all<T extends typeof ReadonlyModel>(this: T) {
 		return this.query().get();
 	}
 
-	static find(id: any) {
+	static find<T extends typeof ReadonlyModel>(this: T, id: any) {
 		return this.query().where(this.primaryKey, id).first();
 	}
 
-	static findOrFail(id: any) {
+	static findOrFail<T extends typeof ReadonlyModel>(this: T, id: any) {
 		return this.query().where(this.primaryKey, id).firstOrFail();
 	}
 
-	static findMany(ids?: any[]) {
+	static findMany<T extends typeof ReadonlyModel>(this: T, ids?: any[]) {
 		if (Array.isArray(ids)) {
 			return this.query().whereIn(this.primaryKey, ids).get();
 		}
 		return this.query().get();
 	}
 
-	static where(column: string, operator?: any, value?: any) {
+	static where<T extends typeof ReadonlyModel>(this: T, column: string, operator?: any, value?: any) {
 		return this.query().where(column, operator, value);
 	}
 
@@ -166,7 +166,7 @@ export abstract class ReadonlyModel {
 }
 
 export abstract class Model extends ReadonlyModel {
-	static override readonly = false;
+	static override readonly: boolean = false;
 	static override table: PgTable;
 	static override primaryKey = 'id';
 	static override timestamps = true;
@@ -184,7 +184,7 @@ export abstract class Model extends ReadonlyModel {
 	public original: Record<string, any> = {};
 
 	constructor(attributes: Record<string, any> = {}) {
-		super(attributes);
+		super();
 		this.fill(attributes);
 		this.syncOriginal();
 		this.setupAttributeAccessors();
@@ -330,31 +330,6 @@ export abstract class Model extends ReadonlyModel {
 			this.setAttribute('created_at', now);
 		}
 		this.setAttribute('updated_at', now);
-	}
-
-	// Enhanced attribute casting
-	private castAttribute(key: string, value: any) {
-		if (value === null || value === undefined) return value;
-
-		const cast = (this.constructor as typeof Model).casts[key];
-		if (!cast) return value;
-
-		switch (cast) {
-			case 'string':
-				return String(value);
-			case 'number':
-				return Number(value);
-			case 'boolean':
-				return typeof value === 'string'
-					? ['true', '1', 'yes', 'on'].includes(value.toLowerCase())
-					: Boolean(value);
-			case 'date':
-				return value instanceof Date ? value : new Date(value);
-			case 'json':
-				return typeof value === 'string' ? JSON.parse(value) : value;
-			default:
-				return value;
-		}
 	}
 
 	static fromAttributes<T extends typeof Model>(
@@ -566,10 +541,6 @@ export abstract class Model extends ReadonlyModel {
 		// return this.dirtyFields.includes(fieldName)
 
 		return !deepEqual(this.original[fieldName], this.attributes[fieldName]);
-	}
-
-	private getKey() {
-		return this.getAttribute((this.constructor as typeof Model).primaryKey);
 	}
 
 	private syncOriginal() {
