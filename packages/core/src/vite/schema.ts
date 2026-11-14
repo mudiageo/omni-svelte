@@ -15,6 +15,7 @@ import { dirname } from 'path';
 import { syncAuthSchemas } from '../runtime/auth/auth-sync.js';
 import { getAuthRegistry } from '../runtime/auth/registry.js';
 import { checkAuthShadowing } from '../schema/auth-reference.js';
+import { collectVirtualRelations } from '../schema/virtual-relations.js';
 
 let schemaConfig: SchemaConfig;
 let schemas: Schema[] = [];
@@ -338,6 +339,7 @@ export async function generateAllSchemas(
 				}
 			}
 		});
+		collectVirtualRelations(schemas, { authRegistry: registry });
 	}
 
 	// Filter schemas if only specific files changed
@@ -402,7 +404,8 @@ export async function generateAllSchemas(
 					zod: config.output.zod,
 					model: config.output.model
 				},
-				authGenerateConfig
+				authGenerateConfig,
+				schemasToProcess
 			);
 			outputs.push(...authModelOutputs);
 		}

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { formSchema } from './form-schema.js';
 import { ForbiddenError } from '../errors.js';
 import { AuthDiagnostic } from '../runtime/auth/diagnostics.js';
+import type { AuthRelations } from '../schema/auth-reference.js';
 
 export type OperationName = 'list' | 'get' | 'create' | 'update' | 'remove';
 
@@ -21,7 +22,11 @@ export interface ResourceOptions<M> {
 	only?: OperationName[];
 	exclude?: OperationName[];
 	fillable?: { create?: string[]; update?: string[] };
-	with?: string[];
+	with?: (M extends { systemKey: infer K }
+		? K extends keyof AuthRelations
+			? keyof AuthRelations[K] | `${keyof AuthRelations[K] & string}.${string}`
+			: string
+		: string)[];
 	pagination?: { perPage?: number; strategy?: 'offset' | 'cursor' };
 	authorize?: (ctx: AuthorizeContext<M>) => boolean | Promise<boolean>;
 	names?: Partial<Record<OperationName, string>>;

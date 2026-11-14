@@ -158,6 +158,16 @@ export abstract class ReadonlyModel {
 
 	setRelation(name: string, value: any) {
 		this.relations[name] = value;
+		if (!(name in this) || !this.hasOwnProperty(name)) {
+			Object.defineProperty(this, name, {
+				get: () => this.relations[name],
+				set: (val: any) => {
+					this.relations[name] = val;
+				},
+				enumerable: true,
+				configurable: true
+			});
+		}
 	}
 
 	getRelation(name: string) {
@@ -379,6 +389,16 @@ export abstract class Model extends ReadonlyModel {
 	// Relationship methods
 	setRelation(name: string, value: any) {
 		this.relations[name] = value;
+		if (!(name in this) || !this.hasOwnProperty(name)) {
+			Object.defineProperty(this, name, {
+				get: () => this.relations[name],
+				set: (val: any) => {
+					this.relations[name] = val;
+				},
+				enumerable: true,
+				configurable: true
+			});
+		}
 	}
 
 	getRelation(name: string) {

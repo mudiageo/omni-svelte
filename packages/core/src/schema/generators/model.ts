@@ -6,6 +6,8 @@ import type { SystemSchema } from '../../runtime/auth/registry.js';
 import type { generateDrizzleSchema } from './drizzle.js';
 import type { generateZodSchemas } from './zod.js';
 import { PathResolver } from '../utils/path-resolver.js';
+import { isSystemRef } from '../auth-reference.js';
+import { getVirtualRelationRegistry, collectVirtualRelations } from '../virtual-relations.js';
 
 export function generateModel(
 	schema: Schema,
@@ -63,8 +65,12 @@ function generateRelationships(schema: Schema): Record<string, any> {
 			let targetModel = 'unknown';
 			try {
 				if (relation.target) {
-					targetModel =
-						typeof relation.target === 'string' ? relation.target : relation.target().name;
+					const tgt = typeof relation.target === 'function' ? relation.target() : relation.target;
+					if (isSystemRef(tgt)) {
+						targetModel = `auth.${tgt.key}`;
+					} else {
+						targetModel = typeof tgt === 'string' ? tgt : tgt.name;
+					}
 				}
 			} catch (e) {
 				// Target might not be defined if using strings or unresolved references
@@ -666,6 +672,19 @@ ${className}.register('${this.schema.name}');`;
 			drizzleImport = normalized;
 		}
 
+		const vRels = getVirtualRelationRegistry().for(key);
+		const relationshipsMap: Record<string, any> = {};
+		for (const vr of vRels) {
+			relationshipsMap[vr.name] = {
+				type: vr.kind,
+				model: vr.targetModel || vr.targetTable,
+				foreignKey: vr.foreignKey.property || vr.foreignKey.column,
+				localKey: primaryKey,
+				...(vr.through ? { through: vr.through } : {})
+			};
+		}
+		const relationshipsStr = JSON.stringify(relationshipsMap, null, 2).replace(/\n/g, '\n  ');
+
 		return `// ${filePath}, DO NOT EDIT (read-only, derived from Better Auth)
 
 import { ReadonlyModel } from '${modelBaseImport}';
@@ -678,9 +697,15 @@ export class ${className} extends ReadonlyModel {
   static override tableName = '${tableName}';
   static override table = ${exportName};
   static override primaryKey = '${primaryKey}';
+  static override systemKey = '${key}' as const;
+  static override relationships: Record<string, any> = ${relationshipsStr};
 
   static override query() {
     return super.query();
+  }
+
+  static override with(relations: (keyof import('omni-svelte/schema').AuthRelations['${key}'] | (string & {}))[]) {
+    return super.with(relations as string[]);
   }
 
   static override find(id: any) {
@@ -701,8 +726,12 @@ export default ${className};
 	static generateAuthModels(
 		authSchemas: (SystemSchema | Schema)[],
 		outputConfig: any,
-		authGenerateConfig?: Record<string, { model?: 'readonly' | false; factory?: boolean }>
+		authGenerateConfig?: Record<string, { model?: 'readonly' | false; factory?: boolean }>,
+		userSchemas?: (Schema | any)[]
 	): GeneratedOutput[] {
+		if (userSchemas && userSchemas.length > 0) {
+			collectVirtualRelations(userSchemas);
+		}
 		const outputs: GeneratedOutput[] = [];
 		const baseModelPath = outputConfig?.model?.path || outputConfig?.path || './src/lib/models';
 

@@ -2,6 +2,7 @@ import { eq, inArray } from 'drizzle-orm';
 import { getDatabase } from './database.js';
 import type { Model, ReadonlyModel } from './model.js';
 import { getModel } from './hooks.js';
+import { getVirtualRelationRegistry } from '../schema/virtual-relations.js';
 
 export interface Relationship {
 	type: 'belongsTo' | 'hasMany' | 'hasOne' | 'manyToMany' | 'morphTo' | 'morphMany';
@@ -16,16 +17,62 @@ export class RelationshipLoader {
 		relations: string[]
 	): Promise<T[]> {
 		for (const relation of relations) {
-			await this.loadRelation(models, relation);
+			await this.loadRelationPath(models, relation);
 		}
 		return models;
+	}
+
+	private static async loadRelationPath<T extends ReadonlyModel>(
+		models: T[],
+		relationPath: string
+	) {
+		if (models.length === 0) return;
+		const parts = relationPath.split('.');
+		const currentRel = parts[0];
+		await this.loadRelation(models, currentRel);
+
+		if (parts.length > 1) {
+			const rest = parts.slice(1).join('.');
+			const nextModels: any[] = [];
+			for (const model of models) {
+				const val = model.getRelation(currentRel);
+				if (Array.isArray(val)) {
+					nextModels.push(...val);
+				} else if (val) {
+					nextModels.push(val);
+				}
+			}
+			if (nextModels.length > 0) {
+				await this.loadRelations(nextModels, [rest]);
+			}
+		}
 	}
 
 	private static async loadRelation<T extends ReadonlyModel>(models: T[], relationName: string) {
 		if (models.length === 0) return;
 
 		const modelClass = models[0].constructor as typeof ReadonlyModel;
-		const relationship: Relationship = modelClass.relationships[relationName];
+		let relationship: Relationship = modelClass.relationships?.[relationName];
+
+		if (!relationship) {
+			const systemKey = (modelClass as any).systemKey || (modelClass as any).tableName;
+			if (systemKey) {
+				const vRels = getVirtualRelationRegistry().for(systemKey);
+				const vr = vRels.find((r) => r.name === relationName);
+				if (vr) {
+					relationship = {
+						type: vr.kind,
+						model: vr.targetModel || vr.targetTable,
+						foreignKey: vr.foreignKey.property || vr.foreignKey.column,
+						localKey: (modelClass as any).primaryKey || 'id'
+					};
+					if (!modelClass.relationships) {
+						modelClass.relationships = {};
+					}
+					modelClass.relationships[relationName] = relationship;
+				}
+			}
+		}
 
 		if (!relationship) {
 			throw new Error(`Relationship ${relationName} not found on ${modelClass.name}`);
