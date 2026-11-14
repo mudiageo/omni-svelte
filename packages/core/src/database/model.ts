@@ -60,7 +60,12 @@ export abstract class ReadonlyModel {
 		return this.query().get();
 	}
 
-	static where<T extends typeof ReadonlyModel>(this: T, column: string, operator?: any, value?: any) {
+	static where<T extends typeof ReadonlyModel>(
+		this: T,
+		column: string,
+		operator?: any,
+		value?: any
+	) {
 		return this.query().where(column, operator, value);
 	}
 

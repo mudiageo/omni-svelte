@@ -238,7 +238,10 @@ function getZodTypeFromString(type: string): z.ZodTypeAny {
 export class ZodGenerator {
 	constructor(
 		private schema: Schema,
-		private userSchemaByTable: Map<string, { tableName: string; pk: ResolvedReference['pk'] }> = new Map()
+		private userSchemaByTable: Map<
+			string,
+			{ tableName: string; pk: ResolvedReference['pk'] }
+		> = new Map()
 	) {}
 
 	generate(): string {

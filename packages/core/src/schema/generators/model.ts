@@ -41,7 +41,7 @@ export function generateModel(
 		}
 
 		static _relationships: Record<string, any> | null = null;
-		
+
 		static get relationships() {
 			if (!this._relationships) {
 				this._relationships = generateRelationships(schema);
@@ -63,7 +63,8 @@ function generateRelationships(schema: Schema): Record<string, any> {
 			let targetModel = 'unknown';
 			try {
 				if (relation.target) {
-					targetModel = typeof relation.target === 'string' ? relation.target : relation.target().name;
+					targetModel =
+						typeof relation.target === 'string' ? relation.target : relation.target().name;
 				}
 			} catch (e) {
 				// Target might not be defined if using strings or unresolved references
@@ -73,7 +74,9 @@ function generateRelationships(schema: Schema): Record<string, any> {
 			relationships[relationName] = {
 				type: relation.kind,
 				model: targetModel,
-				foreignKey: relation.options?.via || (relation.kind === 'belongsTo' ? `${relationName}Id` : `${schema.name}Id`),
+				foreignKey:
+					relation.options?.via ||
+					(relation.kind === 'belongsTo' ? `${relationName}Id` : `${schema.name}Id`),
 				localKey: relation.options?.localKey || 'id',
 				...relation.options
 			};
@@ -410,7 +413,10 @@ ${typeImport}`;
 		const hidden = this.generateHiddenArray();
 		const casts = this.generateCastsObject();
 		const hooks = this.generateHooks();
-		const relationships = JSON.stringify(generateRelationships(this.schema), null, 2).replace(/\n/g, '\n  ');
+		const relationships = JSON.stringify(generateRelationships(this.schema), null, 2).replace(
+			/\n/g,
+			'\n  '
+		);
 
 		return `
 export interface ${className}Model extends ${className}Type {}
@@ -698,8 +704,7 @@ export default ${className};
 		authGenerateConfig?: Record<string, { model?: 'readonly' | false; factory?: boolean }>
 	): GeneratedOutput[] {
 		const outputs: GeneratedOutput[] = [];
-		const baseModelPath =
-			outputConfig?.model?.path || outputConfig?.path || './src/lib/models';
+		const baseModelPath = outputConfig?.model?.path || outputConfig?.path || './src/lib/models';
 
 		// Create path resolver
 		const pathResolver = new PathResolver({

@@ -86,7 +86,8 @@ function getMutationMode(op: 'create' | 'update', options?: ResourceOptions<any>
  */
 export function resource<M extends any, O extends ResourceOptions<M> = {}>(model: M, options?: O) {
 	const isReadonly = Boolean((model as any)?.readonly);
-	const key = (model as any)?.tableName || (model as any)?.table?.name || (model as any)?.name || 'auth';
+	const key =
+		(model as any)?.tableName || (model as any)?.table?.name || (model as any)?.name || 'auth';
 
 	if (isReadonly && options?.only) {
 		const writeOps: OperationName[] = ['create', 'update', 'remove'];
@@ -187,87 +188,90 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 					}
 					const record = await q.first();
 					if (!record) error(404, 'Not found');
-					
+
 					await checkAuth('get', id, record);
 					return record;
 				});
 			})()
 		: undefined;
 
-	const createFn = (!isReadonly && shouldInclude('create', options))
-		? (() => {
-				const fillable = options?.fillable?.create || (model as any).fillable;
-				const fSchema = formSchema(
-					(model as any).validation.create,
-					fillable === 'auto' ? undefined : { pick: fillable }
-				);
-				const createHandler = async (data: any) => {
-					await checkAuth('create', data);
-					const record = await model.create(data);
+	const createFn =
+		!isReadonly && shouldInclude('create', options)
+			? (() => {
+					const fillable = options?.fillable?.create || (model as any).fillable;
+					const fSchema = formSchema(
+						(model as any).validation.create,
+						fillable === 'auto' ? undefined : { pick: fillable }
+					);
+					const createHandler = async (data: any) => {
+						await checkAuth('create', data);
+						const record = await model.create(data);
 
-					if (listFn && typeof (listFn as any).refresh === 'function') {
-						(listFn as any).refresh();
-					}
+						if (listFn && typeof (listFn as any).refresh === 'function') {
+							(listFn as any).refresh();
+						}
 
-					return { success: true, record };
-				};
-				return createMode === 'command'
-					? command(fSchema, createHandler)
-					: form(fSchema, createHandler);
-			})()
-		: undefined;
+						return { success: true, record };
+					};
+					return createMode === 'command'
+						? command(fSchema, createHandler)
+						: form(fSchema, createHandler);
+				})()
+			: undefined;
 
-	const updateFn = (!isReadonly && shouldInclude('update', options))
-		? (() => {
-				const fillable = options?.fillable?.update || (model as any).fillable;
-				const baseFSchema = formSchema(
-					(model as any).validation.update || (model as any).validation.create,
-					fillable === 'auto' ? { partial: true } : { pick: fillable, partial: true }
-				);
+	const updateFn =
+		!isReadonly && shouldInclude('update', options)
+			? (() => {
+					const fillable = options?.fillable?.update || (model as any).fillable;
+					const baseFSchema = formSchema(
+						(model as any).validation.update || (model as any).validation.create,
+						fillable === 'auto' ? { partial: true } : { pick: fillable, partial: true }
+					);
 
-				const updateSchema = z.object({
-					...baseFSchema.shape,
-					id: z.union([z.string(), z.number()])
-				});
-				const updateHandler = async (data: any) => {
-					const { id, ...updateData } = data;
-					const record = await model.find(id);
-					if (!record) error(404, 'Not found');
+					const updateSchema = z.object({
+						...baseFSchema.shape,
+						id: z.union([z.string(), z.number()])
+					});
+					const updateHandler = async (data: any) => {
+						const { id, ...updateData } = data;
+						const record = await model.find(id);
+						if (!record) error(404, 'Not found');
 
-					await checkAuth('update', data, record);
-					await record.update(updateData);
+						await checkAuth('update', data, record);
+						await record.update(updateData);
 
-					if (listFn && typeof (listFn as any).refresh === 'function') {
-						(listFn as any).refresh();
-					}
-					if (getFn && typeof (getFn as any).refresh === 'function') {
-						(getFn as any).refresh(id);
-					}
+						if (listFn && typeof (listFn as any).refresh === 'function') {
+							(listFn as any).refresh();
+						}
+						if (getFn && typeof (getFn as any).refresh === 'function') {
+							(getFn as any).refresh(id);
+						}
 
-					return { success: true, record };
-				};
-				return updateMode === 'command'
-					? command(updateSchema, updateHandler)
-					: form(updateSchema, updateHandler);
-			})()
-		: undefined;
+						return { success: true, record };
+					};
+					return updateMode === 'command'
+						? command(updateSchema, updateHandler)
+						: form(updateSchema, updateHandler);
+				})()
+			: undefined;
 
-	const removeFn = (!isReadonly && shouldInclude('remove', options))
-		? (() => {
-				return command(z.union([z.string(), z.number()]), async (id: string | number) => {
-					const record = await model.find(id);
-					if (!record) error(404, 'Not found');
-					await checkAuth('remove', id, record);
-					await record.delete();
+	const removeFn =
+		!isReadonly && shouldInclude('remove', options)
+			? (() => {
+					return command(z.union([z.string(), z.number()]), async (id: string | number) => {
+						const record = await model.find(id);
+						if (!record) error(404, 'Not found');
+						await checkAuth('remove', id, record);
+						await record.delete();
 
-					if (listFn && typeof (listFn as any).refresh === 'function') {
-						(listFn as any).refresh();
-					}
+						if (listFn && typeof (listFn as any).refresh === 'function') {
+							(listFn as any).refresh();
+						}
 
-					return { success: true };
-				});
-			})()
-		: undefined;
+						return { success: true };
+					});
+				})()
+			: undefined;
 
 	const getName = (op: OperationName) => options?.names?.[op] || op;
 

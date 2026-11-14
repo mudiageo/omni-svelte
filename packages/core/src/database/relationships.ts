@@ -11,7 +11,10 @@ export interface Relationship {
 }
 
 export class RelationshipLoader {
-	static async loadRelations<T extends ReadonlyModel>(models: T[], relations: string[]): Promise<T[]> {
+	static async loadRelations<T extends ReadonlyModel>(
+		models: T[],
+		relations: string[]
+	): Promise<T[]> {
 		for (const relation of relations) {
 			await this.loadRelation(models, relation);
 		}
@@ -157,7 +160,11 @@ export class RelationshipLoader {
 			} else {
 				// Create a dynamic table object for Drizzle
 				const { pgTable, customType } = await import('drizzle-orm/pg-core');
-				const dynamicType = customType<{ data: any }>({ dataType() { return 'text'; } });
+				const dynamicType = customType<{ data: any }>({
+					dataType() {
+						return 'text';
+					}
+				});
 				pivotTable = pgTable(pivotTable, {
 					[relationship.foreignPivotKey]: dynamicType(relationship.foreignPivotKey),
 					[relationship.relatedPivotKey]: dynamicType(relationship.relatedPivotKey)

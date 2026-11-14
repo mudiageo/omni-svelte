@@ -72,7 +72,7 @@ export function omni(omniConfig: OmniConfig = {} as OmniConfig): Plugin[] {
  */
 function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 	let config: ResolvedConfig;
-	
+
 	let userHooksServer: string | null = null;
 	let userHooksClient: string | null = null;
 	let schemaWatcher: FSWatcher | null = null;
@@ -93,11 +93,10 @@ function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 				// TODO: add docs URL when available
 				throw new Error(
 					`[omni-svelte] Conflict: sveltekit() and omniSvelte() are both in your Vite plugins array.\n\n` +
-					`omniSvelte() includes SvelteKit internally — remove sveltekit() from your plugins,\n` +
-					`or switch to the omni() export if you want to manage SvelteKit yourself.`
+						`omniSvelte() includes SvelteKit internally — remove sveltekit() from your plugins,\n` +
+						`or switch to the omni() export if you want to manage SvelteKit yourself.`
 				);
 			}
-
 
 			// Initialize schema configuration
 			const schemaConfig = await initializeSchemaConfig(omniConfig, config.root);
@@ -130,7 +129,9 @@ function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 				await buildAuthRegistry({
 					root: config.root,
 					dialect,
-					usePlural: Boolean((omniConfig.auth as any)?.advanced?.usePlural ?? omniConfig.auth?.usePlural)
+					usePlural: Boolean(
+						(omniConfig.auth as any)?.advanced?.usePlural ?? omniConfig.auth?.usePlural
+					)
 				});
 			}
 
@@ -217,7 +218,6 @@ function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 
 					// Re-initialize schema config if svelte.config.js changed
 					if (file.endsWith('svelte.config.js')) {
-						
 						const schemaConfig = await initializeSchemaConfig(omniConfig, config.root);
 						if (schemaConfig) omniConfig.schema = schemaConfig;
 
@@ -302,7 +302,7 @@ const plugin_omni_virtual_aliases = (omniConfig: OmniConfig): Plugin => ({
 	async config(userConfig) {
 		// Register sub-path aliases so direct imports like `$models/posts.model` also work,
 		// resolving straight to the configured output directory on disk for IDE navigation.
-		
+
 		const root = userConfig.root || process.cwd();
 		const out = omniConfig?.schema?.output;
 
@@ -329,7 +329,6 @@ const plugin_omni_virtual_aliases = (omniConfig: OmniConfig): Plugin => ({
 	},
 
 	async configResolved(resolvedConfig) {
-		
 		if (!omniConfig?.schema) return;
 
 		const root = resolvedConfig.root;
@@ -408,7 +407,13 @@ const plugin_omni_virtual_aliases = (omniConfig: OmniConfig): Plugin => ({
 
 	resolveId(id) {
 		// Barrel imports: $models, $schema, $validation, $db, $omni/cache
-		if (id === '$models' || id === '$schema' || id === '$validation' || id === '$db' || id === '$omni/cache') {
+		if (
+			id === '$models' ||
+			id === '$schema' ||
+			id === '$validation' ||
+			id === '$db' ||
+			id === '$omni/cache'
+		) {
 			return VIRTUAL_PREFIX + id.slice(1); // e.g. \0virtual:omni:models
 		}
 		// Sub-path imports: $models/posts → resolve directly to the file on disk
@@ -420,7 +425,7 @@ const plugin_omni_virtual_aliases = (omniConfig: OmniConfig): Plugin => ({
 		if (!id.startsWith(VIRTUAL_PREFIX)) return;
 
 		const key = id.slice(VIRTUAL_PREFIX.length); // e.g. 'models', 'schema', 'validation', 'db'
-		
+
 		const root = process.cwd();
 		const out = omniConfig?.schema?.output;
 
@@ -430,7 +435,10 @@ const plugin_omni_virtual_aliases = (omniConfig: OmniConfig): Plugin => ({
 		}
 
 		if (key === 'omni/cache') {
-			const cacheConfig = omniConfig?.cache || { default: 'main', stores: { main: { driver: 'memory' } } };
+			const cacheConfig = omniConfig?.cache || {
+				default: 'main',
+				stores: { main: { driver: 'memory' } }
+			};
 			return `import { cache } from 'omni-svelte/cache';\ncache.configure(${JSON.stringify(cacheConfig)});\nexport { cache };`;
 		}
 
@@ -507,7 +515,7 @@ const plugin_auth_codegen = (omniConfig: OmniConfig): Plugin => ({
 	name: 'vite-plugin-omni-auth-codegen',
 	async configResolved(resolvedConfig) {
 		// Generate Better Auth config internally
-		
+
 		if (omniConfig?.auth) await generateAuthConfig(omniConfig.auth);
 	},
 	configureServer(server) {
@@ -516,7 +524,6 @@ const plugin_auth_codegen = (omniConfig: OmniConfig): Plugin => ({
 
 		server.watcher.on('change', async (file) => {
 			if (file.endsWith('svelte.config.js')) {
-				
 				if (omniConfig?.auth) await generateAuthConfig(omniConfig.auth);
 			}
 		});
@@ -525,9 +532,7 @@ const plugin_auth_codegen = (omniConfig: OmniConfig): Plugin => ({
 
 const plugin_auth_schema_sync = (omniConfig: OmniConfig): Plugin => ({
 	name: 'vite-plugin-omni-auth-schema-sync',
-	async configResolved(resolvedConfig) {
-		
-	}
+	async configResolved(resolvedConfig) {}
 });
 
 //In development use $pkg as import. During build replace with omni-svelte
@@ -657,12 +662,17 @@ function applyExperimentalConfig(options: OmniSvelteConfig) {
 		experimental?: { remoteFunctions?: boolean; [key: string]: unknown };
 	};
 	type ExtendedSvelteConfig = typeof svelteOptions & {
-		compilerOptions?: { experimental?: { async?: boolean; [key: string]: unknown }; [key: string]: unknown };
+		compilerOptions?: {
+			experimental?: { async?: boolean; [key: string]: unknown };
+			[key: string]: unknown;
+		};
 	};
 
 	const svelteKitConfig = kit as ExtendedKitConfig;
 	if (svelteKitConfig.experimental?.remoteFunctions === false) {
-		console.warn('[omni-svelte] Warning: kit.experimental.remoteFunctions is explicitly set to false. Certain features like remote resources will not work.');
+		console.warn(
+			'[omni-svelte] Warning: kit.experimental.remoteFunctions is explicitly set to false. Certain features like remote resources will not work.'
+		);
 	} else {
 		svelteKitConfig.experimental = {
 			...svelteKitConfig.experimental,
@@ -672,7 +682,9 @@ function applyExperimentalConfig(options: OmniSvelteConfig) {
 
 	const svelteCompilerConfig = svelteOptions as ExtendedSvelteConfig;
 	if (svelteCompilerConfig.compilerOptions?.experimental?.async === false) {
-		console.warn('[omni-svelte] Warning: compilerOptions.experimental.async is explicitly set to false. Certain features like remote resources may not work as intended.');
+		console.warn(
+			'[omni-svelte] Warning: compilerOptions.experimental.async is explicitly set to false. Certain features like remote resources may not work as intended.'
+		);
 	} else {
 		svelteCompilerConfig.compilerOptions = {
 			...(svelteCompilerConfig.compilerOptions || {}),
@@ -711,9 +723,19 @@ function applyExperimentalConfig(options: OmniSvelteConfig) {
  */
 export function omniSvelte(options: OmniSvelteConfig = {} as OmniSvelteConfig) {
 	const { database, schema, auth, logging, cors, analytics, errorReporting, ...rest } = options;
-	const omniConfig: OmniConfig = { database, schema, auth, logging, cors, analytics, errorReporting };
-	
-	const { svelteKitConfig, svelteCompilerConfig } = applyExperimentalConfig(rest as OmniSvelteConfig);
+	const omniConfig: OmniConfig = {
+		database,
+		schema,
+		auth,
+		logging,
+		cors,
+		analytics,
+		errorReporting
+	};
+
+	const { svelteKitConfig, svelteCompilerConfig } = applyExperimentalConfig(
+		rest as OmniSvelteConfig
+	);
 
 	return [
 		sveltekit({
