@@ -7,38 +7,32 @@ import { QueryBuilder } from './query-builder.js';
 import { z } from 'zod';
 import { deepEqual } from '../utils/index.js';
 
-export abstract class Model {
-	static table: PgTable;
+export abstract class ReadonlyModel {
+	static readonly: boolean = true;
+	static table: any;
+	static tableName: string;
 	static primaryKey = 'id';
-	static timestamps = true;
-	static fillable: string[] = [];
+	static timestamps = false;
 	static hidden: string[] = [];
 	static casts: Record<string, 'string' | 'number' | 'boolean' | 'date' | 'json'> = {};
-	static validation?: { create: z.ZodSchema; update: z.ZodSchema };
-	static hooks: Record<string, Function[]>;
-	static realtime: any;
-
-	// Relationship definitions
 	static relationships: Record<string, any> = {};
 
 	// Instance properties
 	public attributes: Record<string, any> = {};
-	public original: Record<string, any> = {};
 	public relations: Record<string, any> = {};
 	public exists = false;
 	public isDirty = false;
 
 	constructor(attributes: Record<string, any> = {}) {
-		this.fill(attributes);
-		this.syncOriginal();
+		this.attributes = { ...attributes };
 		this.setupAttributeAccessors();
 	}
 
-	static query() {
+	static query<T extends typeof ReadonlyModel>(this: T): QueryBuilder<T> {
 		return new QueryBuilder(this);
 	}
 
-	static with(relations: string[]) {
+	static with<T extends typeof ReadonlyModel>(this: T, relations: string[]) {
 		return this.query().with(relations);
 	}
 
@@ -47,36 +41,180 @@ export abstract class Model {
 		return getDatabase();
 	}
 
-	static all() {
+	static all<T extends typeof ReadonlyModel>(this: T) {
 		return this.query().get();
 	}
 
-	static find(id: any) {
+	static find<T extends typeof ReadonlyModel>(this: T, id: any) {
 		return this.query().where(this.primaryKey, id).first();
 	}
 
-	static findOrFail(id: any) {
+	static findOrFail<T extends typeof ReadonlyModel>(this: T, id: any) {
 		return this.query().where(this.primaryKey, id).firstOrFail();
 	}
 
-	static where(column: string, operator?: any, value?: any) {
+	static findMany<T extends typeof ReadonlyModel>(this: T, ids?: any[]) {
+		if (Array.isArray(ids)) {
+			return this.query().whereIn(this.primaryKey, ids).get();
+		}
+		return this.query().get();
+	}
+
+	static where<T extends typeof ReadonlyModel>(
+		this: T,
+		column: string,
+		operator?: any,
+		value?: any
+	) {
 		return this.query().where(column, operator, value);
 	}
 
-	static create(attributes: Record<string, any>) {
-		const instance = new this(attributes);
+	static fromAttributes<T extends typeof ReadonlyModel>(
+		this: T,
+		attributes: Record<string, any>
+	): InstanceType<T> {
+		const instance = new (this as any)() as InstanceType<T>;
+		instance.attributes = { ...attributes };
+		instance.exists = true;
+		instance.isDirty = false;
+		instance.setupAttributeAccessors();
+		return instance;
+	}
 
+	static register(name: string) {
+		registerModel(name, this as any);
+	}
+
+	getKey() {
+		const primaryKey = (this.constructor as typeof ReadonlyModel).primaryKey;
+		return this.attributes[primaryKey];
+	}
+
+	getAttribute(key: string) {
+		return this.attributes[key];
+	}
+
+	protected castAttribute(key: string, value: any) {
+		if (value === null || value === undefined) return value;
+		const cast = (this.constructor as typeof ReadonlyModel).casts[key];
+		if (!cast) return value;
+		switch (cast) {
+			case 'string':
+				return String(value);
+			case 'number':
+				return Number(value);
+			case 'boolean':
+				return typeof value === 'string'
+					? ['true', '1', 'yes', 'on'].includes(value.toLowerCase())
+					: Boolean(value);
+			case 'date':
+				return value instanceof Date ? value : new Date(value);
+			case 'json':
+				return typeof value === 'string' ? JSON.parse(value) : value;
+			default:
+				return value;
+		}
+	}
+
+	protected setupAttributeAccessors() {
+		const allKeys = new Set([
+			...Object.keys(this.attributes),
+			(this.constructor as typeof ReadonlyModel).primaryKey || 'id'
+		]);
+		try {
+			const table = (this.constructor as typeof ReadonlyModel).table;
+			if (table && typeof table === 'object') {
+				Object.keys(table).forEach((col) => allKeys.add(col));
+			}
+		} catch {}
+
+		for (const key of allKeys) {
+			if (this.hasOwnProperty(key) || key in this) continue;
+			Object.defineProperty(this, key, {
+				get: () => this.getAttribute(key),
+				enumerable: true,
+				configurable: true
+			});
+		}
+	}
+
+	toJSON() {
+		const attributes = { ...this.attributes };
+		const hidden = (this.constructor as typeof ReadonlyModel).hidden || [];
+		for (const key of hidden) {
+			delete attributes[key];
+		}
+		for (const [key, value] of Object.entries(this.relations)) {
+			if (Array.isArray(value)) {
+				attributes[key] = value.map((v) => (v && typeof v.toJSON === 'function' ? v.toJSON() : v));
+			} else if (value && typeof value.toJSON === 'function') {
+				attributes[key] = value.toJSON();
+			} else {
+				attributes[key] = value;
+			}
+		}
+		return attributes;
+	}
+
+	setRelation(name: string, value: any) {
+		this.relations[name] = value;
+	}
+
+	getRelation(name: string) {
+		return this.relations[name];
+	}
+
+	async load(relations: string[]) {
+		await RelationshipLoader.loadRelations([this as any], relations);
+		return this;
+	}
+}
+
+export abstract class Model extends ReadonlyModel {
+	static override readonly: boolean = false;
+	static override table: PgTable;
+	static override primaryKey = 'id';
+	static override timestamps = true;
+	static fillable: string[] = [];
+	static override hidden: string[] = [];
+	static override casts: Record<string, 'string' | 'number' | 'boolean' | 'date' | 'json'> = {};
+	static validation?: { create: z.ZodSchema; update: z.ZodSchema };
+	static hooks: Record<string, Function[]>;
+	static realtime: any;
+
+	// Relationship definitions
+	static override relationships: Record<string, any> = {};
+
+	// Instance properties
+	public original: Record<string, any> = {};
+
+	constructor(attributes: Record<string, any> = {}) {
+		super();
+		this.fill(attributes);
+		this.syncOriginal();
+		this.setupAttributeAccessors();
+	}
+
+	static override query() {
+		return new QueryBuilder(this);
+	}
+
+	static override with(relations: string[]) {
+		return this.query().with(relations);
+	}
+
+	static create(attributes: Record<string, any>) {
+		const instance = new (this as any)(attributes);
 		return instance.save();
 	}
 
 	update(updatedData: Record<string, any>) {
 		this.fill(updatedData);
-
 		return this.save();
 	}
 
 	// Setup property accessors for attributes
-	private setupAttributeAccessors() {
+	protected override setupAttributeAccessors() {
 		// Get all possible attribute keys from current attributes and common table columns
 		const allKeys = new Set([
 			...Object.keys(this.attributes),
@@ -197,31 +335,6 @@ export abstract class Model {
 			this.setAttribute('created_at', now);
 		}
 		this.setAttribute('updated_at', now);
-	}
-
-	// Enhanced attribute casting
-	private castAttribute(key: string, value: any) {
-		if (value === null || value === undefined) return value;
-
-		const cast = (this.constructor as typeof Model).casts[key];
-		if (!cast) return value;
-
-		switch (cast) {
-			case 'string':
-				return String(value);
-			case 'number':
-				return Number(value);
-			case 'boolean':
-				return typeof value === 'string'
-					? ['true', '1', 'yes', 'on'].includes(value.toLowerCase())
-					: Boolean(value);
-			case 'date':
-				return value instanceof Date ? value : new Date(value);
-			case 'json':
-				return typeof value === 'string' ? JSON.parse(value) : value;
-			default:
-				return value;
-		}
 	}
 
 	static fromAttributes<T extends typeof Model>(
@@ -433,10 +546,6 @@ export abstract class Model {
 		// return this.dirtyFields.includes(fieldName)
 
 		return !deepEqual(this.original[fieldName], this.attributes[fieldName]);
-	}
-
-	private getKey() {
-		return this.getAttribute((this.constructor as typeof Model).primaryKey);
 	}
 
 	private syncOriginal() {

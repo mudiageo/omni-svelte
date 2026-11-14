@@ -1,6 +1,8 @@
+import path from 'path';
 import { Model } from '../../database/model.js';
 import { hashPassword, generateSlug } from '../../utils/index.js';
 import type { Schema, GeneratedOutput } from '../types.js';
+import type { SystemSchema } from '../../runtime/auth/registry.js';
 import type { generateDrizzleSchema } from './drizzle.js';
 import type { generateZodSchemas } from './zod.js';
 import { PathResolver } from '../utils/path-resolver.js';
@@ -39,7 +41,7 @@ export function generateModel(
 		}
 
 		static _relationships: Record<string, any> | null = null;
-		
+
 		static get relationships() {
 			if (!this._relationships) {
 				this._relationships = generateRelationships(schema);
@@ -61,7 +63,8 @@ function generateRelationships(schema: Schema): Record<string, any> {
 			let targetModel = 'unknown';
 			try {
 				if (relation.target) {
-					targetModel = typeof relation.target === 'string' ? relation.target : relation.target().name;
+					targetModel =
+						typeof relation.target === 'string' ? relation.target : relation.target().name;
 				}
 			} catch (e) {
 				// Target might not be defined if using strings or unresolved references
@@ -71,7 +74,9 @@ function generateRelationships(schema: Schema): Record<string, any> {
 			relationships[relationName] = {
 				type: relation.kind,
 				model: targetModel,
-				foreignKey: relation.options?.via || (relation.kind === 'belongsTo' ? `${relationName}Id` : `${schema.name}Id`),
+				foreignKey:
+					relation.options?.via ||
+					(relation.kind === 'belongsTo' ? `${relationName}Id` : `${schema.name}Id`),
 				localKey: relation.options?.localKey || 'id',
 				...relation.options
 			};
@@ -195,12 +200,14 @@ function generateHooks(schema: Schema): Record<string, Function[]> {
 export class ModelGenerator {
 	public pathResolver?: PathResolver;
 	public outputConfig?: any;
+	public readonly?: boolean;
 
 	constructor(
-		private schema: Schema,
+		private schema: Schema | SystemSchema | any,
 		outputConfig?: any
 	) {
 		this.outputConfig = outputConfig;
+		this.readonly = outputConfig?.readonly ?? (schema as any)?.readonly ?? false;
 		if (outputConfig) {
 			this.pathResolver = new PathResolver({
 				drizzle: outputConfig.drizzle || {
@@ -217,6 +224,9 @@ export class ModelGenerator {
 	}
 
 	generate(): string {
+		if (this.readonly) {
+			return this.generateReadonlyModel();
+		}
 		const imports = this.generateImports();
 		const baseModel = this.generateBaseModel();
 		const computedProperties = this.generateComputedProperties();
@@ -403,7 +413,10 @@ ${typeImport}`;
 		const hidden = this.generateHiddenArray();
 		const casts = this.generateCastsObject();
 		const hooks = this.generateHooks();
-		const relationships = JSON.stringify(generateRelationships(this.schema), null, 2).replace(/\n/g, '\n  ');
+		const relationships = JSON.stringify(generateRelationships(this.schema), null, 2).replace(
+			/\n/g,
+			'\n  '
+		);
 
 		return `
 export interface ${className}Model extends ${className}Type {}
@@ -594,5 +607,170 @@ ${className}.register('${this.schema.name}');`;
 
 	private capitalize(str: string): string {
 		return str.charAt(0).toUpperCase() + str.slice(1);
+	}
+
+	private toPascalCase(str: string): string {
+		if (!str) return '';
+		return str
+			.replace(/[-_]+(.)?/g, (_, c) => (c ? c.toUpperCase() : ''))
+			.replace(/^(.)/, (c) => c.toUpperCase());
+	}
+
+	public getAuthModelPath(baseModelPath: string, key: string): string {
+		const hasDotSlash = baseModelPath.startsWith('./');
+		let dir = baseModelPath.replace(/\\/g, '/');
+		if (dir.endsWith('.ts') || dir.endsWith('.js')) {
+			dir = path.posix.dirname(dir);
+		}
+		let result = path.posix.join(dir, 'auth', `${key}.ts`);
+		if (hasDotSlash && !result.startsWith('./')) {
+			result = `./${result}`;
+		}
+		return result;
+	}
+
+	private generateReadonlyModel(): string {
+		const key = (this.schema as any).key || this.schema.name;
+		const tableName = (this.schema as any).tableName || this.schema.name;
+		const exportName =
+			(this.schema as any).exportName || (this.schema as any).tableName || this.schema.name;
+		const className = this.toPascalCase(key);
+
+		let primaryKey = 'id';
+		if ((this.schema as any).primaryKey?.property) {
+			primaryKey = (this.schema as any).primaryKey.property;
+		} else if ((this.schema as any).primaryKey?.column) {
+			primaryKey = (this.schema as any).primaryKey.column;
+		} else if (this.schema.fields) {
+			const pkField = Object.entries(this.schema.fields).find(([_, f]) => f.primary);
+			if (pkField) primaryKey = pkField[0];
+		}
+
+		const baseModelPath =
+			this.outputConfig?.model?.path || this.outputConfig?.path || './src/lib/models';
+		const filePath = this.outputConfig?.filePath || this.getAuthModelPath(baseModelPath, key);
+
+		let modelBaseImport = 'omni-svelte/model';
+		let drizzleImport = './db/server/schema';
+
+		if (this.pathResolver) {
+			const drizzleRel = this.pathResolver.getDrizzleImportPath(filePath);
+			drizzleImport = this.pathResolver.toImportPath(drizzleRel);
+			const baseRel = this.pathResolver.getModelBaseImportPath(filePath);
+			modelBaseImport = this.pathResolver.toImportPath(baseRel);
+		} else if (this.outputConfig?.drizzle?.path) {
+			const drizzlePath = this.outputConfig.drizzle.path;
+			const rel = path.relative(path.dirname(filePath), drizzlePath).replace(/\\/g, '/');
+			let normalized = rel.startsWith('.') ? rel : `./${rel}`;
+			if (normalized.endsWith('.ts')) normalized = normalized.slice(0, -3);
+			drizzleImport = normalized;
+		}
+
+		return `// ${filePath}, DO NOT EDIT (read-only, derived from Better Auth)
+
+import { ReadonlyModel } from '${modelBaseImport}';
+import { ${exportName} } from '${drizzleImport}';
+
+export type ${className}Row = typeof ${exportName}.$inferSelect;
+
+export class ${className} extends ReadonlyModel {
+  static override readonly = true as const;
+  static override tableName = '${tableName}';
+  static override table = ${exportName};
+  static override primaryKey = '${primaryKey}';
+
+  static override query() {
+    return super.query();
+  }
+
+  static override find(id: any) {
+    return super.find(id);
+  }
+
+  static override findMany(ids?: any[]) {
+    return super.findMany(ids);
+  }
+}
+
+${className}.register('auth.${key}');
+
+export default ${className};
+`;
+	}
+
+	static generateAuthModels(
+		authSchemas: (SystemSchema | Schema)[],
+		outputConfig: any,
+		authGenerateConfig?: Record<string, { model?: 'readonly' | false; factory?: boolean }>
+	): GeneratedOutput[] {
+		const outputs: GeneratedOutput[] = [];
+		const baseModelPath = outputConfig?.model?.path || outputConfig?.path || './src/lib/models';
+
+		// Create path resolver
+		const pathResolver = new PathResolver({
+			drizzle: outputConfig.drizzle || {
+				path: './src/lib/db/server/schema.ts',
+				format: 'single-file'
+			},
+			zod: outputConfig.zod || {
+				path: './src/lib/validation',
+				format: 'per-schema'
+			},
+			model: outputConfig.model || outputConfig
+		});
+
+		const includedSchemas: (SystemSchema | Schema)[] = [];
+
+		for (const schema of authSchemas) {
+			const key = (schema as any).key || schema.name;
+			const override = authGenerateConfig?.[key];
+			if (override?.model === false) {
+				continue;
+			}
+			includedSchemas.push(schema);
+
+			const generator = new ModelGenerator(schema, {
+				...outputConfig,
+				readonly: true
+			});
+			generator.pathResolver = pathResolver;
+
+			const filePath = generator.getAuthModelPath(baseModelPath, key);
+			generator.outputConfig = { ...outputConfig, filePath, readonly: true };
+
+			const content = generator.generate();
+			outputs.push({
+				type: 'model',
+				path: filePath,
+				content
+			});
+		}
+
+		if (includedSchemas.length > 0) {
+			const hasDotSlash = baseModelPath.startsWith('./');
+			let dir = baseModelPath.replace(/\\/g, '/');
+			if (dir.endsWith('.ts') || dir.endsWith('.js')) {
+				dir = path.posix.dirname(dir);
+			}
+			let indexPath = path.posix.join(dir, 'auth', 'index.ts');
+			if (hasDotSlash && !indexPath.startsWith('./')) {
+				indexPath = `./${indexPath}`;
+			}
+
+			const barrelExports = includedSchemas
+				.map((s) => {
+					const k = (s as any).key || s.name;
+					return `export * from './${k}';`;
+				})
+				.join('\n');
+
+			outputs.push({
+				type: 'model',
+				path: indexPath,
+				content: `// Auto-generated auth models\n\n${barrelExports}\n`
+			});
+		}
+
+		return outputs;
 	}
 }

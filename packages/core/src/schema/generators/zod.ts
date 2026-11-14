@@ -1,12 +1,16 @@
 import { z } from 'zod';
 import type { Schema, FieldDefinition, GeneratedOutput } from '../types.js';
 import { PathResolver } from '../utils/path-resolver.js';
-import { resolveReference } from '../auth-reference.js';
+import { resolveReference, buildUserSchemaMap, type ResolvedReference } from '../auth-reference.js';
 import { getAuthRegistry } from '../../runtime/auth/registry.js';
 import { AuthDiagnostic } from '../../runtime/auth/diagnostics.js';
 
-export function generateZodSchemas(schema: Schema) {
-	const createSchema = generateCreateSchema(schema);
+export function generateZodSchemas(
+	schema: Schema,
+	userSchemaByTable?: Map<string, { tableName: string; pk: ResolvedReference['pk'] }>
+) {
+	const schemaMap = userSchemaByTable || buildUserSchemaMap([schema]);
+	const createSchema = generateCreateSchema(schema, schemaMap);
 	const updateSchema = generateUpdateSchema(schema, createSchema);
 
 	return {
@@ -16,7 +20,10 @@ export function generateZodSchemas(schema: Schema) {
 	};
 }
 
-function generateCreateSchema(schema: Schema) {
+function generateCreateSchema(
+	schema: Schema,
+	userSchemaByTable?: Map<string, { tableName: string; pk: ResolvedReference['pk'] }>
+) {
 	const shape: Record<string, z.ZodTypeAny> = {};
 
 	Object.entries(schema.fields).forEach(([fieldName, field]) => {
@@ -24,7 +31,7 @@ function generateCreateSchema(schema: Schema) {
 		if (field.isAuthField) return; // Skip auth-managed fields - validation handled by auth system
 		if (field.primary) return; // Skip primary key fields
 
-		const zodField = generateZodField(field);
+		const zodField = generateZodField(field, userSchemaByTable);
 		if (zodField) {
 			shape[fieldName] = zodField;
 		}
@@ -64,7 +71,10 @@ function generateUpdateSchema(schema: Schema, createSchema: z.ZodObject<any>) {
 	return updateShape;
 }
 
-function generateZodField(field: FieldDefinition): z.ZodTypeAny | null {
+function generateZodField(
+	field: FieldDefinition,
+	userSchemaByTable?: Map<string, { tableName: string; pk: ResolvedReference['pk'] }>
+): z.ZodTypeAny | null {
 	let zodField: z.ZodTypeAny;
 
 	switch (field.type) {
@@ -96,7 +106,7 @@ function generateZodField(field: FieldDefinition): z.ZodTypeAny | null {
 					const registry = getAuthRegistry();
 					const ref = resolveReference(field.target, {
 						registry,
-						userSchemaByTable: new Map(),
+						userSchemaByTable: userSchemaByTable || new Map(),
 						where: `field.reference`
 					});
 					if (ref.pk.type === 'text') {
@@ -226,7 +236,13 @@ function getZodTypeFromString(type: string): z.ZodTypeAny {
 }
 
 export class ZodGenerator {
-	constructor(private schema: Schema) {}
+	constructor(
+		private schema: Schema,
+		private userSchemaByTable: Map<
+			string,
+			{ tableName: string; pk: ResolvedReference['pk'] }
+		> = new Map()
+	) {}
 
 	generate(): string {
 		const imports = this.generateImports();
@@ -239,6 +255,7 @@ export class ZodGenerator {
 	// New method for multiple schemas with output config
 	async generateFiles(schemas: Schema[], outputConfig: any): Promise<GeneratedOutput[]> {
 		const outputs: GeneratedOutput[] = [];
+		const userSchemaByTable = buildUserSchemaMap(schemas);
 
 		const pathResolver = new PathResolver({
 			drizzle: outputConfig.drizzle || {
@@ -256,7 +273,7 @@ export class ZodGenerator {
 			// Generate single file with all validation schemas
 			const allSchemas = schemas
 				.map((schema) => {
-					const generator = new ZodGenerator(schema);
+					const generator = new ZodGenerator(schema, userSchemaByTable);
 					const content = generator.generate();
 					// Remove the import line since we'll add it once at the top
 					return content.replace(/^import { z } from 'omni\-svelte\/validation';\s*\n/m, '');
@@ -271,7 +288,7 @@ export class ZodGenerator {
 		} else {
 			// Generate per-schema files
 			for (const schema of schemas) {
-				const generator = new ZodGenerator(schema);
+				const generator = new ZodGenerator(schema, userSchemaByTable);
 				const content = generator.generate();
 				const filePath = pathResolver.getOutputPath('zod', schema.name);
 
@@ -359,7 +376,7 @@ export type ${this.capitalize(tableName)}Update = z.infer<typeof ${tableName}Upd
 						const registry = getAuthRegistry();
 						const ref = resolveReference(field.target, {
 							registry,
-							userSchemaByTable: new Map(),
+							userSchemaByTable: this.userSchemaByTable,
 							where: `${this.schema.name}.${name}`
 						});
 						if (ref.pk.type === 'text') {

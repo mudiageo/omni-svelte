@@ -13,6 +13,8 @@ import { ParserFactory } from '../schema/parser.js';
 import { writeFile, mkdir } from 'fs/promises';
 import { dirname } from 'path';
 import { syncAuthSchemas } from '../runtime/auth/auth-sync.js';
+import { getAuthRegistry } from '../runtime/auth/registry.js';
+import { checkAuthShadowing } from '../schema/auth-reference.js';
 
 let schemaConfig: SchemaConfig;
 let schemas: Schema[] = [];
@@ -70,7 +72,8 @@ async function loadSchemaConfigFile(root: string): Promise<UserSchemaConfig> {
 export function setupSchemaWatcher(
 	server: ViteDevServer,
 	schemaConfig: SchemaConfig,
-	schemasRef: { current: Schema[] }
+	schemasRef: { current: Schema[] },
+	omniConfig?: any
 ): FSWatcher | null {
 	// Close existing watcher
 	if (schemaWatcher) {
@@ -93,7 +96,7 @@ export function setupSchemaWatcher(
 		schemasRef.current.splice(0, schemasRef.current.length, ...newSchemas);
 
 		// Regenerate files
-		await generateSchemaFiles(schemasRef.current, schemaConfig, [filePath]);
+		await generateSchemaFiles(schemasRef.current, schemaConfig, [filePath], omniConfig);
 
 		// Trigger HMR
 		if (schemaConfig.dev?.hotReload !== false) {
@@ -126,11 +129,13 @@ export function setupSchemaWatcher(
 export async function generateSchemaFiles(
 	schemas: Schema[],
 	config: SchemaConfig,
-	changedFiles?: string[]
+	changedFiles?: string[],
+	omniConfig?: any
 ) {
-	if (!schemas.length) return;
+	const registry = getAuthRegistry();
+	if (!schemas.length && (!registry || registry.schemas.size === 0)) return;
 
-	const outputs = await generateAllSchemas(schemas, config, changedFiles);
+	const outputs = await generateAllSchemas(schemas, config, changedFiles, omniConfig);
 
 	for (const output of outputs) {
 		await writeGeneratedFile(output);
@@ -314,19 +319,33 @@ export async function discoverSchemas(config: SchemaConfig): Promise<Schema[]> {
 	return schemas;
 }
 
-async function generateAllSchemas(
+export async function generateAllSchemas(
 	schemas: Schema[],
 	config: SchemaConfig,
-	changedFiles?: string[]
+	changedFiles?: string[],
+	omniConfig?: any
 ): Promise<GeneratedOutput[]> {
 	const outputs: GeneratedOutput[] = [];
+	const registry = getAuthRegistry();
+
+	if (registry) {
+		checkAuthShadowing(schemas, registry, {
+			warn: (diag) => {
+				if (config.dev?.logLevel !== 'silent') {
+					console.warn(
+						`⚠️  [${diag.code}] ${diag.message}${diag.hint ? `\n   Hint: ${diag.hint}` : ''}`
+					);
+				}
+			}
+		});
+	}
 
 	// Filter schemas if only specific files changed
 	const schemasToProcess = changedFiles
 		? schemas.filter((schema) => schema.filePath && changedFiles.includes(schema.filePath))
 		: schemas;
 
-	if (!schemasToProcess.length) return outputs;
+	if (!schemasToProcess.length && (!registry || registry.schemas.size === 0)) return outputs;
 	for (const schema of schemasToProcess) {
 		if (config.dev?.logLevel !== 'silent') {
 			console.log(`🔧 Processing schema: ${schema.name}`);
@@ -335,7 +354,7 @@ async function generateAllSchemas(
 
 	// Initialize generators for batch processing
 	// Generate Drizzle schemas
-	if (config.output?.drizzle) {
+	if (config.output?.drizzle && schemasToProcess.length > 0) {
 		const drizzleGenerator = new DrizzleGenerator(schemasToProcess[0]); // Initialize with first schema
 		const drizzleOutputs = await drizzleGenerator.generateFiles(schemasToProcess, {
 			...config.output.drizzle,
@@ -347,7 +366,7 @@ async function generateAllSchemas(
 	}
 
 	// Generate Zod schemas
-	if (config.output?.zod) {
+	if (config.output?.zod && schemasToProcess.length > 0) {
 		const zodGenerator = new ZodGenerator(schemasToProcess[0]); // Initialize with first schema
 		const zodOutputs = await zodGenerator.generateFiles(schemasToProcess, {
 			...config.output.zod,
@@ -360,18 +379,37 @@ async function generateAllSchemas(
 
 	// Generate model types
 	if (config.output?.model) {
-		const modelGenerator = new ModelGenerator(schemasToProcess[0]); // Initialize with first schema
-		const modelOutputs = await modelGenerator.generateFiles(schemasToProcess, {
-			...config.output.model,
-			drizzle: config.output.drizzle,
-			zod: config.output.zod,
-			model: config.output.model
-		});
-		outputs.push(...modelOutputs);
+		if (schemasToProcess.length > 0) {
+			const modelGenerator = new ModelGenerator(schemasToProcess[0]); // Initialize with first schema
+			const modelOutputs = await modelGenerator.generateFiles(schemasToProcess, {
+				...config.output.model,
+				drizzle: config.output.drizzle,
+				zod: config.output.zod,
+				model: config.output.model
+			});
+			outputs.push(...modelOutputs);
+		}
+
+		// Generate auth system schemas (read-only models)
+		if (registry && registry.schemas.size > 0) {
+			const authSchemas = Array.from(registry.schemas.values());
+			const authGenerateConfig = omniConfig?.auth?.generate;
+			const authModelOutputs = ModelGenerator.generateAuthModels(
+				authSchemas,
+				{
+					...config.output.model,
+					drizzle: config.output.drizzle,
+					zod: config.output.zod,
+					model: config.output.model
+				},
+				authGenerateConfig
+			);
+			outputs.push(...authModelOutputs);
+		}
 	}
 
 	// Generate TypeScript types
-	if (config.output?.types) {
+	if (config.output?.types && schemasToProcess.length > 0) {
 		const typeOutputs = await generateTypeDefinitions(schemasToProcess, config.output.types);
 		outputs.push(...typeOutputs);
 	}

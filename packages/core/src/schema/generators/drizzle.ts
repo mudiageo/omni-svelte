@@ -2,7 +2,7 @@ import * as pg from 'drizzle-orm/pg-core';
 import { relative, resolve, dirname } from 'node:path';
 import type { Schema, FieldDefinition, GeneratedOutput } from '../types.js';
 import { PathResolver } from '../utils/path-resolver.js';
-import { resolveReference } from '../auth-reference.js';
+import { resolveReference, buildUserSchemaMap, type ResolvedReference } from '../auth-reference.js';
 import { getAuthRegistry } from '../../runtime/auth/registry.js';
 import { AuthDiagnostic } from '../../runtime/auth/diagnostics.js';
 
@@ -19,11 +19,15 @@ const {
 	pgEnum,
 	index,
 	uniqueIndex
-} = pg
+} = pg;
 
-export function generateDrizzleSchema(schema: Schema) {
+export function generateDrizzleSchema(
+	schema: Schema,
+	userSchemaByTable?: Map<string, { tableName: string; pk: ResolvedReference['pk'] }>
+) {
 	const columns: Record<string, any> = {};
 	const enums: Record<string, any> = {};
+	const schemaMap = userSchemaByTable || buildUserSchemaMap([schema]);
 
 	// Generate enums first
 	Object.entries(schema.fields).forEach(([fieldName, field]) => {
@@ -39,7 +43,7 @@ export function generateDrizzleSchema(schema: Schema) {
 	Object.entries(schema.fields).forEach(([fieldName, field]) => {
 		if (field.computed) return; // Skip computed fields
 
-		columns[fieldName] = generateColumn(fieldName, field, enums, schema.name);
+		columns[fieldName] = generateColumn(fieldName, field, enums, schema.name, schemaMap);
 	});
 
 	const table = pgTable(schema.name, columns);
@@ -59,7 +63,8 @@ function generateColumn(
 	fieldName: string,
 	field: FieldDefinition,
 	enums: Record<string, any>,
-	tableName: string
+	tableName: string,
+	userSchemaByTable?: Map<string, { tableName: string; pk: ResolvedReference['pk'] }>
 ) {
 	let column: any;
 
@@ -107,7 +112,7 @@ function generateColumn(
 					const registry = getAuthRegistry();
 					const reference = resolveReference(field.target, {
 						registry,
-						userSchemaByTable: new Map(),
+						userSchemaByTable: userSchemaByTable || new Map(),
 						where: `${tableName}.${fieldName}`
 					});
 
@@ -115,13 +120,21 @@ function generateColumn(
 					let colFn: any = text;
 					if (pkType === 'uuid') colFn = pg.uuid;
 					else if (pkType === 'integer' || pkType === 'serial') colFn = integer;
-					else if (pkType === 'bigint') colFn = (name: string) => pg.bigint(name, { mode: 'number' });
+					else if (pkType === 'bigint')
+						colFn = (name: string) => pg.bigint(name, { mode: 'number' });
 
 					column = colFn(fieldName);
 					// Dynamic reference
-					column = column.references(() => (reference as any).schema?.drizzle?.table?.[reference.pk.property ?? 'id'] ?? (reference as any).schema?.table?.[reference.pk.property ?? 'id']);
+					column = column.references(
+						() =>
+							(reference as any).schema?.drizzle?.table?.[reference.pk.property ?? 'id'] ??
+							(reference as any).schema?.table?.[reference.pk.property ?? 'id']
+					);
 				} catch {
-					const isAuth = (field.target as any)?.kind === 'system' || (typeof (field.target as any)?.resolve === 'function' && (field.target as any).resolve()?.__omniSystem);
+					const isAuth =
+						(field.target as any)?.kind === 'system' ||
+						(typeof (field.target as any)?.resolve === 'function' &&
+							(field.target as any).resolve()?.__omniSystem);
 					column = isAuth ? text(fieldName) : integer(fieldName);
 				}
 			} else {
@@ -171,7 +184,14 @@ function generateIndexes(schema: Schema, table: any) {
 
 //We could potentially generate the file
 export class DrizzleGenerator {
-	constructor(private schema: Schema, private databaseType: string = 'pg') {}
+	constructor(
+		private schema: Schema,
+		private databaseType: string = 'pg',
+		private userSchemaByTable: Map<
+			string,
+			{ tableName: string; pk: ResolvedReference['pk'] }
+		> = new Map()
+	) {}
 
 	private resolveTargetName(targetFn?: () => any): string {
 		if (!targetFn) return 'unknown';
@@ -200,7 +220,7 @@ export class DrizzleGenerator {
 				try {
 					const ref = resolveReference(field.target, {
 						registry,
-						userSchemaByTable: new Map(),
+						userSchemaByTable: this.userSchemaByTable,
 						where: `${this.schema.name}.${fieldName}`
 					});
 					if (ref.kind === 'system') {
@@ -235,7 +255,7 @@ export class DrizzleGenerator {
 		}
 
 		const relationsBlock = this.generateRelations();
-		
+
 		let relativeImports = '';
 		if (relationsBlock) {
 			const targetTables = new Set<string>();
@@ -246,10 +266,12 @@ export class DrizzleGenerator {
 				}
 			}
 			targetTables.delete(this.schema.name); // don't import self
-			
+
 			if (targetTables.size > 0) {
 				relativeImports = `// TODO: replace relative cross-schema imports with virtual module imports\n`;
-				relativeImports += Array.from(targetTables).map(t => `import { ${t} } from './${t}';`).join('\n');
+				relativeImports += Array.from(targetTables)
+					.map((t) => `import { ${t} } from './${t}';`)
+					.join('\n');
 			}
 			relativeImports += `\nimport { defineRelationsPart } from 'omni-svelte/drizzle/${this.databaseType}';`;
 		}
@@ -260,8 +282,10 @@ export class DrizzleGenerator {
 			relativeImports,
 			this.generateTableDefinition(),
 			relationsBlock,
-			this.generateExports(),
-		].filter(Boolean).join('\n\n');
+			this.generateExports()
+		]
+			.filter(Boolean)
+			.join('\n\n');
 	}
 
 	/**
@@ -294,11 +318,9 @@ export class DrizzleGenerator {
 				// TODO: dynamically look up target primary key instead of hardcoding .id
 				lines.push(`      to: r.${targetTable}.id,`);
 				lines.push(`    }),`);
-
 			} else if (rel.kind === 'hasMany') {
 				// Drizzle infers FK direction from the corresponding belongsTo on the target
 				lines.push(`    ${key}: r.many.${targetTable}(),`);
-
 			} else if (rel.kind === 'hasOne') {
 				// FK sits on the target table; convention: `${tableName}Id`
 				const fkOnTarget = rel.options?.via ?? `${tableName}Id`;
@@ -307,18 +329,18 @@ export class DrizzleGenerator {
 				// TODO: dynamically look up target primary key instead of hardcoding .id
 				lines.push(`      to: r.${tableName}.id,`);
 				lines.push(`    }),`);
-
 			} else if (rel.kind === 'manyToMany') {
 				const pivotTable = this.resolveTargetName(rel.options?.through);
 				lines.push(`    ${key}: r.many.${targetTable}({`);
 				lines.push(`      from: r.${tableName}.id.through(r.${pivotTable}.${tableName}Id),`);
 				lines.push(`      to: r.${targetTable}.id.through(r.${pivotTable}.${targetTable}Id),`);
 				lines.push(`    }),`);
-
 			} else if (rel.kind === 'morphTo' || rel.kind === 'morphMany') {
 				// Polymorphic relations are not yet supported in Drizzle 1.0 generation.
 				// Define them manually using `defineRelations` in your schema file.
-				lines.push(`    // TODO: ${key} (${rel.kind}) — polymorphic relations must be defined manually`);
+				lines.push(
+					`    // TODO: ${key} (${rel.kind}) — polymorphic relations must be defined manually`
+				);
 			}
 		}
 
@@ -350,29 +372,22 @@ export class DrizzleGenerator {
 			let hasRelations = false;
 
 			// Prepare userSchemaByTable for PK and reference resolution
-			const userSchemaByTable = new Map<string, any>();
-			schemas.forEach((s) => {
-				const pkField = Object.entries(s.fields).find(([_, f]) => f.primary);
-				const pkType = pkField
-					? ((pkField[1] as any).type === 'uuid' ? 'uuid' : ((pkField[1] as any).type === 'serial' ? 'serial' : 'integer'))
-					: 'serial';
-				userSchemaByTable.set(s.name, {
-					tableName: s.name,
-					pk: {
-						column: pkField ? pkField[0] : 'id',
-						property: pkField ? pkField[0] : 'id',
-						type: pkType
-					}
-				});
-			});
+			const userSchemaByTable = buildUserSchemaMap(schemas);
 
 			// Collect all necessary pg-core imports and detect relations
 			schemas.forEach((schema) => {
-				const generator = new DrizzleGenerator(schema);
+				const generator = new DrizzleGenerator(
+					schema,
+					outputConfig.databaseType,
+					userSchemaByTable
+				);
 				const imports = generator.generateImports();
 				const importMatch = imports.match(/import\s*\{\s*([^}]+)\s*\}/);
 				if (importMatch) {
-					importMatch[1].split(',').map((t) => t.trim()).forEach((type) => allImports.add(type));
+					importMatch[1]
+						.split(',')
+						.map((t) => t.trim())
+						.forEach((type) => allImports.add(type));
 				}
 				if (schema.relations && Object.keys(schema.relations).length > 0) {
 					hasRelations = true;
@@ -381,7 +396,11 @@ export class DrizzleGenerator {
 
 			// Generate content for each schema
 			schemas.forEach((schema) => {
-				const generator = new DrizzleGenerator(schema, outputConfig.databaseType);
+				const generator = new DrizzleGenerator(
+					schema,
+					outputConfig.databaseType,
+					userSchemaByTable
+				);
 				allSchemas.push(generator.generateTableDefinition());
 				allTypes.push(generator.generateExports());
 				const rel = generator.generateRelationsInternal();
@@ -424,7 +443,10 @@ export class DrizzleGenerator {
 				? `\nimport { defineRelations } from 'omni-svelte/drizzle/${this.databaseType}';`
 				: '';
 
-			const allRelationTables = [...schemas.map((s) => s.name), ...Array.from(referencedAuthTables)].join(', ');
+			const allRelationTables = [
+				...schemas.map((s) => s.name),
+				...Array.from(referencedAuthTables)
+			].join(', ');
 			const relationsBlock = hasRelations
 				? `\nexport const schemaRelations = defineRelations({ ${allRelationTables} }, (r) => ({\n${allRelations.join(',\n')}\n}));\n`
 				: '';
@@ -456,9 +478,14 @@ ${allTypes.join('\n\n')}`;
 				content
 			});
 		} else {
+			const userSchemaByTable = buildUserSchemaMap(schemas);
 			// Generate per-schema files
 			for (const schema of schemas) {
-				const generator = new DrizzleGenerator(schema, outputConfig.databaseType);
+				const generator = new DrizzleGenerator(
+					schema,
+					outputConfig.databaseType,
+					userSchemaByTable
+				);
 				const filePath = pathResolver.getOutputPath('drizzle', schema.name);
 				const content = generator.generate(filePath);
 
@@ -514,7 +541,7 @@ ${allTypes.join('\n\n')}`;
 							const registry = getAuthRegistry();
 							const ref = resolveReference(field.target, {
 								registry,
-								userSchemaByTable: new Map(),
+								userSchemaByTable: this.userSchemaByTable,
 								where: `${this.schema.name}.${fieldName}`
 							});
 							const pkType = ref.pk.type;
@@ -653,7 +680,7 @@ ${allTypes.join('\n\n')}`;
 						const registry = getAuthRegistry();
 						const ref = resolveReference(field.target, {
 							registry,
-							userSchemaByTable: new Map(),
+							userSchemaByTable: this.userSchemaByTable,
 							where: `${this.schema.name}.${name}`
 						});
 
@@ -713,47 +740,45 @@ ${allTypes.join('\n\n')}`;
 
 		return `${name}: ${columnDef}`;
 	}
- 
+
 	private generateRefColumnDef(type: string, name: string): string {
 		let columnDef = '';
 
-		switch (type)  {
+		switch (type) {
 			case 'text':
-				columnDef = `text('${name}')`
+				columnDef = `text('${name}')`;
 
-				if (this.databaseType === 'mysql') columnDef = `varchar('${name}', { length: 255 })`;  // handle mysql case
+				if (this.databaseType === 'mysql') columnDef = `varchar('${name}', { length: 255 })`; // handle mysql case
 
 				break;
 
 			case 'uuid':
-				if (this.databaseType === 'pg') columnDef = `uuid('${name}')`
-
-				else if (this.databaseType === 'mysql') columnDef = `varchar('${name}', { length: 36 })`;  
-				else if (this.databaseType === 'sqlite') columnDef = `text('${name}')`; 
+				if (this.databaseType === 'pg') columnDef = `uuid('${name}')`;
+				else if (this.databaseType === 'mysql') columnDef = `varchar('${name}', { length: 36 })`;
+				else if (this.databaseType === 'sqlite') columnDef = `text('${name}')`;
 
 				break;
 
 			case 'integer':
 			case 'serial':
-				columnDef = `integer('${name}')`
-				if (this.databaseType === 'mysql') columnDef = `int('${name}')`;  
+				columnDef = `integer('${name}')`;
+				if (this.databaseType === 'mysql') columnDef = `int('${name}')`;
 
 				break;
-			
+
 			case 'bigint':
-				columnDef = `bigint('${name}', { mode: 'number' })`
+				columnDef = `bigint('${name}', { mode: 'number' })`;
 
-				if (this.databaseType === 'sqlite') columnDef = `integer('${name}')`; 
+				if (this.databaseType === 'sqlite') columnDef = `integer('${name}')`;
 
 				break;
 
-			default: 
+			default:
 				columnDef = `text('${name}')`;
 				break;
 		}
-		
-		return columnDef;
 
+		return columnDef;
 	}
 
 	private generateExports(): string {

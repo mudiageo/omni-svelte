@@ -98,3 +98,51 @@ export default defineConfig({
 ```
 
 This enables Drizzle Kit commands (`drizzle-kit push`, `drizzle-kit generate`, `drizzle-kit migrate`) to discover and migrate Better Auth tables alongside your application tables seamlessly.
+
+## Read-Only Auth Models
+
+OmniSvelte automatically generates typed read-only models for your Better Auth tables (such as `User`, `Session`, `Account`, and `Verification`) under your model directory (e.g. `src/lib/models/auth/` or `src/lib/db/models/auth/`).
+
+These models inherit from `ReadonlyModel` and provide read-only query capabilities (`find()`, `findMany()`, `query()`) without mutation methods (`create()`, `update()`, `delete()`):
+
+```ts
+import { User } from '$models/auth';
+
+// Read queries work as expected:
+const user = await User.find(userId);
+const activeUsers = await User.query().where('emailVerified', true).get();
+
+// Compile-time error: Property 'create' does not exist on type 'typeof User'
+await User.create({ email: 'new@example.com' });
+```
+
+### Resource Write Guards (`AUTH009`)
+
+When serving auth models through `resource()`, only read operations (`list`, `get`) are exposed. Attempting to write to auth tables via `resource()` is blocked at both compile-time and runtime:
+
+```ts
+import { resource } from 'omni-svelte';
+import { User } from '$models/auth';
+
+export const { list, get } = resource(User);
+
+// @ts-expect-error create is not exposed on read-only resources
+resource(User).create;
+```
+
+If write operations are invoked or specified in `only: ['create']`, an `AUTH009` diagnostic is raised directing you to use the Better Auth API (`authClient.signUp`, `auth.api.updateUser`, or admin plugins) to maintain auth state integrity.
+
+### Code Generation Overrides
+
+You can customize or disable model generation for specific auth tables in your `omni.config.ts`:
+
+```ts
+export default {
+  auth: {
+    generate: {
+      session: { model: false }, // Skips generating Session model
+    }
+  }
+};
+```
+
