@@ -19,21 +19,22 @@ export * from './rate-limit.js';
 export * from './rate-limit-hook.js';
 
 export {
-  buildAuthRegistry,
-  getAuthRegistry,
-  setAuthRegistry,
-  resetAuthRegistryCache,
-  introspectAuthModule,
-  deriveKey,
-  normalizePkType,
-  renderRegistryDts,
-  type AuthRegistry,
-  type SystemSchema,
-  type SystemColumn,
-  type PkType,
-  type Dialect,
-  type IntrospectOptions,
-  type BuildRegistryOptions
+	buildAuthRegistry,
+	getAuthRegistry,
+	setAuthRegistry,
+	resetAuthRegistryCache,
+	introspectAuthModule,
+	deriveKey,
+	normalizePkType,
+	renderRegistryDts,
+	renderSchemaDts,
+	type AuthRegistry,
+	type SystemSchema,
+	type SystemColumn,
+	type PkType,
+	type Dialect,
+	type IntrospectOptions,
+	type BuildRegistryOptions
 } from './registry.js';
 
 export { AuthDiagnostic, type AuthDiagnosticCode } from './diagnostics.js';

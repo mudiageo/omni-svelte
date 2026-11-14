@@ -9,35 +9,38 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { read, write_if_changed } from '../../utils/filesystem.js';
 import { AuthDiagnostic } from './diagnostics.js';
-
+import {
+	getVirtualRelationRegistry,
+	type VirtualRelationRegistry
+} from '../../schema/virtual-relations.js';
 
 export type PkType = 'text' | 'uuid' | 'integer' | 'serial' | 'bigint';
 export type Dialect = 'pg' | 'mysql' | 'sqlite';
 
 export interface SystemColumn {
-  name: string;          // DB column name
-  property: string;      // Drizzle property name
-  type: string;          // Drizzle columnType, for example 'PgText'
-  notNull: boolean;
-  hasDefault: boolean;
-  references?: { table: string; column: string };
+	name: string; // DB column name
+	property: string; // Drizzle property name
+	type: string; // Drizzle columnType, for example 'PgText'
+	notNull: boolean;
+	hasDefault: boolean;
+	references?: { table: string; column: string };
 }
 
 export interface SystemSchema {
-  tableName: string;     // actual DB table name
-  key: string;           // stable key used by auth.* and string refs
-  exportName: string;    // export name in .omni/auth-schema.ts
-  columns: SystemColumn[];
-  primaryKey: { column: string; property: string; type: PkType } | null; // null = composite
-  compositePrimaryKey: boolean;
-  source: 'core' | { plugin: string };
-  readonly: true;
+	tableName: string; // actual DB table name
+	key: string; // stable key used by auth.* and string refs
+	exportName: string; // export name in .omni/auth-schema.ts
+	columns: SystemColumn[];
+	primaryKey: { column: string; property: string; type: PkType } | null; // null = composite
+	compositePrimaryKey: boolean;
+	source: 'core' | { plugin: string };
+	readonly: true;
 }
 
 export interface AuthRegistry {
-  dialect: Dialect;
-  schemas: Map<string, SystemSchema>;   // by key
-  hash: string;                         // content hash of .omni/auth-schema.ts
+	dialect: Dialect;
+	schemas: Map<string, SystemSchema>; // by key
+	hash: string; // content hash of .omni/auth-schema.ts
 }
 
 /**
@@ -47,10 +50,10 @@ export interface AuthRegistry {
  * always singular (`user`), matching the string users write in `auth.user`.
  */
 export function deriveKey(tableName: string, usePlural: boolean): string {
-    if (usePlural && tableName.length > 1 && tableName.endsWith('s')) {
-      return tableName.slice(0, -1);
-    }
-    return tableName;
+	if (usePlural && tableName.length > 1 && tableName.endsWith('s')) {
+		return tableName.slice(0, -1);
+	}
+	return tableName;
 }
 
 /**
@@ -62,32 +65,32 @@ export function deriveKey(tableName: string, usePlural: boolean): string {
  * Order of checks matters: `uuid` before `int`, `bigserial` before `serial`.
  */
 export function normalizePkType(columnType: string): PkType | null {
-    const t = columnType.toLowerCase();
-    if (t.includes('uuid')) return 'uuid';
-    if (t.includes('bigserial') || t.includes('bigint')) return 'bigint';
-    if (t.includes('serial')) return 'serial';
-    if (t.includes('int')) return 'integer';
-    if (t.includes('text') || t.includes('varchar') || t.includes('char')) return 'text';
-    return null;
+	const t = columnType.toLowerCase();
+	if (t.includes('uuid')) return 'uuid';
+	if (t.includes('bigserial') || t.includes('bigint')) return 'bigint';
+	if (t.includes('serial')) return 'serial';
+	if (t.includes('int')) return 'integer';
+	if (t.includes('text') || t.includes('varchar') || t.includes('char')) return 'text';
+	return null;
 }
 
 function isTable(value: unknown, dialect: Dialect): boolean {
-  if (dialect === 'pg') return is(value as any, PgTable);
-  if (dialect === 'mysql') return is(value as any, MySqlTable);
-  return is(value as any, SQLiteTable);
+	if (dialect === 'pg') return is(value as any, PgTable);
+	if (dialect === 'mysql') return is(value as any, MySqlTable);
+	return is(value as any, SQLiteTable);
 }
 
 function getConfig(table: any, dialect: Dialect) {
-  if (dialect === 'pg') return pgConfig(table);
-  if (dialect === 'mysql') return mysqlConfig(table);
-  return sqliteConfig(table);
+	if (dialect === 'pg') return pgConfig(table);
+	if (dialect === 'mysql') return mysqlConfig(table);
+	return sqliteConfig(table);
 }
 
 export interface IntrospectOptions {
-  dialect: Dialect;
-  usePlural: boolean;
-  /** table name -> plugin name, for tables contributed by Better Auth plugins */
-  pluginTables?: Record<string, string>;
+	dialect: Dialect;
+	usePlural: boolean;
+	/** table name -> plugin name, for tables contributed by Better Auth plugins */
+	pluginTables?: Record<string, string>;
 }
 
 /**
@@ -99,123 +102,150 @@ export interface IntrospectOptions {
  * - `AUTH004` — two tables normalise to the same key (key collision).
  */
 export function introspectAuthModule(
-  mod: Record<string, unknown>,
-  opts: IntrospectOptions
+	mod: Record<string, unknown>,
+	opts: IntrospectOptions
 ): Map<string, SystemSchema> {
-  const out = new Map<string, SystemSchema>();
+	const out = new Map<string, SystemSchema>();
 
-  for (const [exportName, value] of Object.entries(mod)) {
-    if (!isTable(value, opts.dialect)) continue;
+	for (const [exportName, value] of Object.entries(mod)) {
+		if (!isTable(value, opts.dialect)) continue;
 
-    const cfg: any = getConfig(value, opts.dialect);
-    const tableName = getTableName(value as any);
-    const key = deriveKey(tableName, opts.usePlural);
+		const cfg: any = getConfig(value, opts.dialect);
+		const tableName = getTableName(value as any);
+		const key = deriveKey(tableName, opts.usePlural);
 
-    if (out.has(key)) {
-      throw new AuthDiagnostic(
-        'AUTH004',
-        `Tables "${out.get(key)!.tableName}" and "${tableName}" both normalize to key "${key}".`,
-        'Check the usePlural option for Better Auth, or rename one of the tables.'
-      );
-    }
+		if (out.has(key)) {
+			throw new AuthDiagnostic(
+				'AUTH004',
+				`Tables "${out.get(key)!.tableName}" and "${tableName}" both normalize to key "${key}".`,
+				'Check the usePlural option for Better Auth, or rename one of the tables.'
+			);
+		}
 
-    const props = getColumns(value as any) as Record<string, any>;
-    const propByColumn = new Map<string, string>(
-      Object.entries(props).map(([prop, col]) => [col.name, prop])
-    );
+		const props = getColumns(value as any) as Record<string, any>;
+		const propByColumn = new Map<string, string>(
+			Object.entries(props).map(([prop, col]) => [col.name, prop])
+		);
 
-    // foreign keys: column name -> referenced table/column
-    const fkByColumn = new Map<string, { table: string; column: string }>();
-    for (const fk of cfg.foreignKeys ?? []) {
-      const ref = fk.reference();
-      ref.columns.forEach((c: any, i: number) => {
-        fkByColumn.set(c.name, {
-          table: getTableName(ref.foreignTable),
-          column: ref.foreignColumns[i].name,
-        });
-      });
-    }
+		// foreign keys: column name -> referenced table/column
+		const fkByColumn = new Map<string, { table: string; column: string }>();
+		for (const fk of cfg.foreignKeys ?? []) {
+			const ref = fk.reference();
+			ref.columns.forEach((c: any, i: number) => {
+				fkByColumn.set(c.name, {
+					table: getTableName(ref.foreignTable),
+					column: ref.foreignColumns[i].name
+				});
+			});
+		}
 
-    const columns: SystemColumn[] = cfg.columns.map((c: any) => ({
-      name: c.name,
-      property: propByColumn.get(c.name) ?? c.name,
-      type: c.columnType,
-      notNull: !!c.notNull,
-      hasDefault: !!c.hasDefault,
-      references: fkByColumn.get(c.name),
-    }));
+		const columns: SystemColumn[] = cfg.columns.map((c: any) => ({
+			name: c.name,
+			property: propByColumn.get(c.name) ?? c.name,
+			type: c.columnType,
+			notNull: !!c.notNull,
+			hasDefault: !!c.hasDefault,
+			references: fkByColumn.get(c.name)
+		}));
 
-    const compositePrimaryKey = (cfg.primaryKeys?.length ?? 0) > 0;
-    const pkCols = cfg.columns.filter((c: any) => c.primary);
-    let primaryKey: SystemSchema['primaryKey'] = null;
-    if (!compositePrimaryKey && pkCols.length === 1) {
-      const type = normalizePkType(pkCols[0].columnType);
-      if (!type) {
-        throw new AuthDiagnostic(
-          'AUTH002',
-          `Cannot determine primary-key type for ${tableName}.${pkCols[0].name} (${pkCols[0].columnType}).`
-        );
-      }
-      primaryKey = {
-        column: pkCols[0].name,
-        property: propByColumn.get(pkCols[0].name) ?? pkCols[0].name,
-        type,
-      };
-    }
+		const compositePrimaryKey = (cfg.primaryKeys?.length ?? 0) > 0;
+		const pkCols = cfg.columns.filter((c: any) => c.primary);
+		let primaryKey: SystemSchema['primaryKey'] = null;
+		if (!compositePrimaryKey && pkCols.length === 1) {
+			const type = normalizePkType(pkCols[0].columnType);
+			if (!type) {
+				throw new AuthDiagnostic(
+					'AUTH002',
+					`Cannot determine primary-key type for ${tableName}.${pkCols[0].name} (${pkCols[0].columnType}).`
+				);
+			}
+			primaryKey = {
+				column: pkCols[0].name,
+				property: propByColumn.get(pkCols[0].name) ?? pkCols[0].name,
+				type
+			};
+		}
 
-    out.set(key, {
-      tableName,
-      key,
-      exportName,
-      columns,
-      primaryKey,
-      compositePrimaryKey,
-      source: opts.pluginTables?.[tableName] ? { plugin: opts.pluginTables[tableName] } : 'core',
-      readonly: true,
-    });
-  }
+		out.set(key, {
+			tableName,
+			key,
+			exportName,
+			columns,
+			primaryKey,
+			compositePrimaryKey,
+			source: opts.pluginTables?.[tableName] ? { plugin: opts.pluginTables[tableName] } : 'core',
+			readonly: true
+		});
+	}
 
-  if (out.size === 0) {
-    throw new AuthDiagnostic(
-      'AUTH002',
-      'No tables found in .omni/auth-schema.ts.',
-      'Run the auth generate step first and check the dialect in your omni config.'
-    );
-  }
-  return out;
+	if (out.size === 0) {
+		throw new AuthDiagnostic(
+			'AUTH002',
+			'No tables found in .omni/auth-schema.ts.',
+			'Run the auth generate step first and check the dialect in your omni config.'
+		);
+	}
+	return out;
 }
 
 /**
- * Renders `.omni/auth-registry.d.ts` — a declaration file that augments
- * `omni-svelte/schema`'s `AuthTables` interface with one entry per auth table
- * key. Keys are sorted for deterministic output (stable snapshots, no
+ * Renders `.omni/schema.d.ts` (and `.omni/auth-registry.d.ts`) — a declaration file that augments
+ * `omni-svelte/schema`'s `AuthTables` and `AuthRelations` interfaces.
+ * Keys and relation names are sorted for deterministic output (stable snapshots, no
  * spurious rewrites).
  */
-export function renderRegistryDts(reg: AuthRegistry): string {
-    const keys = [...reg.schemas.keys()].sort();
-    return [
-      '// AUTO-GENERATED by omni-svelte. DO NOT EDIT.',
-      `// registry hash: ${reg.hash}`,
-      "declare module 'omni-svelte/schema' {",
-      '  interface AuthTables {',
-      ...keys.map((k) => `    ${JSON.stringify(k)}: true;`),
-      '  }',
-      '}',
-      'export {};',
-      '',
-    ].join('\n');
+export function renderSchemaDts(
+	reg: AuthRegistry,
+	virtualRegistry: VirtualRelationRegistry = getVirtualRelationRegistry(),
+	schemaImportPath = './src/lib/db/server/schema'
+): string {
+	const tableKeys = [...reg.schemas.keys()].sort();
+
+	const allVirtual = virtualRegistry.getAll();
+	const relationKeys = [...allVirtual.keys()].sort();
+
+	const relationBlocks: string[] = [];
+	for (const sysKey of relationKeys) {
+		const rels = [...allVirtual.get(sysKey)!.values()].sort((a, b) => a.name.localeCompare(b.name));
+		if (rels.length === 0) continue;
+		const lines = rels.map((r) => {
+			return `      ${JSON.stringify(r.name)}: { kind: ${JSON.stringify(r.kind)}; target: typeof import(${JSON.stringify(schemaImportPath)}).${r.targetTable} };`;
+		});
+		relationBlocks.push(`    ${JSON.stringify(sysKey)}: {\n${lines.join('\n')}\n    };`);
+	}
+
+	const relationLines =
+		relationBlocks.length > 0
+			? ['  interface AuthRelations {', ...relationBlocks, '  }']
+			: ['  interface AuthRelations {}'];
+
+	return [
+		'// AUTO-GENERATED by omni-svelte. DO NOT EDIT.',
+		`// registry hash: ${reg.hash}`,
+		"declare module 'omni-svelte/schema' {",
+		'  interface AuthTables {',
+		...tableKeys.map((k) => `    ${JSON.stringify(k)}: true;`),
+		'  }',
+		'',
+		...relationLines,
+		'}',
+		'export {};',
+		''
+	].join('\n');
 }
 
+export const renderRegistryDts = renderSchemaDts;
+
 export interface BuildRegistryOptions extends IntrospectOptions {
-  /** Project root — the directory that contains `.omni/`. */
-  root: string;
-  /**
-   * Optional module loader override. When omitted, the registry loads
-   * `.omni/auth-schema.ts` via a native dynamic `import()` (using
-   * `pathToFileURL`). Pass a custom loader only in tests that need to inject
-   * mock modules without hitting the filesystem.
-   */
-  loadModule?: (absPath: string) => Promise<Record<string, unknown>>;
+	/** Project root — the directory that contains `.omni/`. */
+	root: string;
+	/**
+	 * Optional module loader override. When omitted, the registry loads
+	 * `.omni/auth-schema.ts` via a native dynamic `import()` (using
+	 * `pathToFileURL`). Pass a custom loader only in tests that need to inject
+	 * mock modules without hitting the filesystem.
+	 */
+	loadModule?: (absPath: string) => Promise<Record<string, unknown>>;
 }
 
 /** Process-level cache — invalidated whenever the file content hash changes. */
@@ -232,12 +262,12 @@ let cachedKey: string | null = null;
  * holding their own reference to the registry object.
  */
 export function getAuthRegistry(): AuthRegistry | null {
-  return cached;
+	return cached;
 }
 
 /**
  * Reads `.omni/auth-schema.ts`, introspects every exported Drizzle table,
- * writes `.omni/auth-registry.d.ts`, and returns the `AuthRegistry`.
+ * writes `.omni/schema.d.ts` and `.omni/auth-registry.d.ts`, and returns the `AuthRegistry`.
  *
  * Results are cached by the SHA-256 hash of the source file — a second call
  * with an unchanged file returns the same object reference (useful for
@@ -247,44 +277,54 @@ export function getAuthRegistry(): AuthRegistry | null {
  * Throws `AuthDiagnostic(AUTH004)` when two tables normalise to the same key.
  */
 export async function buildAuthRegistry(opts: BuildRegistryOptions): Promise<AuthRegistry> {
-  const file = join(opts.root, '.omni', 'auth-schema.ts');
-  if (!existsSync(file)) {
-    throw new AuthDiagnostic('AUTH002', `Missing ${file}.`, 'Run the auth generate step.');
-  }
+	const file = join(opts.root, '.omni', 'auth-schema.ts');
+	if (!existsSync(file)) {
+		throw new AuthDiagnostic('AUTH002', `Missing ${file}.`, 'Run the auth generate step.');
+	}
 
-  let source: string;
-  try {
-    source = read(file);
-  } catch {
-    throw new AuthDiagnostic('AUTH002', `Missing ${file}.`, 'Run the auth generate step.');
-  }
+	let source: string;
+	try {
+		source = read(file);
+	} catch {
+		throw new AuthDiagnostic('AUTH002', `Missing ${file}.`, 'Run the auth generate step.');
+	}
 
-  const hash = createHash('sha256').update(source).digest('hex').slice(0, 16);
-  const cacheKey = JSON.stringify([opts.root, opts.dialect, opts.usePlural, opts.pluginTables ?? {}, hash]);
-  if (cached && cachedKey === cacheKey) return cached;
+	const hash = createHash('sha256').update(source).digest('hex').slice(0, 16);
+	const cacheKey = JSON.stringify([
+		opts.root,
+		opts.dialect,
+		opts.usePlural,
+		opts.pluginTables ?? {},
+		hash
+	]);
+	if (cached && cachedKey === cacheKey) return cached;
 
+	const mod = opts.loadModule
+		? await opts.loadModule(file)
+		: ((await import(pathToFileURL(file).href + `?t=${Date.now()}`)) as Record<string, unknown>);
 
-  const mod = opts.loadModule
-    ? await opts.loadModule(file)
-    : ((await import(pathToFileURL(file).href + `?t=${Date.now()}`)) as Record<string, unknown>);
+	const registry: AuthRegistry = {
+		dialect: opts.dialect,
+		schemas: introspectAuthModule(mod, opts),
+		hash
+	};
 
-  const registry: AuthRegistry = {
-    dialect: opts.dialect,
-    schemas: introspectAuthModule(mod, opts),
-    hash,
-  };
-
-  // write_if_changed skips the disk write when content is identical,
-  // preventing unnecessary filesystem churn on repeated builds.
-  write_if_changed(join(opts.root, '.omni', 'auth-registry.d.ts'), renderRegistryDts(registry));
-  cached = registry;
-  cachedKey = cacheKey;
-  return registry;
+	// write_if_changed skips the disk write when content is identical,
+	// preventing unnecessary filesystem churn on repeated builds.
+	const dtsContent = renderSchemaDts(registry);
+	write_if_changed(join(opts.root, '.omni', 'schema.d.ts'), dtsContent);
+	write_if_changed(join(opts.root, '.omni', 'auth-registry.d.ts'), dtsContent);
+	cached = registry;
+	cachedKey = cacheKey;
+	return registry;
 }
 
 /** Clears the process-level cache and cachedKey. Call in `beforeEach` for tests that need a clean slate. */
-export function resetAuthRegistryCache() { cached = cachedKey = null; }
+export function resetAuthRegistryCache() {
+	cached = cachedKey = null;
+}
 
 /** Sets the in-memory cached registry directly (useful for unit tests without filesystem access). */
-export function setAuthRegistry(reg: AuthRegistry | null) { cached = reg; }
-
+export function setAuthRegistry(reg: AuthRegistry | null) {
+	cached = reg;
+}
