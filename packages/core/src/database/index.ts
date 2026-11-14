@@ -1,4 +1,4 @@
-export { Model, RegisterModel, createModel, type ModelConfig } from './model.js';
+export { Model, ReadonlyModel, RegisterModel, createModel, type ModelConfig } from './model.js';
 export { QueryBuilder } from './query-builder.js';
 export { RelationshipLoader } from './relationships.js';
 export { Migration, MigrationRunner } from './migrations.js';

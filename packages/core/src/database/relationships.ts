@@ -1,6 +1,6 @@
 import { eq, inArray } from 'drizzle-orm';
 import { getDatabase } from './database.js';
-import type { Model } from './model.js';
+import type { Model, ReadonlyModel } from './model.js';
 import { getModel } from './hooks.js';
 
 export interface Relationship {
@@ -11,17 +11,20 @@ export interface Relationship {
 }
 
 export class RelationshipLoader {
-	static async loadRelations<T extends Model>(models: T[], relations: string[]): Promise<T[]> {
+	static async loadRelations<T extends ReadonlyModel>(
+		models: T[],
+		relations: string[]
+	): Promise<T[]> {
 		for (const relation of relations) {
 			await this.loadRelation(models, relation);
 		}
 		return models;
 	}
 
-	private static async loadRelation<T extends Model>(models: T[], relationName: string) {
+	private static async loadRelation<T extends ReadonlyModel>(models: T[], relationName: string) {
 		if (models.length === 0) return;
 
-		const modelClass = models[0].constructor as typeof Model;
+		const modelClass = models[0].constructor as typeof ReadonlyModel;
 		const relationship: Relationship = modelClass.relationships[relationName];
 
 		if (!relationship) {
@@ -53,7 +56,7 @@ export class RelationshipLoader {
 		}
 	}
 
-	private static async loadHasMany<T extends Model>(
+	private static async loadHasMany<T extends ReadonlyModel>(
 		models: T[],
 		relationship: any,
 		relationName: string
@@ -82,7 +85,7 @@ export class RelationshipLoader {
 		});
 	}
 
-	private static async loadBelongsTo<T extends Model>(
+	private static async loadBelongsTo<T extends ReadonlyModel>(
 		models: T[],
 		relationship: any,
 		relationName: string
@@ -112,7 +115,7 @@ export class RelationshipLoader {
 		});
 	}
 
-	private static async loadHasOne<T extends Model>(
+	private static async loadHasOne<T extends ReadonlyModel>(
 		models: T[],
 		relationship: any,
 		relationName: string
@@ -139,7 +142,7 @@ export class RelationshipLoader {
 		});
 	}
 
-	private static async loadManyToMany<T extends Model>(
+	private static async loadManyToMany<T extends ReadonlyModel>(
 		models: T[],
 		relationship: any,
 		relationName: string
@@ -157,7 +160,11 @@ export class RelationshipLoader {
 			} else {
 				// Create a dynamic table object for Drizzle
 				const { pgTable, customType } = await import('drizzle-orm/pg-core');
-				const dynamicType = customType<{ data: any }>({ dataType() { return 'text'; } });
+				const dynamicType = customType<{ data: any }>({
+					dataType() {
+						return 'text';
+					}
+				});
 				pivotTable = pgTable(pivotTable, {
 					[relationship.foreignPivotKey]: dynamicType(relationship.foreignPivotKey),
 					[relationship.relatedPivotKey]: dynamicType(relationship.relatedPivotKey)
