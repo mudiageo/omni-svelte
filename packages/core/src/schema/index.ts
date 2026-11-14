@@ -13,10 +13,19 @@ export { relation } from './relation.js';
 export {
 	auth,
 	type AuthTables,
+	type AuthRelations,
 	type SystemSchemaRef,
 	checkAuthShadowing,
 	buildUserSchemaMap
 } from './auth-reference.js';
+
+export {
+	VirtualRelationRegistry,
+	collectVirtualRelations,
+	getVirtualRelationRegistry,
+	resetVirtualRelationRegistry,
+	type VirtualRelation
+} from './virtual-relations.js';
 
 export function defineSchema(
 	name: string,
