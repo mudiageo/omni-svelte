@@ -143,9 +143,7 @@ export class QueryBuilder<T extends typeof ReadonlyModel = typeof Model> {
 	 */
 	whereAny(
 		conditions:
-			| Record<string, any>
-			| Array<[string, any] | [string, string, any]>
-			| ((builder: this) => void)
+			Record<string, any> | Array<[string, any] | [string, string, any]> | ((builder: this) => void)
 	): this {
 		let orConditions: any[] = [];
 
@@ -299,7 +297,11 @@ export class QueryBuilder<T extends typeof ReadonlyModel = typeof Model> {
 
 	async first(): Promise<InstanceType<T> | null> {
 		const result = await this.limit(1).queryBuilder;
-		return result[0] ? this.newFromBuilder(result[0]) : null;
+		const model = result[0] ? this.newFromBuilder(result[0]) : null;
+		if (model && this.relations.length > 0) {
+			await RelationshipLoader.loadRelations([model], this.relations);
+		}
+		return model;
 	}
 
 	async firstOrFail(): Promise<InstanceType<T>> {

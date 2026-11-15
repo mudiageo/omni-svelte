@@ -36,7 +36,11 @@ export function configureDatabase(config: DatabaseConfig) {
 		connectionOpts = { url };
 	} else {
 		// Fall back to individual parameters
-		if (!config?.connection?.host || !config?.connection?.database || !config?.connection?.username) {
+		if (
+			!config?.connection?.host ||
+			!config?.connection?.database ||
+			!config?.connection?.username
+		) {
 			throw new Error(
 				'Either provide a DATABASE_URL or all required connection parameters (host, database, username)'
 			);
@@ -54,6 +58,10 @@ export function configureDatabase(config: DatabaseConfig) {
 
 	database = drizzle({ connection: connectionOpts, schema: config?.schema });
 	return database;
+}
+
+export function setDatabase(db: any) {
+	database = db;
 }
 
 export function getDatabase(): PostgresJsDatabase {

@@ -2,8 +2,11 @@ import type { AuthRegistry, PkType } from '../runtime/auth/registry.js';
 import { AuthDiagnostic } from '../runtime/auth/diagnostics.js';
 import type { defineSchema } from './index.js';
 
-/** Augmented by .omni/auth-registry.d.ts */
+/** Augmented by .omni/schema.d.ts */
 export interface AuthTables {}
+
+/** Augmented by .omni/schema.d.ts */
+export interface AuthRelations {}
 
 export interface SystemSchemaRef<K extends string = string> {
 	readonly __omniSystem: true;
