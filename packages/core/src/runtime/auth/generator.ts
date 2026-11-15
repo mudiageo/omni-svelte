@@ -1,6 +1,7 @@
 import { write_if_changed } from '../../utils/filesystem.js';
 import { runtime_directory } from '../../utils/index.js';
 import type { AuthConfig } from './types.js';
+import { mapAdditionalFields } from './additional-fields.js';
 
 export async function generateAuthConfig(auth_config: AuthConfig) {
 	new AuthConfigGenerator().generate(auth_config);
@@ -283,7 +284,8 @@ export default config;
 		const configLines: string[] = ['user: {'];
 
 		if (config.additionalFields) {
-			configLines.push(`  additionalFields: ${JSON.stringify(config.additionalFields, null, 2)},`);
+			const mapped = mapAdditionalFields(config.additionalFields);
+			configLines.push(`  additionalFields: ${JSON.stringify(mapped, null, 2)},`);
 		}
 
 		if (config.deleteUser) {

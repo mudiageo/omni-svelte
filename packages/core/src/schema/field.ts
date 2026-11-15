@@ -21,7 +21,7 @@ import type { FieldDefinition, FieldType, ValidationRules } from './types.js';
  * }, { timestamps: true });
  * ```
  */
-class FieldBuilder {
+export class FieldBuilder {
 	private def: FieldDefinition;
 
 	constructor(type: FieldType, length?: number) {

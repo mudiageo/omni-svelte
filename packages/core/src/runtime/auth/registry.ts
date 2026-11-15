@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { read, write_if_changed } from '../../utils/filesystem.js';
+import { read, write_if_changed, write_if_changed_atomic } from '../../utils/filesystem.js';
 import { AuthDiagnostic } from './diagnostics.js';
 import {
 	getVirtualRelationRegistry,
@@ -315,8 +315,8 @@ export async function buildAuthRegistry(opts: BuildRegistryOptions): Promise<Aut
 	// write_if_changed skips the disk write when content is identical,
 	// preventing unnecessary filesystem churn on repeated builds.
 	const dtsContent = renderSchemaDts(registry);
-	write_if_changed(join(opts.root, '.omni', 'schema.d.ts'), dtsContent);
-	write_if_changed(join(opts.root, '.omni', 'auth-registry.d.ts'), dtsContent);
+	write_if_changed_atomic(join(opts.root, '.omni', 'schema.d.ts'), dtsContent);
+	write_if_changed_atomic(join(opts.root, '.omni', 'auth-registry.d.ts'), dtsContent);
 	cached = registry;
 	cachedKey = cacheKey;
 	return registry;

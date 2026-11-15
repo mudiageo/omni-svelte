@@ -38,3 +38,18 @@ export {
 } from './registry.js';
 
 export { AuthDiagnostic, type AuthDiagnosticCode } from './diagnostics.js';
+
+export {
+	toBetterAuthField,
+	mapAdditionalFields,
+	type BetterAuthField
+} from './additional-fields.js';
+
+export {
+	authInputs,
+	computeAuthInputsHash,
+	shouldRegenerateAuth,
+	findSchemasReferencingAuth
+} from './watcher.js';
+
+

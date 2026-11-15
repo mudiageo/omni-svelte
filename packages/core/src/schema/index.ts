@@ -7,7 +7,7 @@ export { SchemaParser } from './parser.js';
 export { DrizzleGenerator } from './generators/drizzle.js';
 export { ZodGenerator } from './generators/zod.js';
 export { ModelGenerator } from './generators/model.js';
-export { field } from './field.js';
+export { field, FieldBuilder } from './field.js';
 export { relation } from './relation.js';
 
 export {
