@@ -338,6 +338,8 @@ describe('PR 4: Virtual and inverse relations on auth tables', () => {
 				relations: {
 					members: relation.manyToMany(() => auth.user, {
 						through: () => ({ name: 'team_members' }),
+						foreignPivotKey: 'team_id',
+						relatedPivotKey: 'user_id',
 						inverse: 'teams'
 					})
 				}
@@ -368,6 +370,9 @@ describe('PR 4: Virtual and inverse relations on auth tables', () => {
 			expect(teamRel?.kind).toBe('manyToMany');
 			expect(teamRel?.targetTable).toBe('teams');
 			expect(teamRel?.through).toBe('team_members');
+			// Inversed pivot keys: forward relatedPivotKey becomes inverse foreignPivotKey
+			expect(teamRel?.foreignPivotKey).toBe('user_id');
+			expect(teamRel?.relatedPivotKey).toBe('team_id');
 		});
 
 		it('validates against target column collisions during collection', () => {

@@ -171,8 +171,9 @@ export function collectVirtualRelations(
 							? relDef.options.through()?.name
 							: relDef.options.through
 						: undefined;
-			const foreignPivotKey = isManyToMany ? relDef.options?.foreignPivotKey : undefined;
-			const relatedPivotKey = isManyToMany ? relDef.options?.relatedPivotKey : undefined;
+			// The inverse side uses the forward pivot keys in reverse.
+			const foreignPivotKey = isManyToMany ? relDef.options?.relatedPivotKey : undefined;
+			const relatedPivotKey = isManyToMany ? relDef.options?.foreignPivotKey : undefined;
 
 			const declaredBy = `${schema.name}.${relName}`;
 			registry.add(
