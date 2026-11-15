@@ -2,19 +2,15 @@ import { mkdtemp, rm, readFile, writeFile, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { field, FieldBuilder } from '../../../schema/field.js';
-import { auth } from '../../../schema/auth-reference.js';
-import { relation } from '../../../schema/relation.js';
+import { field } from '../../../schema/field.js';
 import {
 	toBetterAuthField,
 	mapAdditionalFields
 } from '../../../runtime/auth/additional-fields.js';
-import {
-	computeAuthInputsHash,
-	shouldRegenerateAuth,
-	findSchemasReferencingAuth
-} from '../../../runtime/auth/watcher.js';
 import { AuthDiagnostic } from '../../../runtime/auth/diagnostics.js';
+import { hashAuthConfig } from '../../../runtime/auth/schema-generator.js';
+import { generateAuthConfig } from '../../../runtime/auth/generator.js';
+import { runtime_directory } from '../../../utils/index.js';
 import { atomic_write, write_if_changed_atomic } from '../../../utils/filesystem.js';
 import { buildAuthRegistry, resetAuthRegistryCache } from '../../../runtime/auth/registry.js';
 import * as pgFixture from '../../fixtures/auth/auth-schema.pg.js';
@@ -138,155 +134,35 @@ describe('FieldBuilder.toJSON()', () => {
 	});
 });
 
-describe('Watcher decision logic', () => {
-	describe('shouldRegenerateAuth', () => {
-		it('returns true when lastHash is null or undefined', () => {
-			expect(shouldRegenerateAuth(null, 'abc')).toBe(true);
-			expect(shouldRegenerateAuth(undefined, 'abc')).toBe(true);
-		});
+describe('Config generation and hash detection', () => {
+	it('hashAuthConfig changes when user.additionalFields change', () => {
+		const configA = {
+			user: { additionalFields: { role: { type: 'string' } } }
+		};
+		const configB = {
+			user: { additionalFields: { role: { type: 'string' }, bio: { type: 'string' } } }
+		};
 
-		it('returns false when hashes are identical', () => {
-			expect(shouldRegenerateAuth('abc', 'abc')).toBe(false);
-		});
-
-		it('returns true when hashes differ', () => {
-			expect(shouldRegenerateAuth('abc', 'def')).toBe(true);
-		});
+		const hashA = hashAuthConfig(configA);
+		const hashB = hashAuthConfig(configB);
+		expect(hashA).not.toBe(hashB);
 	});
 
-	describe('computeAuthInputsHash', () => {
-		let tmpDir: string;
-
-		beforeEach(async () => {
-			tmpDir = await mkdtemp(join(tmpdir(), 'omni-auth-hash-test-'));
-		});
-
-		afterEach(async () => {
-			await rm(tmpDir, { recursive: true, force: true });
-		});
-
-		it('produces consistent hashes for identical inputs', async () => {
-			const config = {
-				plugins: { admin: true, organization: false },
-				user: { additionalFields: { role: field.string() } }
-			};
-
-			const hash1 = await computeAuthInputsHash(tmpDir, config, []);
-			const hash2 = await computeAuthInputsHash(tmpDir, config, []);
-			expect(hash1).toBe(hash2);
-		});
-
-		it('changes hash when enabled plugins change', async () => {
-			const configA = { plugins: { admin: true } };
-			const configB = { plugins: { admin: true, organization: true } };
-
-			const hashA = await computeAuthInputsHash(tmpDir, configA, []);
-			const hashB = await computeAuthInputsHash(tmpDir, configB, []);
-			expect(hashA).not.toBe(hashB);
-		});
-
-		it('changes hash when additionalFields change', async () => {
-			const configA = {
-				user: { additionalFields: { role: field.string() } }
-			};
-			const configB = {
-				user: { additionalFields: { role: field.string(), bio: field.richtext() } }
-			};
-
-			const hashA = await computeAuthInputsHash(tmpDir, configA, []);
-			const hashB = await computeAuthInputsHash(tmpDir, configB, []);
-			expect(hashA).not.toBe(hashB);
-		});
-
-		it('changes hash when watched file content changes', async () => {
-			const dummyFile = join(tmpDir, 'omni.config.ts');
-			await writeFile(dummyFile, 'export default { auth: {} };', 'utf-8');
-
-			const hash1 = await computeAuthInputsHash(tmpDir, {}, [dummyFile]);
-
-			await writeFile(dummyFile, 'export default { auth: { usePlural: true } };', 'utf-8');
-			const hash2 = await computeAuthInputsHash(tmpDir, {}, [dummyFile]);
-
-			expect(hash1).not.toBe(hash2);
-		});
-	});
-
-	describe('findSchemasReferencingAuth', () => {
-		it('detects schema referencing auth via field.reference thunk', () => {
-			const schemas: any[] = [
-				{
-					name: 'posts',
-					tableName: 'posts',
-					fields: {
-						id: field.serial().primaryKey(),
-						authorId: field.reference(() => auth.user)
-					}
-				},
-				{
-					name: 'tags',
-					tableName: 'tags',
-					fields: {
-						id: field.serial().primaryKey(),
-						name: field.string()
-					}
+	it('generateAuthConfig maps additionalFields into generated config', async () => {
+		await generateAuthConfig({
+			user: {
+				additionalFields: {
+					role: field.string().default('user'),
+					age: field.integer().required()
 				}
-			];
-
-			const referencing = findSchemasReferencingAuth(schemas);
-			expect(referencing.length).toBe(1);
-			expect(referencing[0].name).toBe('posts');
+			}
 		});
 
-		it('detects schema referencing auth via string key', () => {
-			const schemas: any[] = [
-				{
-					name: 'audit_logs',
-					tableName: 'audit_logs',
-					fields: {
-						id: field.serial().primaryKey(),
-						userId: field.reference('user')
-					}
-				}
-			];
-
-			const referencing = findSchemasReferencingAuth(schemas);
-			expect(referencing.length).toBe(1);
-			expect(referencing[0].name).toBe('audit_logs');
-		});
-
-		it('detects schema referencing auth via relation.belongsTo', () => {
-			const schemas: any[] = [
-				{
-					name: 'profiles',
-					tableName: 'profiles',
-					fields: {
-						id: field.serial().primaryKey()
-					},
-					relations: {
-						user: relation.belongsTo(() => auth.user, { via: 'userId' })
-					}
-				}
-			];
-
-			const referencing = findSchemasReferencingAuth(schemas);
-			expect(referencing.length).toBe(1);
-			expect(referencing[0].name).toBe('profiles');
-		});
-
-		it('returns empty array when no schemas reference auth', () => {
-			const schemas: any[] = [
-				{
-					name: 'categories',
-					tableName: 'categories',
-					fields: {
-						id: field.serial().primaryKey(),
-						title: field.string()
-					}
-				}
-			];
-
-			expect(findSchemasReferencingAuth(schemas)).toEqual([]);
-		});
+		const configFile = join(runtime_directory, 'auth/__generated__/config.js');
+		const content = await readFile(configFile, 'utf-8');
+		expect(content).toContain('additionalFields:');
+		expect(content).toContain('"type": "string"');
+		expect(content).toContain('"type": "number"');
 	});
 });
 

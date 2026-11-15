@@ -11,12 +11,6 @@ import { generateDrizzleConfig } from './drizzle-config.js';
 import { runtime_directory } from '../utils/index.js';
 import { generateAuthConfig } from '../runtime/auth/generator.js';
 import { buildAuthRegistry } from '../runtime/auth/registry.js';
-import {
-	authInputs,
-	computeAuthInputsHash,
-	shouldRegenerateAuth,
-	findSchemasReferencingAuth
-} from '../runtime/auth/watcher.js';
 import { omniMigrationsPlugin } from './migrations.js';
 import type { KitConfig } from '@sveltejs/kit';
 
@@ -82,8 +76,6 @@ function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 	let userHooksServer: string | null = null;
 	let userHooksClient: string | null = null;
 	let schemaWatcher: FSWatcher | null = null;
-	let lastAuthHash: string | null = null;
-	let lastRegistryHash: string | null = null;
 	const schemasRef = { current: [] as Schema[] }; // Use reference object for schemas
 
 	return {
@@ -134,16 +126,14 @@ function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 						? 'sqlite'
 						: 'pg';
 
-				const reg = await buildAuthRegistry({
+				await buildAuthRegistry({
 					root: config.root,
 					dialect,
 					usePlural: Boolean(
 						(omniConfig.auth as any)?.advanced?.usePlural ?? omniConfig.auth?.usePlural
 					)
 				});
-				lastRegistryHash = reg.hash;
 			}
-			lastAuthHash = await computeAuthInputsHash(config.root, omniConfig?.auth);
 
 			// Check if user has existing hooks
 			await loadUserHooks();
@@ -205,13 +195,6 @@ function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 			server.watcher.add('src/hooks.client.ts');
 			server.watcher.add('src/hooks.client.js');
 
-			// Watch for Better Auth config and schema changes
-			const watchedAuthFiles = authInputs(config.root);
-			for (const f of watchedAuthFiles) {
-				server.watcher.add(f);
-			}
-			server.watcher.add(join(config.root, '.omni', 'auth-schema.ts'));
-
 			// Set up schema file watching
 			if (omniConfig.schema?.dev?.watch !== false) {
 				schemaWatcher = setupSchemaWatcher(server, omniConfig.schema, schemasRef, omniConfig);
@@ -245,81 +228,6 @@ function omniCorePlugin(omniConfig: OmniConfig = {} as OmniConfig): Plugin {
 
 						if (omniConfig.schema?.dev?.watch !== false) {
 							schemaWatcher = setupSchemaWatcher(server, omniConfig.schema, schemasRef, omniConfig);
-						}
-					}
-				}
-
-				// Watch for Better Auth config and schema changes
-				const isAuthFile =
-					(file.includes('.omni') && file.endsWith('auth-schema.ts')) ||
-					file.endsWith('omni.config.ts') ||
-					file.endsWith('omni.config.js') ||
-					file.endsWith('svelte.config.js');
-
-				if (isAuthFile) {
-					const currentHash = await computeAuthInputsHash(config.root, omniConfig?.auth);
-					if (shouldRegenerateAuth(lastAuthHash, currentHash)) {
-						lastAuthHash = currentHash;
-						const authSchemaFile = join(config.root, '.omni', 'auth-schema.ts');
-
-						// If a config file changed (not .omni/auth-schema.ts directly), regenerate auth config & schema
-						const isDirectAuthSchema =
-							file.includes('.omni') && file.endsWith('auth-schema.ts');
-						if (!isDirectAuthSchema) {
-							if (omniConfig?.auth) {
-								await generateAuthConfig(omniConfig.auth);
-							}
-							try {
-								const { generateAuthSchema } = await import(
-									'../runtime/auth/schema-generator.js'
-								);
-								await generateAuthSchema(config.root, authSchemaFile, false, true);
-							} catch (err) {
-								console.warn('[omni-svelte] Failed to regenerate auth schema:', err);
-							}
-						}
-
-						if (existsSync(authSchemaFile)) {
-							const schemaDialect =
-								omniConfig.schema?.generation?.drizzle?.dialect ?? 'postgresql';
-							const dialect = schemaDialect.startsWith('mysql')
-								? 'mysql'
-								: schemaDialect.startsWith('sqlite')
-									? 'sqlite'
-									: 'pg';
-
-							try {
-								const newRegistry = await buildAuthRegistry({
-									root: config.root,
-									dialect,
-									usePlural: Boolean(
-										(omniConfig.auth as any)?.advanced?.usePlural ??
-											omniConfig.auth?.usePlural
-									)
-								});
-
-								if (newRegistry.hash !== lastRegistryHash) {
-									lastRegistryHash = newRegistry.hash;
-
-									const referencingSchemas = findSchemasReferencingAuth(
-										schemasRef.current
-									);
-									if (referencingSchemas.length > 0 && omniConfig.schema) {
-										await generateSchemaFiles(
-											schemasRef.current,
-											omniConfig.schema,
-											undefined,
-											omniConfig
-										);
-									}
-
-									const vSchema = server.moduleGraph.getModuleById('virtual:omni-schemas');
-									if (vSchema) server.reloadModule(vSchema);
-									server.ws.send({ type: 'full-reload' });
-								}
-							} catch (err) {
-								console.warn('[omni-svelte] Failed to rebuild auth registry:', err);
-							}
 						}
 					}
 				}

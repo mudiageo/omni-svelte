@@ -45,11 +45,4 @@ export {
 	type BetterAuthField
 } from './additional-fields.js';
 
-export {
-	authInputs,
-	computeAuthInputsHash,
-	shouldRegenerateAuth,
-	findSchemasReferencingAuth
-} from './watcher.js';
-
 
