@@ -11,7 +11,11 @@ export interface VirtualRelation {
 	foreignKey: { column: string; property: string };
 	declaredBy: string; // e.g. 'posts.author' (for diagnostics)
 	targetModel?: string; // e.g. 'Post' or schema name
-	through?: string; // pivot table for manyToMany
+	ownerKey?: string; // e.g. 'id' (localKey on the auth model)
+	pivotTable?: string; // pivot table for manyToMany
+	foreignPivotKey?: string; // pivot column pointing to auth table
+	relatedPivotKey?: string; // pivot column pointing to targetTable
+	through?: string; // pivot table for manyToMany (legacy/alias for pivotTable)
 }
 
 export class VirtualRelationRegistry {
@@ -29,7 +33,7 @@ export class VirtualRelationRegistry {
 		}
 		const prior = reserved.existingRelations?.get(rel.name);
 		const same = this.byKey.get(rel.onSystemKey)?.get(rel.name);
-		if (prior || same) {
+		if ((prior && prior !== rel.declaredBy) || (same && same.declaredBy !== rel.declaredBy)) {
 			throw new AuthDiagnostic(
 				'AUTH005',
 				`Inverse "${rel.name}" on ${rel.onSystemKey} is already defined by ${prior ?? same!.declaredBy}; second declaration: ${rel.declaredBy}.`,
@@ -51,6 +55,20 @@ export class VirtualRelationRegistry {
 		return Boolean(this.byKey.get(key)?.has(name));
 	}
 
+	removeForSchema(schemaName: string): void {
+		const prefix = `${schemaName}.`;
+		for (const [systemKey, relMap] of this.byKey.entries()) {
+			for (const [relName, rel] of relMap.entries()) {
+				if (rel.declaredBy.startsWith(prefix) || rel.targetTable === schemaName) {
+					relMap.delete(relName);
+				}
+			}
+			if (relMap.size === 0) {
+				this.byKey.delete(systemKey);
+			}
+		}
+	}
+
 	clear(): void {
 		this.byKey.clear();
 	}
@@ -64,6 +82,10 @@ let defaultVirtualRelationRegistry = new VirtualRelationRegistry();
 
 export function getVirtualRelationRegistry(): VirtualRelationRegistry {
 	return defaultVirtualRelationRegistry;
+}
+
+export function setVirtualRelationRegistry(registry: VirtualRelationRegistry): void {
+	defaultVirtualRelationRegistry = registry;
 }
 
 export function resetVirtualRelationRegistry(): void {
@@ -138,6 +160,20 @@ export function collectVirtualRelations(
 				}
 			}
 
+			const ownerKey = relDef.options?.localKey || 'id';
+			const pivotTable =
+				isManyToMany && relDef.options?.pivotTable
+					? typeof relDef.options.pivotTable === 'function'
+						? relDef.options.pivotTable()?.name
+						: relDef.options.pivotTable
+					: isManyToMany && relDef.options?.through
+						? typeof relDef.options.through === 'function'
+							? relDef.options.through()?.name
+							: relDef.options.through
+						: undefined;
+			const foreignPivotKey = isManyToMany ? relDef.options?.foreignPivotKey : undefined;
+			const relatedPivotKey = isManyToMany ? relDef.options?.relatedPivotKey : undefined;
+
 			const declaredBy = `${schema.name}.${relName}`;
 			registry.add(
 				{
@@ -148,12 +184,11 @@ export function collectVirtualRelations(
 					foreignKey,
 					declaredBy,
 					targetModel: schema.name,
-					through:
-						isManyToMany && relDef.options?.through
-							? typeof relDef.options.through === 'function'
-								? relDef.options.through()?.name
-								: relDef.options.through
-							: undefined
+					ownerKey,
+					pivotTable,
+					foreignPivotKey,
+					relatedPivotKey,
+					through: pivotTable
 				},
 				{ columnProps }
 			);

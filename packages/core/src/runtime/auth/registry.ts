@@ -197,21 +197,24 @@ export function introspectAuthModule(
 export function renderSchemaDts(
 	reg: AuthRegistry,
 	virtualRegistry: VirtualRelationRegistry = getVirtualRelationRegistry(),
-	schemaImportPath = './src/lib/db/server/schema'
+	schemaImportPath = '../src/lib/db/server/schema'
 ): string {
 	const tableKeys = [...reg.schemas.keys()].sort();
-
 	const allVirtual = virtualRegistry.getAll();
-	const relationKeys = [...allVirtual.keys()].sort();
+	const allAuthKeys = Array.from(new Set([...tableKeys, ...allVirtual.keys()])).sort();
 
 	const relationBlocks: string[] = [];
-	for (const sysKey of relationKeys) {
-		const rels = [...allVirtual.get(sysKey)!.values()].sort((a, b) => a.name.localeCompare(b.name));
-		if (rels.length === 0) continue;
-		const lines = rels.map((r) => {
-			return `      ${JSON.stringify(r.name)}: { kind: ${JSON.stringify(r.kind)}; target: typeof import(${JSON.stringify(schemaImportPath)}).${r.targetTable} };`;
-		});
-		relationBlocks.push(`    ${JSON.stringify(sysKey)}: {\n${lines.join('\n')}\n    };`);
+	for (const sysKey of allAuthKeys) {
+		const relMap = allVirtual.get(sysKey);
+		const rels = relMap ? [...relMap.values()].sort((a, b) => a.name.localeCompare(b.name)) : [];
+		if (rels.length === 0) {
+			relationBlocks.push(`    ${JSON.stringify(sysKey)}: {};`);
+		} else {
+			const lines = rels.map((r) => {
+				return `      ${JSON.stringify(r.name)}: { kind: ${JSON.stringify(r.kind)}; target: typeof import(${JSON.stringify(schemaImportPath)}).${r.targetTable} };`;
+			});
+			relationBlocks.push(`    ${JSON.stringify(sysKey)}: {\n${lines.join('\n')}\n    };`);
+		}
 	}
 
 	const relationLines =

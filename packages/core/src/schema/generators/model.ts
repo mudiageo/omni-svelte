@@ -7,7 +7,7 @@ import type { generateDrizzleSchema } from './drizzle.js';
 import type { generateZodSchemas } from './zod.js';
 import { PathResolver } from '../utils/path-resolver.js';
 import { isSystemRef } from '../auth-reference.js';
-import { getVirtualRelationRegistry, collectVirtualRelations } from '../virtual-relations.js';
+import { getVirtualRelationRegistry } from '../virtual-relations.js';
 
 export function generateModel(
 	schema: Schema,
@@ -679,8 +679,10 @@ ${className}.register('${this.schema.name}');`;
 				type: vr.kind,
 				model: vr.targetModel || vr.targetTable,
 				foreignKey: vr.foreignKey.property || vr.foreignKey.column,
-				localKey: primaryKey,
-				...(vr.through ? { through: vr.through } : {})
+				localKey: vr.ownerKey || primaryKey,
+				...(vr.pivotTable || vr.through ? { pivotTable: vr.pivotTable || vr.through } : {}),
+				...(vr.foreignPivotKey ? { foreignPivotKey: vr.foreignPivotKey } : {}),
+				...(vr.relatedPivotKey ? { relatedPivotKey: vr.relatedPivotKey } : {})
 			};
 		}
 		const relationshipsStr = JSON.stringify(relationshipsMap, null, 2).replace(/\n/g, '\n  ');
@@ -729,9 +731,6 @@ export default ${className};
 		authGenerateConfig?: Record<string, { model?: 'readonly' | false; factory?: boolean }>,
 		userSchemas?: (Schema | any)[]
 	): GeneratedOutput[] {
-		if (userSchemas && userSchemas.length > 0) {
-			collectVirtualRelations(userSchemas);
-		}
 		const outputs: GeneratedOutput[] = [];
 		const baseModelPath = outputConfig?.model?.path || outputConfig?.path || './src/lib/models';
 

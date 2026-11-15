@@ -13,7 +13,8 @@ import {
 	VirtualRelationRegistry,
 	collectVirtualRelations,
 	getVirtualRelationRegistry,
-	resetVirtualRelationRegistry
+	resetVirtualRelationRegistry,
+	setVirtualRelationRegistry
 } from '../../../schema/virtual-relations.js';
 import { relation } from '../../../schema/relation.js';
 import { auth } from '../../../schema/auth-reference.js';
@@ -154,6 +155,88 @@ describe('PR 4: Virtual and inverse relations on auth tables', () => {
 				);
 				expect(err.hint).toContain('Rename one of the inverse names');
 			}
+		});
+
+		it('allows idempotent re-declaration when declaredBy matches', () => {
+			const vReg = new VirtualRelationRegistry();
+			vReg.add(
+				{
+					onSystemKey: 'user',
+					name: 'posts',
+					kind: 'hasMany',
+					targetTable: 'posts',
+					foreignKey: { column: 'author_id', property: 'authorId' },
+					declaredBy: 'posts.author'
+				},
+				{ columnProps: new Set() }
+			);
+
+			// Re-adding with same declaredBy should NOT throw AUTH005
+			expect(() => {
+				vReg.add(
+					{
+						onSystemKey: 'user',
+						name: 'posts',
+						kind: 'hasMany',
+						targetTable: 'posts',
+						foreignKey: { column: 'author_id', property: 'authorId' },
+						declaredBy: 'posts.author'
+					},
+					{ columnProps: new Set() }
+				);
+			}).not.toThrow();
+
+			expect(vReg.for('user')).toHaveLength(1);
+		});
+
+		it('removes schema relations with removeForSchema()', () => {
+			const vReg = new VirtualRelationRegistry();
+			vReg.add(
+				{
+					onSystemKey: 'user',
+					name: 'posts',
+					kind: 'hasMany',
+					targetTable: 'posts',
+					foreignKey: { column: 'author_id', property: 'authorId' },
+					declaredBy: 'posts.author'
+				},
+				{ columnProps: new Set() }
+			);
+			vReg.add(
+				{
+					onSystemKey: 'user',
+					name: 'comments',
+					kind: 'hasMany',
+					targetTable: 'comments',
+					foreignKey: { column: 'author_id', property: 'authorId' },
+					declaredBy: 'comments.author'
+				},
+				{ columnProps: new Set() }
+			);
+
+			expect(vReg.for('user')).toHaveLength(2);
+			vReg.removeForSchema('posts');
+			expect(vReg.for('user')).toHaveLength(1);
+			expect(vReg.for('user')[0].name).toBe('comments');
+		});
+
+		it('supports setting default registry with setVirtualRelationRegistry()', () => {
+			const customReg = new VirtualRelationRegistry();
+			customReg.add(
+				{
+					onSystemKey: 'user',
+					name: 'custom',
+					kind: 'hasMany',
+					targetTable: 'custom',
+					foreignKey: { column: 'user_id', property: 'userId' },
+					declaredBy: 'custom.user'
+				},
+				{ columnProps: new Set() }
+			);
+
+			setVirtualRelationRegistry(customReg);
+			expect(getVirtualRelationRegistry()).toBe(customReg);
+			expect(getVirtualRelationRegistry().for('user')).toHaveLength(1);
 		});
 
 		it('clears all registered relations on clear()', () => {
@@ -375,8 +458,11 @@ describe('PR 4: Virtual and inverse relations on auth tables', () => {
 			expect(dts).toContain('interface AuthRelations {');
 			expect(dts).toContain('"user": {');
 			expect(dts).toContain(
-				'"posts": { kind: "hasMany"; target: typeof import("./src/lib/db/server/schema").posts };'
+				'"posts": { kind: "hasMany"; target: typeof import("../src/lib/db/server/schema").posts };'
 			);
+			// Tables without inverse relations have an empty object definition to avoid TypeScript indexing errors
+			expect(dts).toContain('"session": {};');
+			expect(dts).toContain('"account": {};');
 		});
 
 		it('buildAuthRegistry writes .omni/schema.d.ts and .omni/auth-registry.d.ts', async () => {
@@ -413,7 +499,7 @@ describe('PR 4: Virtual and inverse relations on auth tables', () => {
 				static override table = {
 					name: 'posts',
 					authorId: 'authorId'
-				};
+				} as any;
 			}
 			registerModel('posts', MockPost as any);
 
@@ -480,7 +566,7 @@ describe('PR 4: Virtual and inverse relations on auth tables', () => {
 				static override table = {
 					name: 'profiles',
 					userId: 'userId'
-				};
+				} as any;
 			}
 			registerModel('profiles', MockProfile as any);
 
@@ -529,13 +615,13 @@ describe('PR 4: Virtual and inverse relations on auth tables', () => {
 		it('supports nested relationship loading with dot notation', async () => {
 			class MockComment extends Model {
 				static override tableName = 'comments';
-				static override table = { name: 'comments', postId: 'postId' };
+				static override table = { name: 'comments', postId: 'postId' } as any;
 			}
 			registerModel('comments', MockComment as any);
 
 			class MockPost extends Model {
 				static override tableName = 'posts';
-				static override table = { name: 'posts', authorId: 'authorId' };
+				static override table = { name: 'posts', authorId: 'authorId' } as any;
 				static override relationships: Record<string, any> = {
 					comments: {
 						type: 'hasMany',
@@ -592,6 +678,96 @@ describe('PR 4: Virtual and inverse relations on auth tables', () => {
 			expect((user as any).posts).toHaveLength(1);
 			expect((user as any).posts[0].comments).toHaveLength(1);
 			expect((user as any).posts[0].comments[0].text).toBe('Great post!');
+		});
+
+		it('reuses already loaded relations without redundant DB queries when loading nested paths', async () => {
+			class NestedComment extends ReadonlyModel {
+				static override tableName = 'comments';
+				static override table = { name: 'comments' };
+				static override primaryKey = 'id';
+			}
+			registerModel('comments2', NestedComment as any);
+
+			class NestedPost extends ReadonlyModel {
+				static override tableName = 'posts';
+				static override table = { name: 'posts' };
+				static override primaryKey = 'id';
+				static override relationships: Record<string, any> = {
+					comments: {
+						type: 'hasMany',
+						model: 'comments2',
+						foreignKey: 'postId',
+						localKey: 'id'
+					}
+				};
+			}
+			registerModel('posts2', NestedPost as any);
+
+			class NestedUser extends ReadonlyModel {
+				static override readonly = true as const;
+				static override tableName = 'user';
+				static override table = { name: 'user' };
+				static override primaryKey = 'id';
+				static override systemKey = 'user' as const;
+				static override relationships: Record<string, any> = {
+					posts: {
+						type: 'hasMany',
+						model: 'posts2',
+						foreignKey: 'authorId',
+						localKey: 'id'
+					}
+				};
+			}
+			registerModel('auth.nestedUser', NestedUser as any);
+
+			const user = NestedUser.fromAttributes({ id: 'u2', name: 'Bob' });
+
+			let postQueries = 0;
+			let commentQueries = 0;
+			const selectMock = vi.fn().mockReturnValue({
+				from: vi.fn().mockImplementation((table) => ({
+					where: vi.fn().mockImplementation(async () => {
+						if (table.name === 'posts') {
+							postQueries++;
+							return [{ id: 200, title: 'Reused Post', authorId: 'u2' }];
+						}
+						if (table.name === 'comments') {
+							commentQueries++;
+							return [{ id: 600, text: 'Reused comment', postId: 200 }];
+						}
+						return [];
+					})
+				}))
+			});
+
+			const { setDatabase } = await import('../../../database/database.js');
+			setDatabase({
+				select: selectMock
+			} as any);
+
+			// Loading 'posts' then 'posts.comments' in one call
+			await RelationshipLoader.loadRelations([user], ['posts', 'posts.comments']);
+
+			expect((user as any).posts).toHaveLength(1);
+			expect((user as any).posts[0].comments).toHaveLength(1);
+			// posts must only be queried once, not twice!
+			expect(postQueries).toBe(1);
+			expect(commentQueries).toBe(1);
+		});
+
+		it('setRelation does not overwrite inherited prototype methods', () => {
+			class TestModel extends ReadonlyModel {
+				static override tableName = 'test';
+			}
+			const instance = new TestModel({ id: 1 });
+			const originalGetRelation = instance.getRelation;
+
+			instance.setRelation('getRelation', 'malicious-value');
+			// relations dictionary stores it
+			expect(instance.relations['getRelation']).toBe('malicious-value');
+			// but instance.getRelation is still a function, not overwritten by defineProperty
+			expect(typeof instance.getRelation).toBe('function');
+			expect(instance.getRelation).toBe(originalGetRelation);
 		});
 	});
 

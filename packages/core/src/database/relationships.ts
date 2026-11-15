@@ -9,6 +9,11 @@ export interface Relationship {
 	model: string;
 	foreignKey?: string; // for belongsTo and hasMany
 	localKey?: string; // for hasMany and hasOne
+	ownerKey?: string;
+	pivotTable?: any;
+	foreignPivotKey?: string;
+	relatedPivotKey?: string;
+	related?: any;
 }
 
 export class RelationshipLoader {
@@ -29,7 +34,11 @@ export class RelationshipLoader {
 		if (models.length === 0) return;
 		const parts = relationPath.split('.');
 		const currentRel = parts[0];
-		await this.loadRelation(models, currentRel);
+
+		const needsLoad = models.some((m) => m.getRelation(currentRel) === undefined);
+		if (needsLoad) {
+			await this.loadRelation(models, currentRel);
+		}
 
 		if (parts.length > 1) {
 			const rest = parts.slice(1).join('.');
@@ -64,10 +73,13 @@ export class RelationshipLoader {
 						type: vr.kind,
 						model: vr.targetModel || vr.targetTable,
 						foreignKey: vr.foreignKey.property || vr.foreignKey.column,
-						localKey: (modelClass as any).primaryKey || 'id'
+						localKey: vr.ownerKey || (modelClass as any).primaryKey || 'id',
+						...(vr.pivotTable || vr.through ? { pivotTable: vr.pivotTable || vr.through } : {}),
+						...(vr.foreignPivotKey ? { foreignPivotKey: vr.foreignPivotKey } : {}),
+						...(vr.relatedPivotKey ? { relatedPivotKey: vr.relatedPivotKey } : {})
 					};
-					if (!modelClass.relationships) {
-						modelClass.relationships = {};
+					if (!Object.prototype.hasOwnProperty.call(modelClass, 'relationships')) {
+						modelClass.relationships = { ...modelClass.relationships };
 					}
 					modelClass.relationships[relationName] = relationship;
 				}

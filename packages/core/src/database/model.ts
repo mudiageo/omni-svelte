@@ -16,6 +16,7 @@ export abstract class ReadonlyModel {
 	static hidden: string[] = [];
 	static casts: Record<string, 'string' | 'number' | 'boolean' | 'date' | 'json'> = {};
 	static relationships: Record<string, any> = {};
+	static systemKey?: string;
 
 	// Instance properties
 	public attributes: Record<string, any> = {};
@@ -158,7 +159,7 @@ export abstract class ReadonlyModel {
 
 	setRelation(name: string, value: any) {
 		this.relations[name] = value;
-		if (!(name in this) || !this.hasOwnProperty(name)) {
+		if (!(name in this)) {
 			Object.defineProperty(this, name, {
 				get: () => this.relations[name],
 				set: (val: any) => {
@@ -389,7 +390,7 @@ export abstract class Model extends ReadonlyModel {
 	// Relationship methods
 	setRelation(name: string, value: any) {
 		this.relations[name] = value;
-		if (!(name in this) || !this.hasOwnProperty(name)) {
+		if (!(name in this)) {
 			Object.defineProperty(this, name, {
 				get: () => this.relations[name],
 				set: (val: any) => {

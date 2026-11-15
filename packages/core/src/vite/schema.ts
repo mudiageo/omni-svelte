@@ -13,9 +13,9 @@ import { ParserFactory } from '../schema/parser.js';
 import { writeFile, mkdir } from 'fs/promises';
 import { dirname } from 'path';
 import { syncAuthSchemas } from '../runtime/auth/auth-sync.js';
-import { getAuthRegistry } from '../runtime/auth/registry.js';
+import { getAuthRegistry, renderSchemaDts } from '../runtime/auth/registry.js';
 import { checkAuthShadowing } from '../schema/auth-reference.js';
-import { collectVirtualRelations } from '../schema/virtual-relations.js';
+import { collectVirtualRelations, getVirtualRelationRegistry } from '../schema/virtual-relations.js';
 
 let schemaConfig: SchemaConfig;
 let schemas: Schema[] = [];
@@ -330,6 +330,15 @@ export async function generateAllSchemas(
 	const registry = getAuthRegistry();
 
 	if (registry) {
+		if (changedFiles && changedFiles.length > 0) {
+			const vReg = getVirtualRelationRegistry();
+			for (const schema of schemas) {
+				if (schema.filePath && changedFiles.includes(schema.filePath)) {
+					vReg.removeForSchema(schema.name);
+				}
+			}
+		}
+
 		checkAuthShadowing(schemas, registry, {
 			warn: (diag) => {
 				if (config.dev?.logLevel !== 'silent') {
@@ -340,6 +349,22 @@ export async function generateAllSchemas(
 			}
 		});
 		collectVirtualRelations(schemas, { authRegistry: registry });
+
+		const root = (omniConfig as any)?.root || process.cwd();
+		const omniDir = resolve(root, '.omni');
+		if (existsSync(omniDir)) {
+			const dtsContent = renderSchemaDts(registry);
+			outputs.push({
+				path: resolve(omniDir, 'schema.d.ts'),
+				content: dtsContent,
+				type: 'typescript'
+			});
+			outputs.push({
+				path: resolve(omniDir, 'auth-registry.d.ts'),
+				content: dtsContent,
+				type: 'typescript'
+			});
+		}
 	}
 
 	// Filter schemas if only specific files changed

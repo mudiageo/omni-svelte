@@ -9,6 +9,12 @@ declare module 'omni-svelte/schema' {
     "verification": true;
   }
 
-  interface AuthRelations {}
+  interface AuthRelations {
+    "account": {};
+    "session": {};
+    "twoFactor": {};
+    "user": {};
+    "verification": {};
+  }
 }
 export {};

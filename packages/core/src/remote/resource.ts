@@ -24,7 +24,9 @@ export interface ResourceOptions<M> {
 	fillable?: { create?: string[]; update?: string[] };
 	with?: (M extends { systemKey: infer K }
 		? K extends keyof AuthRelations
-			? keyof AuthRelations[K] | `${keyof AuthRelations[K] & string}.${string}`
+			? [keyof AuthRelations[K]] extends [never]
+				? string
+				: keyof AuthRelations[K] | `${keyof AuthRelations[K] & string}.${string}` | (string & {})
 			: string
 		: string)[];
 	pagination?: { perPage?: number; strategy?: 'offset' | 'cursor' };
