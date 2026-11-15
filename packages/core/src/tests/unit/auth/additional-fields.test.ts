@@ -68,12 +68,14 @@ describe('additionalFields mapping', () => {
 		});
 	});
 
-	it('passes through raw Better Auth field objects directly', () => {
+	it('passes through raw Better Auth field objects directly without stripping properties', () => {
 		const raw = {
 			type: 'string' as const,
 			required: true,
 			defaultValue: 'admin',
-			input: true
+			input: true,
+			returned: false,
+			customFlag: 123
 		};
 		expect(toBetterAuthField('role', raw)).toEqual(raw);
 	});

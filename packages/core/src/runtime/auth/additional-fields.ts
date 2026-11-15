@@ -5,18 +5,21 @@ export interface BetterAuthField {
 	required?: boolean;
 	defaultValue?: unknown;
 	input?: boolean;
+	returned?: boolean;
+	[key: string]: unknown;
 }
 
 /**
- * Maps an Omni field builder (or raw field definition) into a Better Auth additional field configuration.
+ * Maps an Omni field builder (or passes through native Better Auth field definitions)
+ * into a Better Auth additional field configuration.
  *
  * @param name - The field name (e.g. 'role', 'bio')
- * @param builder - The Omni field builder (e.g. `field.string().default('user')`) or raw field def
+ * @param builder - Better Auth field definition or Omni field builder
  * @returns Standard Better Auth additional field configuration
- * @throws {AuthDiagnostic} AUTH008 if the field type is unsupported by Better Auth
+ * @throws {AuthDiagnostic} AUTH008 if an Omni field builder has an unsupported type
  */
 export function toBetterAuthField(name: string, builder: any): BetterAuthField {
-	// If it's already a plain Better Auth field definition
+	// If it's already a plain Better Auth field definition: pass through completely untouched
 	if (
 		builder &&
 		typeof builder === 'object' &&
@@ -25,12 +28,7 @@ export function toBetterAuthField(name: string, builder: any): BetterAuthField {
 		typeof builder.build !== 'function' &&
 		typeof builder.toJSON !== 'function'
 	) {
-		return {
-			type: builder.type,
-			required: Boolean(builder.required),
-			...(builder.defaultValue !== undefined ? { defaultValue: builder.defaultValue } : {}),
-			...(builder.input !== undefined ? { input: builder.input } : {})
-		};
+		return { ...builder };
 	}
 
 	const def =
