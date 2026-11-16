@@ -4,8 +4,14 @@
 	import * as Breadcrumb from '#lib/components/ui/breadcrumb/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
 	import DocsSidebar from '#lib/components/docs/docs-sidebar.svelte';
+	import { docsNav } from '#lib/docs-nav.js';
 
 	let { children } = $props();
+
+	function getSectionHref(segment: string) {
+		const section = docsNav.find((s) => s.items.some((item) => item.href?.startsWith(`/docs/${segment}`)));
+		return section?.items[0]?.href;
+	}
 </script>
 
 <div class="container-wrapper flex flex-1 flex-col px-2">
@@ -32,10 +38,12 @@
 						<Breadcrumb.Item>
 							{#if i === page.url.pathname.split('/').filter(Boolean).slice(1).length - 1}
 								<Breadcrumb.Page class="capitalize">{segment.replace(/-/g, ' ')}</Breadcrumb.Page>
-							{:else}
-								<Breadcrumb.Link href="/{page.url.pathname.split('/').filter(Boolean).slice(0, i + 2).join('/')}" class="capitalize">
+							{:else if getSectionHref(segment)}
+								<Breadcrumb.Link href={getSectionHref(segment)} class="capitalize">
 									{segment.replace(/-/g, ' ')}
 								</Breadcrumb.Link>
+							{:else}
+								<span class="capitalize text-muted-foreground">{segment.replace(/-/g, ' ')}</span>
 							{/if}
 						</Breadcrumb.Item>
 					{/each}

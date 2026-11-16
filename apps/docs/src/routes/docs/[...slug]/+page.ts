@@ -13,7 +13,7 @@ export const load: PageLoad = async ({ params }) => {
 		if (!doc) {
 			error(404, `Documentation page not found: ${slug}`);
 		}
-		const document = await getDoc(params.slug);
+		const document = await getDoc(slug);
 		const name = document.metadata.slug;
 
 		return { doc, ...document };

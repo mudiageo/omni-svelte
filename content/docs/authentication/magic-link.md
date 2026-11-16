@@ -19,7 +19,7 @@ omni: {
 }
 ```
 
-Also configure an email provider (planned — see the [Email](/docs/planned/email) planned feature).
+Also configure an email provider (planned — see the [Email](/docs/email/introduction) planned feature).
 
 ## Usage
 

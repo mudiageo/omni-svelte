@@ -9,12 +9,32 @@
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import { siteConfig } from '#lib/config.js';
 
+	function normalizePath(p: string) {
+		return p.replace(/\/$/, '');
+	}
+
 	function isActive(href: string | undefined) {
-		return href ? page.url.pathname === href : false;
+		return href ? normalizePath(page.url.pathname) === normalizePath(href) : false;
 	}
 	function isSectionActive(items: (typeof docsNav)[0]['items']) {
-		return items.some((i) => page.url.pathname === i.href);
+		return items.some((i) => i.href && normalizePath(page.url.pathname) === normalizePath(i.href));
 	}
+
+	const collapsedByDefault = new Set(['Integrations', 'Ecosystem & Future', 'Advanced']);
+
+	let openSections = $state<Record<string, boolean>>(
+		Object.fromEntries(
+			docsNav.map((s) => [s.title, !collapsedByDefault.has(s.title) || isSectionActive(s.items)])
+		)
+	);
+
+	$effect(() => {
+		for (const section of docsNav) {
+			if (isSectionActive(section.items)) {
+				openSections[section.title] = true;
+			}
+		}
+	});
 
 	const badgeVariant: Record<string, 'secondary' | 'outline'> = {
 		soon: 'secondary',
@@ -76,7 +96,7 @@
 		</div>
 
 		{#each docsNav as section}
-			<Collapsible.Root open={isSectionActive(section.items)} class="group/collapsible">
+			<Collapsible.Root bind:open={openSections[section.title]} class="group/collapsible">
 				<Sidebar.Group class="py-0">
 					<Sidebar.GroupLabel
 						class="group/label flex cursor-pointer items-center text-[11px] tracking-widest text-muted-foreground/60 uppercase transition-colors hover:text-foreground"
