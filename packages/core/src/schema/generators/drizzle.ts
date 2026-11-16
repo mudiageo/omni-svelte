@@ -134,7 +134,15 @@ function generateColumn(
 					const isAuth =
 						(field.target as any)?.kind === 'system' ||
 						(typeof (field.target as any)?.resolve === 'function' &&
-							(field.target as any).resolve()?.__omniSystem);
+							(field.target as any).resolve()?.__omniSystem) ||
+						(typeof field.target === 'function' &&
+							(() => {
+								try {
+									return isSystemRef((field.target as any)());
+								} catch {
+									return false;
+								}
+							})());
 					column = isAuth ? text(fieldName) : integer(fieldName);
 				}
 			} else {

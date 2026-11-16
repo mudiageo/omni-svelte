@@ -118,9 +118,24 @@ function generateZodField(
 						if (field.unsigned) zodField = (zodField as z.ZodNumber).min(0);
 					}
 				} catch (e) {
-					if (e instanceof AuthDiagnostic) throw e;
-					zodField = z.number().int();
-					if (field.unsigned) zodField = (zodField as z.ZodNumber).min(0);
+					const isAuth =
+						(field.target as any)?.kind === 'system' ||
+						(typeof (field.target as any)?.resolve === 'function' &&
+							(field.target as any).resolve()?.__omniSystem) ||
+						(typeof field.target === 'function' &&
+							(() => {
+								try {
+									return isSystemRef((field.target as any)());
+								} catch {
+									return false;
+								}
+							})());
+					if (isAuth) {
+						zodField = z.string();
+					} else {
+						zodField = z.number().int();
+						if (field.unsigned) zodField = (zodField as z.ZodNumber).min(0);
+					}
 				}
 			} else {
 				zodField = z.number().int();
