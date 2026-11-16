@@ -35,6 +35,13 @@ export function toBetterAuthField(name: string, builder: any): BetterAuthField {
 		typeof builder.type === 'string' &&
 		['string', 'number', 'boolean', 'date'].includes(builder.type)
 	) {
+		if (typeof builder.defaultValue === 'function') {
+			throw new AuthDiagnostic(
+				'AUTH008',
+				`auth.user.additionalFields.${name}: function-based default values are not currently supported in static auth config generation.`,
+				'Use a static literal value (e.g. string, number, boolean) for defaultValue.'
+			);
+		}
 		return { ...builder };
 	}
 
@@ -55,6 +62,14 @@ export function toBetterAuthField(name: string, builder: any): BetterAuthField {
 
 	const isRequired = Boolean(def.required && !def.optional);
 	const defaultValue = def.default !== undefined ? def.default : def.defaultValue;
+
+	if (typeof defaultValue === 'function') {
+		throw new AuthDiagnostic(
+			'AUTH008',
+			`auth.user.additionalFields.${name}: function-based default values are not currently supported in static auth config generation.`,
+			'Use a static literal value (e.g. string, number, boolean) for defaultValue.'
+		);
+	}
 
 	switch (def.type) {
 		case 'string':

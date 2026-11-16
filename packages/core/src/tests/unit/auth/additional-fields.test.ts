@@ -97,6 +97,38 @@ describe('additionalFields mapping', () => {
 		expect(() => toBetterAuthField('invalid', {})).toThrow(/missing type/);
 	});
 
+	it('throws AUTH008 for function-based default values in field builders', () => {
+		expect(() => {
+			toBetterAuthField('createdAt', field.timestamp().default(() => new Date()));
+		}).toThrow(AuthDiagnostic);
+
+		try {
+			toBetterAuthField('createdAt', field.timestamp().default(() => new Date()));
+		} catch (err: any) {
+			expect(err.code).toBe('AUTH008');
+			expect(err.message).toContain('function-based default values are not currently supported');
+		}
+	});
+
+	it('throws AUTH008 for function-based defaultValue in native Better Auth fields', () => {
+		expect(() => {
+			toBetterAuthField('createdAt', {
+				type: 'date',
+				defaultValue: () => new Date()
+			});
+		}).toThrow(AuthDiagnostic);
+
+		try {
+			toBetterAuthField('createdAt', {
+				type: 'date',
+				defaultValue: () => new Date()
+			});
+		} catch (err: any) {
+			expect(err.code).toBe('AUTH008');
+			expect(err.message).toContain('function-based default values are not currently supported');
+		}
+	});
+
 	it('maps dictionaries of builders via mapAdditionalFields', () => {
 		const mapped = mapAdditionalFields({
 			role: field.string().default('user'),
@@ -155,20 +187,52 @@ describe('Config generation and hash detection', () => {
 	});
 
 	it('generateAuthConfig maps additionalFields into generated config', async () => {
-		await generateAuthConfig({
-			user: {
-				additionalFields: {
-					role: field.string().default('user'),
-					age: field.integer().required()
-				}
-			}
-		});
-
 		const configFile = join(runtime_directory, 'auth/__generated__/config.js');
-		const content = await readFile(configFile, 'utf-8');
-		expect(content).toContain('additionalFields:');
-		expect(content).toContain('"type": "string"');
-		expect(content).toContain('"type": "number"');
+		const clientConfigFile = join(runtime_directory, 'auth/__generated__/client-config.js');
+		const prevConfig = await readFile(configFile, 'utf-8').catch(() => null);
+		const prevClientConfig = await readFile(clientConfigFile, 'utf-8').catch(() => null);
+
+		try {
+			await generateAuthConfig({
+				user: {
+					additionalFields: {
+						role: field.string().default('user'),
+						age: field.integer().required()
+					}
+				}
+			});
+
+			const content = await readFile(configFile, 'utf-8');
+			expect(content).toContain('additionalFields:');
+			expect(content).toContain('"type": "string"');
+			expect(content).toContain('"type": "number"');
+		} finally {
+			if (prevConfig !== null) {
+				await writeFile(configFile, prevConfig, 'utf-8');
+			} else {
+				await rm(configFile, { force: true });
+			}
+			if (prevClientConfig !== null) {
+				await writeFile(clientConfigFile, prevClientConfig, 'utf-8');
+			} else {
+				await rm(clientConfigFile, { force: true });
+			}
+		}
+	});
+
+	it('generateAuthConfig throws AUTH008 when additionalFields contains function default', async () => {
+		await expect(
+			generateAuthConfig({
+				user: {
+					additionalFields: {
+						createdAt: {
+							type: 'date',
+							defaultValue: () => new Date()
+						}
+					}
+				}
+			})
+		).rejects.toThrow(AuthDiagnostic);
 	});
 });
 

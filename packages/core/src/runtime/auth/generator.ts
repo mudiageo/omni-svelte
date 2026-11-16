@@ -2,6 +2,7 @@ import { write_if_changed } from '../../utils/filesystem.js';
 import { runtime_directory } from '../../utils/index.js';
 import type { AuthConfig } from './types.js';
 import { mapAdditionalFields } from './additional-fields.js';
+import { AuthDiagnostic } from './diagnostics.js';
 
 export async function generateAuthConfig(auth_config: AuthConfig) {
 	await new AuthConfigGenerator().generate(auth_config);
@@ -285,6 +286,15 @@ export default config;
 
 		if (config.additionalFields) {
 			const mapped = mapAdditionalFields(config.additionalFields);
+			for (const [name, fieldDef] of Object.entries(mapped)) {
+				if (typeof (fieldDef as any)?.defaultValue === 'function') {
+					throw new AuthDiagnostic(
+						'AUTH008',
+						`auth.user.additionalFields.${name}: function-based default values are not currently supported in static auth config generation.`,
+						'Use a static literal value (e.g. string, number, boolean) for defaultValue.'
+					);
+				}
+			}
 			configLines.push(`  additionalFields: ${JSON.stringify(mapped, null, 2)},`);
 		}
 
