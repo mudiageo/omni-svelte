@@ -44,16 +44,68 @@ export const postSchema = defineSchema('posts', {
 ## `field.reference(target)`
 
 ```ts
+// Reference a user-defined schema (infers integer from serial PK)
 field.reference(() => userSchema)
 field.reference(() => userSchema).required()
-field.reference(() => userSchema).required().unsigned()
+
+// Reference a Better Auth table (infers text from user.id)
+field.reference(() => auth.user).required()
+field.reference('session').optional()
 ```
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `target` | `() => Schema` | Thunk returning the referenced schema |
+| `target` | `(() => Schema \| AuthTable) \| string` | Thunk returning the referenced schema or auth table handle (`auth.user`), or string table name |
 
-Produces an integer column with a database foreign-key constraint pointing at the target schema's primary key. Accepts the same chainable modifiers as `field.integer()` — `.required()`, `.optional()`, `.default()`, `.unsigned()`.
+Infers the foreign-key column type directly from the target schema's primary key (e.g. `text` for Better Auth tables like `auth.user`, `integer` for serial PKs) with a database-level foreign-key constraint. Accepts the same chainable modifiers as the inferred column type — `.required()`, `.optional()`, `.default()`, `.unique()`.
+
+---
+
+## Inverse relations on auth tables
+
+When referencing system auth tables like `auth.user`, the target table is managed by Better Auth rather than an Omni `defineSchema`. You cannot add a `relation.hasMany` or `relation.hasOne` directly into Better Auth's schema file.
+
+Instead, declare the inverse relationship on the referencing side using the `inverse` option:
+
+```ts
+import { defineSchema, field, relation, auth } from 'omni-svelte/schema';
+
+export const postSchema = defineSchema('posts', {
+  id: field.serial().primaryKey(),
+  title: field.string(255).required(),
+  authorId: field.reference(() => auth.user).required(),
+
+  author: relation.belongsTo(() => auth.user, {
+    via: 'authorId',
+    inverse: { name: 'posts', kind: 'hasMany' }
+  })
+});
+```
+
+For one-to-one profiles:
+
+```ts
+export const profileSchema = defineSchema('profiles', {
+  id: field.serial().primaryKey(),
+  userId: field.reference(() => auth.user).required().unique(),
+
+  user: relation.belongsTo(() => auth.user, {
+    via: 'userId',
+    inverse: { name: 'profile', kind: 'hasOne' }
+  })
+});
+```
+
+OmniSvelte automatically registers virtual relations and declaration merging so you can query Better Auth models with inverse relations:
+
+```ts
+import { User } from '$lib/db/models/auth/user';
+
+// Eager load posts and profile on the read-only User model
+const user = await User.with(['posts', 'profile']).find(userId);
+```
+
+For a comprehensive guide, see [Auth Tables](/docs/schema/auth-tables).
 
 ---
 

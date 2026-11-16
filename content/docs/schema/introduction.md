@@ -117,5 +117,7 @@ All are discovered automatically. The generated `schema.ts` imports and re-expor
 
 - [defineSchema & field.*](/docs/schema/define-schema) — Full field builder API
 - [Field Types](/docs/schema/field-types) — All available field types and modifiers
+- [Relations](/docs/schema/relations) — Foreign keys, belongsTo, hasMany, and manyToMany associations
+- [Auth Tables](/docs/schema/auth-tables) — Referencing Better Auth tables, read-only models, and inverse relations
 - [Schema Options](/docs/schema/schema-options) — Timestamps, soft deletes, indexes, realtime
 - [Code Generation](/docs/schema/code-generation) — Generated output formats and configuration
