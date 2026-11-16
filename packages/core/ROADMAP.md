@@ -82,6 +82,7 @@ Most features below are combinations of a small set of building blocks. Get thes
 | Feature | Status | Value | Effort | Primitives | Unlocks |
 |---|---|---|---|---|---|
 | Better-Auth integration + generated config | ✅ | — | — | `AUTH` | Sessions, social login, etc. (already works) |
+| Auth Schema Integration (`auth.*` handles, read-only models, inverse relations, `additionalFields`) | ✅ | High | M | `AUTH`, `MODEL` | Seamless foreign keys to Better Auth tables, single Drizzle migration stream |
 | Policy/permissions layer (`can(user, 'update', post)`, RBAC) | 🆕 | High | L | `AUTH`, `MODEL` | Real authorization, not just authentication — required for almost any multi-user app |
 | Rate limiting middleware (global + per remote function) | 🆕 | High | M | `RF`, `AUTH` | Abuse protection for public forms/commands without per-route hand-wiring |
 | Schema-per-tenant isolation | ⬜ *(in old roadmap)* | Medium | XL | `MODEL`, `AUTH` | SaaS apps with hard tenant data isolation |
