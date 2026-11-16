@@ -1,12 +1,14 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 	import { cn } from '#lib/utils.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
 
 	let headings: Array<{ id: string; text: string; level: number }> = $state([]);
 	let activeId = $state('');
 
-	onMount(() => {
+	$effect(() => {
+		// Track pathname so TOC updates on page navigation
+		const _path = page.url.pathname;
 		const article = document.querySelector('article');
 		if (!article) return;
 		const els = Array.from(article.querySelectorAll('h2, h3')) as HTMLElement[];
