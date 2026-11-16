@@ -4,7 +4,7 @@ import type { AuthConfig } from './types.js';
 import { mapAdditionalFields } from './additional-fields.js';
 
 export async function generateAuthConfig(auth_config: AuthConfig) {
-	new AuthConfigGenerator().generate(auth_config);
+	await new AuthConfigGenerator().generate(auth_config);
 }
 
 export class AuthConfigGenerator {

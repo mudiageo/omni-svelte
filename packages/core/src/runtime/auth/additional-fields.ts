@@ -19,14 +19,21 @@ export interface BetterAuthField {
  * @throws {AuthDiagnostic} AUTH008 if an Omni field builder has an unsupported type
  */
 export function toBetterAuthField(name: string, builder: any): BetterAuthField {
+	// Detect Omni FieldBuilder or built Omni FieldDefinition (has `default`, `primary`, `validation`, `optional`)
+	const isOmniDef =
+		typeof builder?.build === 'function' ||
+		typeof builder?.toJSON === 'function' ||
+		(builder &&
+			typeof builder === 'object' &&
+			('default' in builder || 'primary' in builder || 'validation' in builder || 'optional' in builder));
+
 	// If it's already a plain Better Auth field definition: pass through completely untouched
 	if (
+		!isOmniDef &&
 		builder &&
 		typeof builder === 'object' &&
 		typeof builder.type === 'string' &&
-		['string', 'number', 'boolean', 'date'].includes(builder.type) &&
-		typeof builder.build !== 'function' &&
-		typeof builder.toJSON !== 'function'
+		['string', 'number', 'boolean', 'date'].includes(builder.type)
 	) {
 		return { ...builder };
 	}
@@ -47,7 +54,7 @@ export function toBetterAuthField(name: string, builder: any): BetterAuthField {
 	}
 
 	const isRequired = Boolean(def.required && !def.optional);
-	const defaultValue = def.default !== undefined ? def.default : undefined;
+	const defaultValue = def.default !== undefined ? def.default : def.defaultValue;
 
 	switch (def.type) {
 		case 'string':

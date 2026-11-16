@@ -24,6 +24,10 @@ describe('additionalFields mapping', () => {
 			defaultValue: 'hello'
 		});
 
+		// Built Omni definitions retain default value identically to builders
+		const builtField = toBetterAuthField('bio', field.string().required().default('hello').build());
+		expect(builtField).toEqual(stringField);
+
 		expect(toBetterAuthField('notes', { type: 'text' }).type).toBe('string');
 		expect(toBetterAuthField('contactEmail', field.email()).type).toBe('string');
 		expect(toBetterAuthField('status', field.enum('active', 'inactive')).type).toBe('string');
