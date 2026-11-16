@@ -37,6 +37,8 @@ export const docsNav: NavSection[] = [
 			{ title: 'Introduction', href: '/docs/schema/introduction' },
 			{ title: 'defineSchema & field.*', href: '/docs/schema/define-schema' },
 			{ title: 'Field Types', href: '/docs/schema/field-types' },
+			{ title: 'Relations', href: '/docs/schema/relations' },
+			{ title: 'Auth Tables', href: '/docs/schema/auth-tables', label: 'new' },
 			{ title: 'Schema Options', href: '/docs/schema/schema-options' },
 			{ title: 'Code Generation', href: '/docs/schema/code-generation' }
 		]
