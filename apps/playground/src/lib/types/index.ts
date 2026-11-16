@@ -26,6 +26,6 @@ export interface userRolesType {
 }
 
 export interface notesType {
-  // Generated from src/lib/notes.schema.ts
+  // Generated from src/lib/schemas/auth-demo.schema.ts
   [key: string]: any;
 }

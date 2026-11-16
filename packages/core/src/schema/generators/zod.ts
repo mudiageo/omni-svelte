@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { Schema, FieldDefinition, GeneratedOutput } from '../types.js';
 import { PathResolver } from '../utils/path-resolver.js';
-import { resolveReference, buildUserSchemaMap, type ResolvedReference } from '../auth-reference.js';
+import { resolveReference, buildUserSchemaMap, isSystemRef, type ResolvedReference } from '../auth-reference.js';
 import { getAuthRegistry } from '../../runtime/auth/registry.js';
 import { AuthDiagnostic } from '../../runtime/auth/diagnostics.js';
 
@@ -118,9 +118,27 @@ function generateZodField(
 						if (field.unsigned) zodField = (zodField as z.ZodNumber).min(0);
 					}
 				} catch (e) {
-					if (e instanceof AuthDiagnostic) throw e;
-					zodField = z.number().int();
-					if (field.unsigned) zodField = (zodField as z.ZodNumber).min(0);
+					if (e instanceof AuthDiagnostic && e.code !== 'AUTH002') {
+						throw e;
+					}
+					const isAuth =
+						(field.target as any)?.kind === 'system' ||
+						(typeof (field.target as any)?.resolve === 'function' &&
+							(field.target as any).resolve()?.__omniSystem) ||
+						(typeof field.target === 'function' &&
+							(() => {
+								try {
+									return isSystemRef((field.target as any)());
+								} catch {
+									return false;
+								}
+							})());
+					if (isAuth) {
+						zodField = z.string();
+					} else {
+						zodField = z.number().int();
+						if (field.unsigned) zodField = (zodField as z.ZodNumber).min(0);
+					}
 				}
 			} else {
 				zodField = z.number().int();

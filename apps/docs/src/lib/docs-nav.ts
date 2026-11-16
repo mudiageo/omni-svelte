@@ -37,6 +37,8 @@ export const docsNav: NavSection[] = [
 			{ title: 'Introduction', href: '/docs/schema/introduction' },
 			{ title: 'defineSchema & field.*', href: '/docs/schema/define-schema' },
 			{ title: 'Field Types', href: '/docs/schema/field-types' },
+			{ title: 'Relations', href: '/docs/schema/relations' },
+			{ title: 'Auth Tables', href: '/docs/schema/auth-tables', label: 'new' },
 			{ title: 'Schema Options', href: '/docs/schema/schema-options' },
 			{ title: 'Code Generation', href: '/docs/schema/code-generation' }
 		]
@@ -62,7 +64,17 @@ export const docsNav: NavSection[] = [
 			{ title: 'Magic Link', href: '/docs/authentication/magic-link' },
 			{ title: '2FA & Passkeys', href: '/docs/authentication/2fa-passkeys' },
 			{ title: 'Sessions', href: '/docs/authentication/sessions' },
-			{ title: 'Route Protection', href: '/docs/authentication/route-protection' }
+			{ title: 'Route Protection', href: '/docs/authentication/route-protection' },
+			{ title: 'Auth Schema Integration', href: '/docs/authentication/auth-schema-integration', label: 'new' },
+			{ title: 'Policies & Authorization', href: '/docs/authentication/policies', label: 'new' }
+		]
+	},
+	{
+		title: 'Remote Functions',
+		items: [
+			{ title: 'Overview', href: '/docs/remote-functions/introduction' },
+			{ title: 'Form Schemas', href: '/docs/remote-functions/form-schema' },
+			{ title: 'Resource API', href: '/docs/remote-functions/resource-api' }
 		]
 	},
 	{
@@ -93,7 +105,6 @@ export const docsNav: NavSection[] = [
 	{
 		title: 'Advanced',
 		items: [
-			{ title: 'Remote Functions', href: '/docs/remote-functions/introduction', label: 'soon' },
 			{ title: 'Background Jobs', href: '/docs/jobs/introduction', label: 'soon' },
 			{ title: 'Caching', href: '/docs/caching/introduction', label: 'soon' },
 			{ title: 'Realtime', href: '/docs/realtime/introduction', label: 'soon' }
@@ -123,8 +134,6 @@ export const docsNav: NavSection[] = [
 			{ title: 'Configuration API', href: '/docs/reference/configuration-api' },
 			{ title: 'Field Builder API', href: '/docs/reference/field-api' },
 			{ title: 'Model API', href: '/docs/reference/model-api' },
-			{ title: 'Plugin API', href: '/docs/reference/plugin-api' },
-			{ title: 'Virtual Modules', href: '/docs/reference/virtual-modules' },
 			{ title: 'Changelog', href: '/docs/reference/changelog' }
 		]
 	},

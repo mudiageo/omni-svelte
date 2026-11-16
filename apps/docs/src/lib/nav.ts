@@ -26,7 +26,8 @@ export const nav: NavItem[] = [
 			{ title: 'CLI Reference', slug: 'cli' },
 			{ title: 'Database', slug: 'database' },
 			{ title: 'Authentication', slug: 'authentication' },
-			{ title: 'Schema', slug: 'schema' }
+			{ title: 'Schema', slug: 'schema' },
+			{ title: 'Auth Tables', slug: 'schema/auth-tables', badge: 'New' }
 		]
 	},
 	{

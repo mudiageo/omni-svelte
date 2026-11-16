@@ -28,78 +28,81 @@
 	{/if}
 </svelte:head>
 
-<!-- TOC sits in the right column via xl:grid-cols layout in parent -->
-<DocsToc />
+<div class="xl:grid xl:grid-cols-[1fr_220px] xl:gap-10">
+	<article class="prose-docs min-w-0">
+		<!-- Section badge -->
+		{#if section}
+			<Badge variant="secondary" class="mb-3 text-[11px] font-semibold tracking-wider uppercase">
+				{section.title}
+			</Badge>
+		{/if}
 
-<article class="prose-docs min-w-0">
-	<!-- Section badge -->
-	{#if section}
-		<Badge variant="secondary" class="mb-3 text-[11px] font-semibold tracking-wider uppercase">
-			{section.title}
-		</Badge>
-	{/if}
+		<!-- Page header -->
+		<h1 class="mt-1 mb-3 text-3xl font-bold tracking-tight text-foreground">{doc.title}</h1>
+		{#if doc.description}
+			<p class="mb-6 text-lg leading-relaxed text-muted-foreground">{doc.description}</p>
+		{/if}
+		<Separator class="mb-8" />
 
-	<!-- Page header -->
-	<h1 class="mt-1 mb-3 text-3xl font-bold tracking-tight text-foreground">{doc.title}</h1>
-	{#if doc.description}
-		<p class="mb-6 text-lg leading-relaxed text-muted-foreground">{doc.description}</p>
-	{/if}
-	<Separator class="mb-8" />
+		<div class="mdsx">
+			<data.component />
+		</div>
 
-	<div class="mdsx">
-		<data.component />
-	</div>
+		<!-- Pager -->
+		<Separator class="mt-10 mb-6" />
+		<div class="not-prose flex items-stretch justify-between gap-4">
+			{#if prev?.href}
+				<a
+					href={prev.href}
+					class="group flex max-w-[48%] flex-1 flex-col gap-1 rounded-lg border border-border p-4 transition-colors hover:border-primary/50"
+				>
+					<span
+						class="flex items-center gap-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
+					>
+						<ChevronLeft class="h-3 w-3" /> Previous
+					</span>
+					<span
+						class="text-sm leading-tight font-medium text-foreground transition-colors group-hover:text-primary"
+					>
+						{prev.title}
+					</span>
+				</a>
+			{:else}<div class="flex-1"></div>{/if}
 
-	<!-- Pager -->
-	<Separator class="mt-10 mb-6" />
-	<div class="not-prose flex items-stretch justify-between gap-4">
-		{#if prev?.href}
+			{#if next?.href}
+				<a
+					href={next.href}
+					class="group flex max-w-[48%] flex-1 flex-col items-end gap-1 rounded-lg border border-border p-4 transition-colors hover:border-primary/50"
+				>
+					<span
+						class="flex items-center gap-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
+					>
+						Next <ChevronRight class="h-3 w-3" />
+					</span>
+					<span
+						class="text-right text-sm leading-tight font-medium text-foreground transition-colors group-hover:text-primary"
+					>
+						{next.title}
+					</span>
+				</a>
+			{:else}<div class="flex-1"></div>{/if}
+		</div>
+
+		<!-- Edit on GitHub -->
+		<div class="not-prose mt-6 flex items-center justify-center gap-1.5">
 			<a
-				href={prev.href}
-				class="group flex max-w-[48%] flex-1 flex-col gap-1 rounded-lg border border-border p-4 transition-colors hover:border-primary/50"
+				href="https://github.com/mudiageo/omni-svelte/edit/main/apps/docs/content/docs/{doc.slugAsParams}.md"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
 			>
-				<span
-					class="flex items-center gap-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
-				>
-					<ChevronLeft class="h-3 w-3" /> Previous
-				</span>
-				<span
-					class="text-sm leading-tight font-medium text-foreground transition-colors group-hover:text-primary"
-				>
-					{prev.title}
-				</span>
+				<Pencil class="h-3 w-3" />
+				Edit this page on GitHub
 			</a>
-		{:else}<div class="flex-1"></div>{/if}
+		</div>
+	</article>
 
-		{#if next?.href}
-			<a
-				href={next.href}
-				class="group flex max-w-[48%] flex-1 flex-col items-end gap-1 rounded-lg border border-border p-4 transition-colors hover:border-primary/50"
-			>
-				<span
-					class="flex items-center gap-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
-				>
-					Next <ChevronRight class="h-3 w-3" />
-				</span>
-				<span
-					class="text-right text-sm leading-tight font-medium text-foreground transition-colors group-hover:text-primary"
-				>
-					{next.title}
-				</span>
-			</a>
-		{:else}<div class="flex-1"></div>{/if}
+	<div class="hidden xl:block">
+		<DocsToc />
 	</div>
-
-	<!-- Edit on GitHub -->
-	<div class="not-prose mt-6 flex items-center justify-center gap-1.5">
-		<a
-			href="https://github.com/mudiageo/omni-svelte/edit/main/apps/docs/content/docs/{doc.slugAsParams}.md"
-			target="_blank"
-			rel="noopener noreferrer"
-			class="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-		>
-			<Pencil class="h-3 w-3" />
-			Edit this page on GitHub
-		</a>
-	</div>
-</article>
+</div>

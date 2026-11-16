@@ -14,7 +14,7 @@
 				{ href: '/docs/getting-started/installation', label: 'Installation' },
 				{ href: '/docs/getting-started/quick-start', label: 'Quick Start' },
 				{ href: '/docs/plugins/overview', label: 'Plugin System' },
-				{ href: '/docs/reference/cli', label: 'CLI Reference' }
+				{ href: '/docs/cli/overview', label: 'CLI Reference' }
 			]
 		},
 		{

@@ -13,6 +13,7 @@
 		"lint": "prettier --check . && oxlint .",
 		"format": "prettier --write .",
 		"test:unit": "vitest run",
+		"test:auth-e2e": "node scripts/test-auth-e2e.mjs",
 		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",

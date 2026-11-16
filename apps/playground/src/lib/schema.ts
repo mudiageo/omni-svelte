@@ -8,7 +8,10 @@ export const profileSchema = defineSchema(
 		// Identity (name, email, password) lives in the Better Auth `user` table.
 		// The profile only holds app-specific data and points at the auth user (text FK).
 		userId: field.reference(() => auth.user).required().unique(),
-		user: relation.belongsTo(() => auth.user, { via: 'userId' }),
+		user: relation.belongsTo(() => auth.user, {
+			via: 'userId',
+			inverse: { name: 'profile', kind: 'hasOne' }
+		}),
 
 		bio: field.string().optional(),
 
