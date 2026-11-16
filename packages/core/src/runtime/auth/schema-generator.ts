@@ -24,7 +24,10 @@ export function hashAuthConfig(config: any): string {
 			id: p.id || p.name || p.$id,
 			// Include plugin config that affects schema
 			tables: p.schema?.tables
-		}))
+		})),
+		user: {
+			additionalFields: config.user?.additionalFields
+		}
 	};
 
 	return crypto.createHash('sha256').update(JSON.stringify(relevantConfig)).digest('hex');

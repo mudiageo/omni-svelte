@@ -38,3 +38,11 @@ export {
 } from './registry.js';
 
 export { AuthDiagnostic, type AuthDiagnosticCode } from './diagnostics.js';
+
+export {
+	toBetterAuthField,
+	mapAdditionalFields,
+	type BetterAuthField
+} from './additional-fields.js';
+
+
