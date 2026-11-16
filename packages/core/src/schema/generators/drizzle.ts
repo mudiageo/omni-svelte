@@ -2,7 +2,7 @@ import * as pg from 'drizzle-orm/pg-core';
 import { relative, resolve, dirname } from 'node:path';
 import type { Schema, FieldDefinition, GeneratedOutput } from '../types.js';
 import { PathResolver } from '../utils/path-resolver.js';
-import { resolveReference, buildUserSchemaMap, type ResolvedReference } from '../auth-reference.js';
+import { resolveReference, buildUserSchemaMap, isSystemRef, type ResolvedReference } from '../auth-reference.js';
 import { getAuthRegistry } from '../../runtime/auth/registry.js';
 import { AuthDiagnostic } from '../../runtime/auth/diagnostics.js';
 
@@ -130,7 +130,10 @@ function generateColumn(
 							(reference as any).schema?.drizzle?.table?.[reference.pk.property ?? 'id'] ??
 							(reference as any).schema?.table?.[reference.pk.property ?? 'id']
 					);
-				} catch {
+				} catch (e) {
+					if (e instanceof AuthDiagnostic && e.code !== 'AUTH002') {
+						throw e;
+					}
 					const isAuth =
 						(field.target as any)?.kind === 'system' ||
 						(typeof (field.target as any)?.resolve === 'function' &&
