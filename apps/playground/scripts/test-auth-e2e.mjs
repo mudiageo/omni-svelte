@@ -41,14 +41,11 @@ const registry = await buildAuthRegistry({
 console.log(`✅ Auth registry built successfully (${registry.schemas.size} system tables).`);
 
 // Step 2: Generate read-only auth models
-const modelOutputs = ModelGenerator.generateAuthModels(
-	Array.from(registry.schemas.values()),
-	{
-		path: './src/lib/db/models',
-		format: 'per-schema',
-		drizzle: { path: './src/lib/db/server/schema.ts' }
-	}
-);
+const modelOutputs = ModelGenerator.generateAuthModels(Array.from(registry.schemas.values()), {
+	path: './src/lib/db/models',
+	format: 'per-schema',
+	drizzle: { path: './src/lib/db/server/schema.ts' }
+});
 
 for (const out of modelOutputs) {
 	const absPath = join(root, out.path);
@@ -56,6 +53,58 @@ for (const out of modelOutputs) {
 	writeFileSync(absPath, out.content, 'utf-8');
 }
 console.log(`✅ Generated ${modelOutputs.length} auth models into src/lib/db/models/auth/.`);
+
+// Step 2.5: Generate Drizzle schema in an isolated directory using generator
+const { setAuthRegistry } = await import('../../../packages/core/dist/runtime/auth/registry.js');
+const { defineSchema, field, auth } = await import('../../../packages/core/dist/schema/index.js');
+const { DrizzleGenerator } =
+	await import('../../../packages/core/dist/schema/generators/drizzle.js');
+
+setAuthRegistry(registry);
+
+const testNoteSchema = defineSchema('test_notes', {
+	id: field.serial().primaryKey(),
+	body: field.string().required(),
+	ownerId: field.reference(() => auth.user).required(),
+	sessionId: field.reference('session')
+});
+
+const tmpDrizzleDir = join(root, '.omni', 'test-e2e-isolated');
+mkdirSync(tmpDrizzleDir, { recursive: true });
+const isolatedSchemaPath = join(tmpDrizzleDir, 'schema.ts');
+
+const drizzleGen = new DrizzleGenerator(testNoteSchema);
+const drizzleOutputs = await drizzleGen.generateFiles([testNoteSchema], {
+	path: isolatedSchemaPath,
+	format: 'single-file',
+	databaseType: 'pg'
+});
+
+if (!drizzleOutputs || drizzleOutputs.length === 0) {
+	console.error('❌ Drizzle generator failed to produce outputs');
+	process.exit(1);
+}
+
+const isolatedSchemaContent = drizzleOutputs[0].content;
+if (
+	!isolatedSchemaContent.includes('export * from') ||
+	!isolatedSchemaContent.includes('auth-schema')
+) {
+	console.error('❌ Generated Drizzle schema does not re-export .omni/auth-schema');
+	process.exit(1);
+}
+
+const ownerIdFkRegex = /ownerId:\s*text\([^)]*\)\.references\(\(\)\s*=>\s*user\.id\)/;
+if (
+	!isolatedSchemaContent.includes('ownerId: text(') ||
+	!ownerIdFkRegex.test(isolatedSchemaContent)
+) {
+	console.error('❌ Generated Drizzle schema missing text FK reference on ownerId to user.id');
+	process.exit(1);
+}
+console.log(
+	'✅ Generated isolated Drizzle schema correctly re-exports auth tables and includes text FK reference on ownerId.'
+);
 
 // Step 3: Assertions on generated artifacts
 
@@ -83,11 +132,13 @@ if (!schemaContent.includes('export * from') || !schemaContent.includes('auth-sc
 	console.error('❌ src/lib/db/server/schema.ts does not re-export .omni/auth-schema');
 	process.exit(1);
 }
-if (!schemaContent.includes('ownerId: text(') && !schemaContent.includes('.references(() => user.id)')) {
-	console.error('❌ src/lib/db/server/schema.ts missing text FK reference to user.id');
+if (!schemaContent.includes('ownerId: text(') || !ownerIdFkRegex.test(schemaContent)) {
+	console.error('❌ src/lib/db/server/schema.ts missing text FK reference on ownerId to user.id');
 	process.exit(1);
 }
-console.log('✅ src/lib/db/server/schema.ts correctly re-exports auth tables and includes text FK references.');
+console.log(
+	'✅ src/lib/db/server/schema.ts correctly re-exports auth tables and includes text FK references.'
+);
 
 // 3.3: src/lib/db/models/auth/user.ts
 const userModelFile = join(root, 'src/lib/db/models/auth/user.ts');
