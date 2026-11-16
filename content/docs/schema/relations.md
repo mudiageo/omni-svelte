@@ -24,14 +24,14 @@ A relationship has two sides: the column that holds the key, and the declared as
 import { defineSchema, field, relation } from 'omni-svelte/schema';
 
 export const postSchema = defineSchema('posts', {
-  id:       field.serial().primaryKey(),
-  title:    field.string(255).required(),
+	id: field.serial().primaryKey(),
+	title: field.string(255).required(),
 
-  // 1. The physical column — stores the integer FK value
-  authorId: field.reference(() => userSchema).required(),
+	// 1. The physical column — stores the integer FK value
+	authorId: field.reference(() => userSchema).required(),
 
-  // 2. The virtual relation — tells the ORM how to join
-  author:   relation.belongsTo(() => userSchema, { via: 'authorId' }),
+	// 2. The virtual relation — tells the ORM how to join
+	author: relation.belongsTo(() => userSchema, { via: 'authorId' })
 });
 ```
 
@@ -45,17 +45,17 @@ export const postSchema = defineSchema('posts', {
 
 ```ts
 // Reference a user-defined schema (infers integer from serial PK)
-field.reference(() => userSchema)
-field.reference(() => userSchema).required()
+field.reference(() => userSchema);
+field.reference(() => userSchema).required();
 
 // Reference a Better Auth table (infers text from user.id)
-field.reference(() => auth.user).required()
-field.reference('session').optional()
+field.reference(() => auth.user).required();
+field.reference('session').optional();
 ```
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `target` | `(() => Schema \| AuthTable) \| string` | Thunk returning the referenced schema or auth table handle (`auth.user`), or string table name |
+| Field    | Type                                    | Description                                                                                       |
+| -------- | --------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `target` | `(() => Schema \| AuthTable) \| string` | Thunk returning the referenced schema or auth table reference (`auth.user`), or string table name |
 
 Infers the foreign-key column type directly from the target schema's primary key (e.g. `text` for Better Auth tables like `auth.user`, `integer` for serial PKs) with a database-level foreign-key constraint. Accepts the same chainable modifiers as the inferred column type — `.required()`, `.optional()`, `.default()`, `.unique()`.
 
@@ -71,14 +71,14 @@ Instead, declare the inverse relationship on the referencing side using the `inv
 import { defineSchema, field, relation, auth } from 'omni-svelte/schema';
 
 export const postSchema = defineSchema('posts', {
-  id: field.serial().primaryKey(),
-  title: field.string(255).required(),
-  authorId: field.reference(() => auth.user).required(),
+	id: field.serial().primaryKey(),
+	title: field.string(255).required(),
+	authorId: field.reference(() => auth.user).required(),
 
-  author: relation.belongsTo(() => auth.user, {
-    via: 'authorId',
-    inverse: { name: 'posts', kind: 'hasMany' }
-  })
+	author: relation.belongsTo(() => auth.user, {
+		via: 'authorId',
+		inverse: { name: 'posts', kind: 'hasMany' }
+	})
 });
 ```
 
@@ -86,13 +86,16 @@ For one-to-one profiles:
 
 ```ts
 export const profileSchema = defineSchema('profiles', {
-  id: field.serial().primaryKey(),
-  userId: field.reference(() => auth.user).required().unique(),
+	id: field.serial().primaryKey(),
+	userId: field
+		.reference(() => auth.user)
+		.required()
+		.unique(),
 
-  user: relation.belongsTo(() => auth.user, {
-    via: 'userId',
-    inverse: { name: 'profile', kind: 'hasOne' }
-  })
+	user: relation.belongsTo(() => auth.user, {
+		via: 'userId',
+		inverse: { name: 'profile', kind: 'hasOne' }
+	})
 });
 ```
 
@@ -102,7 +105,7 @@ OmniSvelte automatically registers virtual relations and declaration merging so 
 import { User } from '$lib/db/models/auth/user';
 
 // Eager load posts and profile on the read-only User model
-const user = await User.with(['posts', 'profile']).find(userId);
+const user = await User.with(['posts', 'profile']).where('id', userId).first();
 ```
 
 For a comprehensive guide, see [Auth Tables](/docs/schema/auth-tables).
@@ -116,20 +119,20 @@ The most common pattern. A post belongs to a user; a user has many posts.
 ```ts
 // src/lib/schemas/user.schema.ts
 export const userSchema = defineSchema('users', {
-  id:    field.serial().primaryKey(),
-  name:  field.string(255).required(),
-  email: field.email().required().unique(),
+	id: field.serial().primaryKey(),
+	name: field.string(255).required(),
+	email: field.email().required().unique(),
 
-  posts: relation.hasMany(() => postSchema),
+	posts: relation.hasMany(() => postSchema)
 });
 
 // src/lib/schemas/post.schema.ts
 export const postSchema = defineSchema('posts', {
-  id:       field.serial().primaryKey(),
-  title:    field.string(255).required(),
-  authorId: field.reference(() => userSchema).required(),
+	id: field.serial().primaryKey(),
+	title: field.string(255).required(),
+	authorId: field.reference(() => userSchema).required(),
 
-  author:   relation.belongsTo(() => userSchema, { via: 'authorId' }),
+	author: relation.belongsTo(() => userSchema, { via: 'authorId' })
 });
 ```
 
@@ -225,8 +228,8 @@ Any relation declared with `relation.*` can be eager-loaded in `resource()` via 
 ```ts
 // data.remote.ts
 export const { list: posts, get: post } = resource(Post, {
-  with: ['author', 'tags', 'comments'],
-  pagination: { perPage: 20 },
+	with: ['author', 'tags', 'comments'],
+	pagination: { perPage: 20 }
 });
 ```
 
@@ -244,38 +247,46 @@ with: ['author', 'comments.author']
 // src/lib/schemas/user.schema.ts
 import { defineSchema, field, relation } from 'omni-svelte/schema';
 
-export const userSchema = defineSchema('users', {
-  id:      field.serial().primaryKey(),
-  name:    field.string(255).required(),
-  email:   field.email().required().unique(),
-  profile: relation.hasOne(() => profileSchema),
-  posts:   relation.hasMany(() => postSchema),
-}, { timestamps: true });
+export const userSchema = defineSchema(
+	'users',
+	{
+		id: field.serial().primaryKey(),
+		name: field.string(255).required(),
+		email: field.email().required().unique(),
+		profile: relation.hasOne(() => profileSchema),
+		posts: relation.hasMany(() => postSchema)
+	},
+	{ timestamps: true }
+);
 
 // src/lib/schemas/post.schema.ts
-export const postSchema = defineSchema('posts', {
-  id:       field.serial().primaryKey(),
-  title:    field.string(255).required(),
-  slug:     field.string().required().unique(),
-  authorId: field.reference(() => userSchema).required(),
+export const postSchema = defineSchema(
+	'posts',
+	{
+		id: field.serial().primaryKey(),
+		title: field.string(255).required(),
+		slug: field.string().required().unique(),
+		authorId: field.reference(() => userSchema).required(),
 
-  author:   relation.belongsTo(() => userSchema, { via: 'authorId' }),
-  tags:     relation.manyToMany(() => tagSchema, { through: () => postTagSchema }),
-  comments: relation.morphMany(() => commentSchema, { as: 'commentable' }),
-}, { timestamps: true });
+		author: relation.belongsTo(() => userSchema, { via: 'authorId' }),
+		tags: relation.manyToMany(() => tagSchema, { through: () => postTagSchema }),
+		comments: relation.morphMany(() => commentSchema, { as: 'commentable' })
+	},
+	{ timestamps: true }
+);
 ```
 
 ---
 
 ## `relation.*` API Reference
 
-| Builder | Kind | Owns FK? |
-| --- | --- | --- |
-| `relation.belongsTo(target, options?)` | Many-to-one | ✓ this schema |
-| `relation.hasMany(target)` | One-to-many | ✓ target schema |
-| `relation.hasOne(target)` | One-to-one | ✓ target schema |
-| `relation.manyToMany(target, options)` | Many-to-many | ✓ pivot schema |
-| `relation.morphTo(options)` | Polymorphic belongs-to | ✓ this schema |
-| `relation.morphMany(target, options)` | Polymorphic has-many | ✓ target schema |
+| Builder                                | Kind                   | Owns FK?        |
+| -------------------------------------- | ---------------------- | --------------- |
+| `relation.belongsTo(target, options?)` | Many-to-one            | ✓ this schema   |
+| `relation.hasMany(target)`             | One-to-many            | ✓ target schema |
+| `relation.hasOne(target)`              | One-to-one             | ✓ target schema |
+| `relation.manyToMany(target, options)` | Many-to-many           | ✓ pivot schema  |
+| `relation.morphTo(options)`            | Polymorphic belongs-to | ✓ this schema   |
+| `relation.morphMany(target, options)`  | Polymorphic has-many   | ✓ target schema |
 
 > [!TIP] Always use thunks (`() => schema`) for every `target` argument to prevent circular import errors between schema files.

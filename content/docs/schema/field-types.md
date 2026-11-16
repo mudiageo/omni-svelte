@@ -11,24 +11,25 @@ Complete reference for the `field.*` builder API.
 
 ## Core types
 
-| Builder | Drizzle column | TypeScript type |
-|---|---|---|
-| `field.serial()` | `serial()` | `number` |
-| `field.string(length?)` | `varchar(n)` / `text()` | `string` |
-| `field.integer()` | `integer()` | `number` |
-| `field.boolean()` | `boolean()` | `boolean` |
-| `field.timestamp()` | `timestamp()` | `Date` |
-| `field.date()` | `timestamp()` | `Date` |
-| `field.json()` | `json()` | `unknown` |
-| `field.money()` | `decimal(10,2)` | `string` |
-| `field.richtext()` | `text()` | `string` |
-| `field.enum(...values)` | `pgEnum()` | `union` |
+| Builder                 | Drizzle column          | TypeScript type |
+| ----------------------- | ----------------------- | --------------- |
+| `field.serial()`        | `serial()`              | `number`        |
+| `field.string(length?)` | `varchar(n)` / `text()` | `string`        |
+| `field.integer()`       | `integer()`             | `number`        |
+| `field.boolean()`       | `boolean()`             | `boolean`       |
+| `field.timestamp()`     | `timestamp()`           | `Date`          |
+| `field.date()`          | `timestamp()`           | `Date`          |
+| `field.json()`          | `json()`                | `unknown`       |
+| `field.money()`         | `decimal(10,2)`         | `string`        |
+| `field.richtext()`      | `text()`                | `string`        |
+| `field.enum(...values)` | `pgEnum()`              | `union`         |
 
 ## Relation field type
 
 ### `field.reference(target)`
 
 Creates a foreign-key column with a database-level constraint pointing at the target schema or auth table's primary key. The column type is **automatically inferred from the target primary key**:
+
 - `text` primary key &rarr; `text()` / `varchar(255)`
 - `uuid` primary key &rarr; `uuid()` / `varchar(36)` / `text()`
 - `serial` / `integer` primary key &rarr; `integer()` / `int()`
@@ -41,37 +42,38 @@ import { defineSchema, field } from 'omni-svelte/schema';
 import authorSchema from './author.schema.js';
 
 export const postSchema = defineSchema('posts', {
-  id: field.serial().primaryKey(),
-  title: field.string().required(),
-  authorId: field.reference(() => authorSchema).required(),
+	id: field.serial().primaryKey(),
+	title: field.string().required(),
+	authorId: field.reference(() => authorSchema).required()
 });
 ```
 
 #### Referencing Auth Tables
 
-You can reference Better Auth tables using the typed `auth` proxy handle or by string key:
+You can reference Better Auth tables using the typed `auth` reference proxy or by string key:
 
 ```ts
 import { defineSchema, field, auth } from 'omni-svelte/schema';
 
 export const postSchema = defineSchema('posts', {
-  id: field.serial().primaryKey(),
-  title: field.string().required(),
-  // Type-safe reference to auth 'user' table
-  authorId: field.reference(() => auth.user).required(),
-  // Or using string key:
-  // authorId: field.reference('user').required(),
+	id: field.serial().primaryKey(),
+	title: field.string().required(),
+	// Type-safe reference to auth 'user' table
+	authorId: field.reference(() => auth.user).required()
+	// Or using string key:
+	// authorId: field.reference('user').required(),
 });
 ```
 
 Modifiers:
+
 - `.required()` adds a `NOT NULL` constraint.
 - `.unsigned()` can be applied to integer/serial references (throws if applied to non-integer targets).
 - `.default(...)` specifies a column default.
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `target` | `(() => Schema \| SystemSchemaRef) \| (keyof AuthTables & string)` | Target schema thunk, `auth.<table-name>` handle, or auth table string key |
+| Parameter | Type                                                               | Description                                                                  |
+| --------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| `target`  | `(() => Schema \| SystemSchemaRef) \| (keyof AuthTables & string)` | Target schema thunk, `auth.<table-name>` reference, or auth table string key |
 
 > See the [Relations](/docs/schema/relations) page for the full pattern including `relation.belongsTo`, `manyToMany`, and polymorphic associations.
 
@@ -79,13 +81,13 @@ Modifiers:
 
 These map to underlying column types but also configure model validation and hooks:
 
-| Builder | Column | Extra behaviour |
-|---|---|---|
-| `field.email()` | `text()` | Zod `.email()` validation |
+| Builder            | Column   | Extra behaviour                    |
+| ------------------ | -------- | ---------------------------------- |
+| `field.email()`    | `text()` | Zod `.email()` validation          |
 | `field.password()` | `text()` | Auto-bcrypt via `.hash()` modifier |
-| `field.url()` | `text()` | Zod `.url()` validation |
-| `field.slug()` | `text()` | Zod slug-format validation |
-| `field.uuid()` | `uuid()` | Auto `gen_random_uuid()` default |
+| `field.url()`      | `text()` | Zod `.url()` validation            |
+| `field.slug()`     | `text()` | Zod slug-format validation         |
+| `field.uuid()`     | `uuid()` | Auto `gen_random_uuid()` default   |
 
 ## Modifiers (chainable)
 
