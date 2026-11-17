@@ -66,7 +66,8 @@ export async function handleGenerateCommand(options: GenerateCommandOptions): Pr
 	if (type !== 'auth-page' && !name) {
 		const enteredName = await text({
 			message: `Name for ${type}`,
-			placeholder: type === 'schema' ? 'User' : type === 'migration' ? 'add_users_table' : 'MyResource',
+			placeholder:
+				type === 'schema' ? 'User' : type === 'migration' ? 'add_users_table' : 'MyResource',
 			validate(value) {
 				if (!value.trim()) return 'Name is required';
 			}
@@ -86,10 +87,23 @@ export async function handleGenerateCommand(options: GenerateCommandOptions): Pr
 
 	switch (type) {
 		case 'schema':
-			await generateSchema(name, cwd, options.output, Boolean(options.force), Boolean(options.dryRun), options);
+			await generateSchema(
+				name,
+				cwd,
+				options.output,
+				Boolean(options.force),
+				Boolean(options.dryRun),
+				options
+			);
 			break;
 		case 'migration':
-			await generateMigration(name, cwd, options.output, Boolean(options.force), Boolean(options.dryRun));
+			await generateMigration(
+				name,
+				cwd,
+				options.output,
+				Boolean(options.force),
+				Boolean(options.dryRun)
+			);
 			break;
 		case 'remote':
 			await generateRemote(name, cwd, options);
@@ -257,20 +271,30 @@ async function generateRemote(name: string, cwd: string, options: GenerateComman
 	const pluralName = safeName.toLowerCase() + 's';
 	const singularName = safeName.toLowerCase();
 	const modelFileName = toSnakeCase(safeName) + '.schema.js';
-	
-	const targetDir = options.output ? join(cwd, resolve(options.output, '..')) : join(cwd, 'src/routes');
-	const targetFile = options.output ? join(cwd, options.output) : join(targetDir, `${singularName}.remote.ts`);
+
+	const targetDir = options.output
+		? join(cwd, resolve(options.output, '..'))
+		: join(cwd, 'src/routes');
+	const targetFile = options.output
+		? join(cwd, options.output)
+		: join(targetDir, `${singularName}.remote.ts`);
 
 	assertWithinDir(targetFile, cwd);
 
 	let relationsList = '';
 	if (options.with) {
-		relationsList = options.with.split(',').map((s: string) => `'${s.trim()}'`).join(', ');
+		relationsList = options.with
+			.split(',')
+			.map((s: string) => `'${s.trim()}'`)
+			.join(', ');
 	}
 
 	let onlyBlock = '';
 	if (options.only) {
-		onlyBlock = `\n\tonly: [${options.only.split(',').map((s: string) => `'${s.trim()}'`).join(', ')}],`;
+		onlyBlock = `\n\tonly: [${options.only
+			.split(',')
+			.map((s: string) => `'${s.trim()}'`)
+			.join(', ')}],`;
 	}
 
 	let authBlock = '';

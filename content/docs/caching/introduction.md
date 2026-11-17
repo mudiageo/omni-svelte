@@ -18,19 +18,19 @@ import { defineConfig } from 'vitest/config';
 import { omniSvelte } from 'omni-svelte/vite';
 
 export default defineConfig({
-  plugins: [
-    omniSvelte({
-      // Configure cache stores
-      cache: {
-        default: 'main',
-        stores: {
-          main:     { driver: 'memory', ttl: 3600 },
-          redis:    { driver: 'redis', url: process.env.REDIS_URL, ttl: 86400, prefix: 'app:' },
-          sessions: { driver: 'redis', url: process.env.REDIS_URL, prefix: 'sess:', ttl: 604800 }
-        }
-      }
-    })
-  ]
+	plugins: [
+		omniSvelte({
+			// Configure cache stores
+			cache: {
+				default: 'main',
+				stores: {
+					main: { driver: 'memory', ttl: 3600 },
+					redis: { driver: 'redis', url: process.env.REDIS_URL, ttl: 86400, prefix: 'app:' },
+					sessions: { driver: 'redis', url: process.env.REDIS_URL, prefix: 'sess:', ttl: 604800 }
+				}
+			}
+		})
+	]
 });
 ```
 
@@ -80,12 +80,12 @@ Prevent stampedes and race conditions using locks:
 ```ts
 // Blocking: waits for the lock up to maxWait (default 10s), throws LockTimeoutError if exceeded
 await cache.lock('generate:report', { ttl: 30 }).block(async () => {
-  return await buildReport();
+	return await buildReport();
 });
 
 // Non-blocking: attempts lock once, returns false immediately if already held
 const ran = await cache.lock('nightly:prune', { ttl: 60 }).attempt(async () => {
-  await pruneExpiredRecords();
+	await pruneExpiredRecords();
 });
 ```
 
@@ -97,7 +97,7 @@ You can create your own cache drivers by implementing the `CacheStore` interface
 import { cache, defineCacheDriver } from '$omni/cache';
 
 const myCustomDriver = defineCacheDriver((config) => {
-  return new CustomCacheStore(config);
+	return new CustomCacheStore(config);
 });
 
 cache.extend('custom', myCustomDriver);

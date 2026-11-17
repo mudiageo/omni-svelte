@@ -25,7 +25,9 @@ See the [public roadmap](/docs/roadmap) for the target release and design notes.
 ```js
 // vite.config.ts (proposed)
 omni: {
-  realtime: { enabled: true }
+	realtime: {
+		enabled: true;
+	}
 }
 ```
 

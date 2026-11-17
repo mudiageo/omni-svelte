@@ -25,7 +25,10 @@ export function toBetterAuthField(name: string, builder: any): BetterAuthField {
 		typeof builder?.toJSON === 'function' ||
 		(builder &&
 			typeof builder === 'object' &&
-			('default' in builder || 'primary' in builder || 'validation' in builder || 'optional' in builder));
+			('default' in builder ||
+				'primary' in builder ||
+				'validation' in builder ||
+				'optional' in builder));
 
 	// If it's already a plain Better Auth field definition: pass through completely untouched
 	if (

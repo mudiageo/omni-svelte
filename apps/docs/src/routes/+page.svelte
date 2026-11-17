@@ -167,18 +167,18 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 </svelte:head>
 
 <!-- ─── HERO ──────────────────────────────────────────────── -->
-<section class="relative overflow-hidden border-b border-border/40">
+<section class="border-border/40 relative overflow-hidden border-b">
 	<div class="bg-grid absolute inset-0"></div>
 	<div
-		class="pointer-events-none absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background"
+		class="from-background via-background/80 to-background pointer-events-none absolute inset-0 bg-gradient-to-b"
 	></div>
 	<div
-		class="pointer-events-none absolute -top-32 left-1/2 h-[400px] w-[700px] -translate-x-1/2 rounded-full bg-primary/8 blur-3xl"
+		class="bg-primary/8 pointer-events-none absolute -top-32 left-1/2 h-[400px] w-[700px] -translate-x-1/2 rounded-full blur-3xl"
 	></div>
 
 	<div class="relative container mx-auto max-w-5xl px-4 py-24 text-center sm:px-6 md:py-36">
 		<div
-			class="mb-8 inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs text-muted-foreground backdrop-blur"
+			class="border-border/60 bg-background/80 text-muted-foreground mb-8 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs backdrop-blur"
 		>
 			<StatusDot status="success" pulse size="sm" />
 			<span>{siteConfig.version} — Database, Auth & Schema generation stable</span>
@@ -187,24 +187,24 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 		<h1 class="mb-6 text-5xl leading-[1.05] font-bold tracking-tight sm:text-6xl md:text-7xl">
 			SvelteKit,<br />
 			<span
-				class="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent"
+				class="from-primary via-primary/80 to-primary/60 bg-gradient-to-r bg-clip-text text-transparent"
 				style="-webkit-background-clip: text; background-clip: text;"
 			>
 				but with superpowers
 			</span>
 		</h1>
 
-		<p class="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
+		<p class="text-muted-foreground mx-auto mb-10 max-w-2xl text-lg leading-relaxed sm:text-xl">
 			A batteries-included framework built on SvelteKit. One Vite plugin. One config block. Database
 			ORM, auth, schema codegen, typed models, virtual modules — all wired together on every <code
-				class="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">pnpm dev</code
+				class="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">pnpm dev</code
 			>.
 		</p>
 
 		<div class="mb-14 flex flex-wrap items-center justify-center gap-3">
 			<ShinyButton
 				href="/docs/getting-started/installation"
-				class="h-11 border-0 bg-primary px-6 text-sm text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/80"
+				class="bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/80 h-11 border-0 px-6 text-sm shadow-lg"
 			>
 				Get Started
 				<ArrowRight class="ml-1 h-4 w-4" />
@@ -225,7 +225,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 
 		<!-- Install snippet -->
 		<div
-			class="inline-flex items-center gap-3 rounded-lg border border-border/60 bg-zinc-950 px-4 py-2.5 font-mono text-sm text-zinc-300 dark:bg-zinc-900"
+			class="border-border/60 inline-flex items-center gap-3 rounded-lg border bg-zinc-950 px-4 py-2.5 font-mono text-sm text-zinc-300 dark:bg-zinc-900"
 		>
 			<span class="text-primary select-none">$</span>
 			<span>pnpx omni-svelte init</span>
@@ -234,18 +234,18 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 </section>
 
 <!-- ─── FEATURES ──────────────────────────────────────────── -->
-<section class="border-b border-border/40 py-24">
+<section class="border-border/40 border-b py-24">
 	<div class="container mx-auto max-w-6xl px-4 sm:px-6">
 		<div class="mb-14 text-center">
 			<Badge
 				variant="outline"
-				class="mb-4 border-primary/30 text-primary dark:border-primary/50 dark:text-primary"
+				class="border-primary/30 text-primary dark:border-primary/50 dark:text-primary mb-4"
 				>Everything included</Badge
 			>
 			<h2 class="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
 				All the pieces, none of the glue
 			</h2>
-			<p class="mx-auto max-w-2xl text-lg text-muted-foreground">
+			<p class="text-muted-foreground mx-auto max-w-2xl text-lg">
 				Stop wiring the same things together on every project. OmniSvelte handles it at the
 				framework level.
 			</p>
@@ -254,11 +254,11 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 			{#each features as feat}
 				<SpotlightCard color={feat.color} size={280} class="h-full cursor-default">
 					<div class="p-6">
-						<div class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-							<feat.icon class="h-5 w-5 text-foreground" />
+						<div class="bg-muted mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg">
+							<feat.icon class="text-foreground h-5 w-5" />
 						</div>
 						<h3 class="mb-2 text-base font-semibold">{feat.title}</h3>
-						<p class="text-sm leading-relaxed text-muted-foreground">{feat.description}</p>
+						<p class="text-muted-foreground text-sm leading-relaxed">{feat.description}</p>
 					</div>
 				</SpotlightCard>
 			{/each}
@@ -267,27 +267,27 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 </section>
 
 <!-- ─── CODE WALKTHROUGH ──────────────────────────────────── -->
-<section class="border-b border-border/40 bg-muted/20 py-24">
+<section class="border-border/40 bg-muted/20 border-b py-24">
 	<div class="container mx-auto max-w-6xl space-y-20 px-4 sm:px-6">
 		<!-- Step 1: Config -->
 		<div class="grid items-center gap-12 lg:grid-cols-2">
 			<div>
 				<Badge
 					variant="outline"
-					class="mb-4 border-primary/30 text-primary dark:border-primary/50 dark:text-primary"
+					class="border-primary/30 text-primary dark:border-primary/50 dark:text-primary mb-4"
 					>Step 1</Badge
 				>
 				<h2 class="mb-4 text-3xl font-bold tracking-tight">One config block</h2>
-				<p class="mb-5 leading-relaxed text-muted-foreground">
-					Add the <code class="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">omni</code> block
+				<p class="text-muted-foreground mb-5 leading-relaxed">
+					Add the <code class="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">omni</code> block
 					to your existing
-					<code class="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">svelte.config.js</code>.
+					<code class="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">svelte.config.js</code>.
 					Enable database and auth — OmniSvelte handles the rest.
 				</p>
 				<ul class="space-y-2.5 text-sm">
 					{#each ['Zero Drizzle boilerplate', 'Better-Auth wired to SvelteKit hooks', 'Type declarations auto-generated'] as item}
 						<li class="flex items-center gap-2.5">
-							<CheckCircle2 class="h-4 w-4 shrink-0 text-primary" />{item}
+							<CheckCircle2 class="text-primary h-4 w-4 shrink-0" />{item}
 						</li>
 					{/each}
 				</ul>
@@ -327,23 +327,23 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 			<div class="order-1 lg:order-2">
 				<Badge
 					variant="outline"
-					class="mb-4 border-primary/30 text-primary dark:border-primary/50 dark:text-primary"
+					class="border-primary/30 text-primary dark:border-primary/50 dark:text-primary mb-4"
 					>Step 2</Badge
 				>
 				<h2 class="mb-4 text-3xl font-bold tracking-tight">Define your schema once</h2>
-				<p class="mb-5 leading-relaxed text-muted-foreground">
-					Create a <code class="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">.schema.ts</code>
+				<p class="text-muted-foreground mb-5 leading-relaxed">
+					Create a <code class="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">.schema.ts</code>
 					file with the fluent
-					<code class="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">field.*</code> builder. On every
+					<code class="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">field.*</code> builder. On every
 					save, OmniSvelte generates three outputs automatically.
 				</p>
 				<div class="grid grid-cols-3 gap-3">
 					{#each ['Drizzle table', 'Zod validators', 'Model class'] as output}
 						<Card.Root class="px-2 py-3 text-center">
-							<p class="font-mono text-xs font-semibold text-primary dark:text-primary">
+							<p class="text-primary dark:text-primary font-mono text-xs font-semibold">
 								{output.split(' ')[0]}
 							</p>
-							<p class="mt-0.5 text-[11px] text-muted-foreground">
+							<p class="text-muted-foreground mt-0.5 text-[11px]">
 								{output.split(' ').slice(1).join(' ')}
 							</p>
 						</Card.Root>
@@ -363,11 +363,11 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 					>Step 3</Badge
 				>
 				<h2 class="mb-4 text-3xl font-bold tracking-tight">Use the generated model</h2>
-				<p class="mb-5 leading-relaxed text-muted-foreground">
+				<p class="text-muted-foreground mb-5 leading-relaxed">
 					Import from virtual aliases — <code
-						class="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">$models</code
-					>, <code class="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">$db</code>,
-					<code class="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">$auth/server</code> — no path
+						class="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">$models</code
+					>, <code class="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">$db</code>,
+					<code class="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">$auth/server</code> — no path
 					management needed.
 				</p>
 				<Button href="/docs/database/model-api" variant="outline" class="gap-2">
@@ -391,7 +391,7 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 </section>
 
 <!-- ─── COMPARISON ────────────────────────────────────────── -->
-<section class="border-b border-border/40 py-24">
+<section class="border-border/40 border-b py-24">
 	<div class="container mx-auto max-w-3xl px-4 sm:px-6">
 		<div class="mb-10 text-center">
 			<h2 class="mb-2 text-3xl font-bold tracking-tight">OmniSvelte vs plain SvelteKit</h2>
@@ -403,13 +403,13 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 			<Table.Root>
 				<Table.Header>
 					<Table.Row class="bg-muted/50">
-						<Table.Head class="text-xs tracking-wider text-muted-foreground uppercase"
+						<Table.Head class="text-muted-foreground text-xs tracking-wider uppercase"
 							>Feature</Table.Head
 						>
-						<Table.Head class="text-center text-xs tracking-wider text-primary uppercase"
+						<Table.Head class="text-primary text-center text-xs tracking-wider uppercase"
 							>OmniSvelte</Table.Head
 						>
-						<Table.Head class="text-center text-xs tracking-wider text-muted-foreground uppercase"
+						<Table.Head class="text-muted-foreground text-center text-xs tracking-wider uppercase"
 							>Plain SvelteKit</Table.Head
 						>
 					</Table.Row>
@@ -422,14 +422,14 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 								{#if row.omni}
 									<CheckCircle2 class="mx-auto h-4 w-4 text-green-500" />
 								{:else}
-									<span class="text-sm text-muted-foreground">—</span>
+									<span class="text-muted-foreground text-sm">—</span>
 								{/if}
 							</Table.Cell>
 							<Table.Cell class="text-center">
 								{#if row.plain}
 									<CheckCircle2 class="mx-auto h-4 w-4 text-green-500" />
 								{:else}
-									<span class="text-sm text-muted-foreground">DIY</span>
+									<span class="text-muted-foreground text-sm">DIY</span>
 								{/if}
 							</Table.Cell>
 						</Table.Row>
@@ -441,17 +441,17 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 </section>
 
 <!-- ─── ROADMAP ───────────────────────────────────────────── -->
-<section class="border-b border-border/40 bg-muted/20 py-24">
+<section class="border-border/40 bg-muted/20 border-b py-24">
 	<div class="container mx-auto max-w-5xl px-4 sm:px-6">
 		<div class="grid items-start gap-12 lg:grid-cols-2">
 			<div>
 				<Badge
 					variant="outline"
-					class="mb-4 border-primary/30 text-primary dark:border-primary/50 dark:text-primary"
+					class="border-primary/30 text-primary dark:border-primary/50 dark:text-primary mb-4"
 					>Roadmap</Badge
 				>
 				<h2 class="mb-4 text-3xl font-bold tracking-tight">Built for the long term</h2>
-				<p class="mb-6 leading-relaxed text-muted-foreground">
+				<p class="text-muted-foreground mb-6 leading-relaxed">
 					OmniSvelte starts with a solid foundation and grows incrementally — AI primitives,
 					caching, realtime, payments, jobs, and more.
 				</p>
@@ -473,28 +473,28 @@ const full = await Posts.with(['author', 'comments']).find(1);`;
 <section class="py-28">
 	<div class="container mx-auto max-w-3xl px-4 text-center sm:px-6">
 		<div
-			class="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-background to-primary/5 px-8 py-16 dark:border-primary/20"
+			class="border-primary/20 from-primary/5 via-background to-primary/5 dark:border-primary/20 relative overflow-hidden rounded-2xl border bg-gradient-to-br px-8 py-16"
 		>
 			<div
-				class="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full bg-primary/8 blur-3xl"
+				class="bg-primary/8 pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full blur-3xl"
 			></div>
 			<div
-				class="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-primary/8 blur-3xl"
+				class="bg-primary/8 pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full blur-3xl"
 			></div>
 			<div class="relative">
 				<Badge
 					variant="outline"
-					class="mb-5 border-primary/30 text-primary dark:border-primary/30 dark:text-primary"
+					class="border-primary/30 text-primary dark:border-primary/30 dark:text-primary mb-5"
 					>Open Source · MIT License</Badge
 				>
 				<h2 class="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">Start building today</h2>
-				<p class="mx-auto mb-8 max-w-xl text-lg text-muted-foreground">
+				<p class="text-muted-foreground mx-auto mb-8 max-w-xl text-lg">
 					Free, open source, and ready to use. Add OmniSvelte to any SvelteKit project in minutes.
 				</p>
 				<div class="flex flex-wrap items-center justify-center gap-3">
 					<ShinyButton
 						href="/docs/getting-started/installation"
-						class="h-11 border-0 bg-primary px-7 text-sm text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/80"
+						class="bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/80 h-11 border-0 px-7 text-sm shadow-lg"
 					>
 						Get Started Free <ArrowRight class="ml-1 h-4 w-4" />
 					</ShinyButton>

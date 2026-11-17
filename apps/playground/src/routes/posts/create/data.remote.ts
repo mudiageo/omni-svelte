@@ -12,12 +12,12 @@ export const getUsers = query(async () => {
 });
 
 export const createPost = form(
-z.object({
-  title: z.string().min(3, "Title must be at least 3 characters long"),
-  content: z.string().min(10, "Content must be at least 10 characters long"),
-  user_id: z.string().transform((val) => parseInt(val, 10)),
-  published: z.boolean().optional()
-}),
+	z.object({
+		title: z.string().min(3, 'Title must be at least 3 characters long'),
+		content: z.string().min(10, 'Content must be at least 10 characters long'),
+		user_id: z.string().transform((val) => parseInt(val, 10)),
+		published: z.boolean().optional()
+	}),
 	async (data) => {
 		// Verify user exists
 		const user = await User.find(data.user_id);
@@ -32,7 +32,7 @@ z.object({
 			user_id: data.user_id,
 			published: data.published
 		});
-console.log(post)
+		console.log(post);
 		redirect(303, `/posts/${post.id}`);
 	}
 );

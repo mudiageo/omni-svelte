@@ -4,7 +4,7 @@
 
 <div class="relative mb-0 [counter-increment:step]">
 	<div
-		class="absolute -left-[2.85rem] flex h-7 w-7 items-center justify-center rounded-full border-2 border-primary/30 bg-background text-xs font-bold text-primary dark:border-primary/50"
+		class="border-primary/30 bg-background text-primary dark:border-primary/50 absolute -left-[2.85rem] flex h-7 w-7 items-center justify-center rounded-full border-2 text-xs font-bold"
 		style="content: counter(step)"
 	>
 		<span class="select-none" aria-hidden="true">

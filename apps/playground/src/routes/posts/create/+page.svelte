@@ -4,12 +4,10 @@
 	const users = getUsers();
 </script>
 
-<div class="p-6 container mx-auto max-w-2xl">
+<div class="container mx-auto max-w-2xl p-6">
 	<div class="mb-6 flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Create Post</h1>
-		<a href="/posts" class="text-blue-600 hover:text-blue-800">
-			&larr; Back to Posts
-		</a>
+		<a href="/posts" class="text-blue-600 hover:text-blue-800"> &larr; Back to Posts </a>
 	</div>
 
 	{#if createPost.result?.error}
@@ -28,7 +26,9 @@
 				{/each}
 				<input
 					{...createPost.fields.title.as('text')}
-					class="w-full rounded border px-3 py-2 {createPost.fields.title.issues() ? 'border-red-500' : ''}"
+					class="w-full rounded border px-3 py-2 {createPost.fields.title.issues()
+						? 'border-red-500'
+						: ''}"
 					placeholder="Post title"
 				/>
 			</div>
@@ -42,9 +42,10 @@
 				<textarea
 					{...createPost.fields.content.as('text')}
 					rows="6"
-					class="w-full rounded border px-3 py-2 {createPost.fields.content.issues() ? 'border-red-500' : ''}"
-					placeholder="Write your post content here..."
-				></textarea>
+					class="w-full rounded border px-3 py-2 {createPost.fields.content.issues()
+						? 'border-red-500'
+						: ''}"
+					placeholder="Write your post content here..."></textarea>
 			</div>
 
 			<!-- Author (User ID) -->
@@ -55,7 +56,9 @@
 				{/each}
 				<select
 					{...createPost.fields.user_id.as('select')}
-					class="w-full rounded border px-3 py-2 {createPost.fields.user_id.issues() ? 'border-red-500' : ''}"
+					class="w-full rounded border px-3 py-2 {createPost.fields.user_id.issues()
+						? 'border-red-500'
+						: ''}"
 				>
 					<option value="">Select an author...</option>
 					{#each await users as user}
@@ -78,7 +81,7 @@
 			<div class="flex justify-end pt-4">
 				<button
 					type="submit"
-					class="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+					class="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
 				>
 					Create Post
 				</button>

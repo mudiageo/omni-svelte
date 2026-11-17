@@ -28,16 +28,16 @@ For each `.schema.ts`, OmniSvelte generates a class that extends `Model<Table>`:
 ```ts
 // Auto-generated: src/lib/db/models/posts.ts
 export class Posts extends Model<typeof posts> {
-  static find(id)           // → Post | null
-  static findMany(opts)     // → Post[]
-  static findOrFail(id)     // → Post (throws)
-  static create(data)       // → Post
-  static query()            // → QueryBuilder
-  static drizzle()          // → DrizzleDB (escape hatch)
-  static with(relations)    // → RelationLoader
-  update(data)              // → this
-  delete()                  // → void
-  toJSON()                  // → plain object (respects `hidden`)
+	static find(id); // → Post | null
+	static findMany(opts); // → Post[]
+	static findOrFail(id); // → Post (throws)
+	static create(data); // → Post
+	static query(); // → QueryBuilder
+	static drizzle(); // → DrizzleDB (escape hatch)
+	static with(relations); // → RelationLoader
+	update(data); // → this
+	delete(); // → void
+	toJSON(); // → plain object (respects `hidden`)
 }
 ```
 

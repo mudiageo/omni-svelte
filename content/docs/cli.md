@@ -9,7 +9,6 @@ The `omni` command-line interface provides tools to bootstrap, configure, genera
 
 > **Breaking change in v0.2:** CLI commands were restructured. `omni add` is now for adding features/plugins (not for migrating projects). Use `omni migrate sveltekit` instead. Database migrations moved from `omni migrate` to `omni db migrate`.
 
-
 ## Installation
 
 You can run the CLI directly using your preferred package manager:
@@ -74,7 +73,7 @@ omni migrate sveltekit --cwd ./my-app
 
 ### `add [feature]` (alias: `a`)
 
-Adds OmniSvelte features and plugins to your project. *(Note: plugins are coming in a future release)*.
+Adds OmniSvelte features and plugins to your project. _(Note: plugins are coming in a future release)_.
 
 ```bash
 omni add stripe

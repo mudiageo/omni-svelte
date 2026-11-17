@@ -41,8 +41,8 @@ import type { Handle } from '@sveltejs/kit';
 
 // This is composed with auth.handler automatically
 export const handle: Handle = async ({ event, resolve }) => {
-  // Your custom logic
-  return resolve(event);
+	// Your custom logic
+	return resolve(event);
 };
 ```
 

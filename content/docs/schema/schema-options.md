@@ -11,27 +11,27 @@ The third argument to `defineSchema` controls table-level behaviour.
 
 ```ts
 defineSchema('posts', fields, {
-  // Auto-add createdAt / updatedAt timestamp columns
-  timestamps: true,
+	// Auto-add createdAt / updatedAt timestamp columns
+	timestamps: true,
 
-  // Soft deletes — adds deletedAt column, filters queries automatically
-  softDeletes: false,
+	// Soft deletes — adds deletedAt column, filters queries automatically
+	softDeletes: false,
 
-  // Indexes — string = single column, array = composite
-  indexes: ['slug', ['userId', 'published']],
+	// Indexes — string = single column, array = composite
+	indexes: ['slug', ['userId', 'published']],
 
-  // Mass-assignable fields (default: 'auto' = all non-PK, non-timestamp)
-  fillable: 'auto',
+	// Mass-assignable fields (default: 'auto' = all non-PK, non-timestamp)
+	fillable: 'auto',
 
-  // Fields hidden from .toJSON() (default: 'auto' = password fields)
-  hidden: 'auto',
+	// Fields hidden from .toJSON() (default: 'auto' = password fields)
+	hidden: 'auto',
 
-  // Real-time push events
-  realtime: {
-    enabled: true,
-    events: ['created', 'updated', 'deleted'],
-    channels: (record) => [`posts`, `users.${record.userId}`]
-  }
+	// Real-time push events
+	realtime: {
+		enabled: true,
+		events: ['created', 'updated', 'deleted'],
+		channels: (record) => [`posts`, `users.${record.userId}`]
+	}
 });
 ```
 
@@ -47,9 +47,9 @@ When `true`, adds a `deletedAt` nullable timestamp. `Posts.query()` automaticall
 
 ```ts
 indexes: [
-  'slug',                    // single-column index on `slug`
-  ['userId', 'published'],   // composite index
-]
+	'slug', // single-column index on `slug`
+	['userId', 'published'] // composite index
+];
 ```
 
 ## `realtime`
@@ -61,7 +61,7 @@ Requires the realtime feature (planned). When enabled, OmniSvelte broadcasts Web
 Fields excluded from `.toJSON()` and client-side serialization:
 
 ```ts
-hidden: ['password', 'internalNotes']
+hidden: ['password', 'internalNotes'];
 // or
-hidden: 'auto'  // automatically hides fields of type field.password()
+hidden: 'auto'; // automatically hides fields of type field.password()
 ```

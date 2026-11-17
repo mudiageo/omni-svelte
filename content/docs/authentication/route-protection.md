@@ -15,9 +15,9 @@ import { auth } from '$auth/server';
 import { redirect } from '@sveltejs/kit';
 
 export async function load({ request }) {
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session) redirect(302, '/login');
-  return { user: session.user };
+	const session = await auth.api.getSession({ headers: request.headers });
+	if (!session) redirect(302, '/login');
+	return { user: session.user };
 }
 ```
 
@@ -31,9 +31,9 @@ import { auth } from '$auth/server';
 import { redirect } from '@sveltejs/kit';
 
 export async function load({ request }) {
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session) redirect(302, '/login');
-  return { user: session.user };
+	const session = await auth.api.getSession({ headers: request.headers });
+	if (!session) redirect(302, '/login');
+	return { user: session.user };
 }
 ```
 
@@ -43,10 +43,10 @@ All routes under `src/routes/(app)/` are now protected without repeating the che
 
 ```ts
 export async function load({ request }) {
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session) redirect(302, '/login');
-  if (session.user.role !== 'admin') redirect(302, '/403');
-  return { user: session.user };
+	const session = await auth.api.getSession({ headers: request.headers });
+	if (!session) redirect(302, '/login');
+	if (session.user.role !== 'admin') redirect(302, '/403');
+	return { user: session.user };
 }
 ```
 
@@ -63,13 +63,13 @@ import { redirect, type Handle } from '@sveltejs/kit';
 const publicPaths = ['/', '/login', '/register', '/api/auth'];
 
 const protect: Handle = async ({ event, resolve }) => {
-  const isPublic = publicPaths.some(p => event.url.pathname.startsWith(p));
-  if (!isPublic) {
-    const session = await auth.api.getSession({ headers: event.request.headers });
-    if (!session) redirect(302, '/login');
-    event.locals.user = session.user;
-  }
-  return resolve(event);
+	const isPublic = publicPaths.some((p) => event.url.pathname.startsWith(p));
+	if (!isPublic) {
+		const session = await auth.api.getSession({ headers: event.request.headers });
+		if (!session) redirect(302, '/login');
+		event.locals.user = session.user;
+	}
+	return resolve(event);
 };
 
 export const handle = sequence(auth.handler, protect);
@@ -82,15 +82,15 @@ Pass user data down from the layout load:
 ```svelte
 <!-- src/routes/(app)/+layout.svelte -->
 <script lang="ts">
-  import { page } from '$app/stores';
-  const user = $derived($page.data.user);
+	import { page } from '$app/stores';
+	const user = $derived($page.data.user);
 </script>
 
 <nav>
-  <span>{user.name}</span>
-  <form method="POST" action="/api/auth/sign-out">
-    <button type="submit">Sign out</button>
-  </form>
+	<span>{user.name}</span>
+	<form method="POST" action="/api/auth/sign-out">
+		<button type="submit">Sign out</button>
+	</form>
 </nav>
 
 {@render children()}
@@ -112,11 +112,11 @@ import { rateLimit } from '$omni/auth';
 import { z } from 'zod';
 
 export const sendContactMessage = form(
-  contactSchema,
-  rateLimit({ window: '1m', max: 5 }, async (data, ctx) => {
-    await sendSupportTicket(data);
-    return { success: true };
-  })
+	contactSchema,
+	rateLimit({ window: '1m', max: 5 }, async (data, ctx) => {
+		await sendSupportTicket(data);
+		return { success: true };
+	})
 );
 ```
 
@@ -126,17 +126,17 @@ By default, clients are keyed by client IP (`event.getClientAddress()`). You can
 
 ```ts
 export const createPost = form(
-  postSchema,
-  rateLimit(
-    {
-      window: '1h',
-      max: 20,
-      keyBy: (event) => event.locals.user?.id ?? event.getClientAddress()
-    },
-    async (data) => {
-      return await Post.create(data);
-    }
-  )
+	postSchema,
+	rateLimit(
+		{
+			window: '1h',
+			max: 20,
+			keyBy: (event) => event.locals.user?.id ?? event.getClientAddress()
+		},
+		async (data) => {
+			return await Post.create(data);
+		}
+	)
 );
 ```
 
@@ -147,15 +147,15 @@ To apply rate limiting across your entire application, configure it in `omniSvel
 ```ts
 // vite.config.ts
 export default defineConfig({
-  plugins: [
-    omniSvelte({
-      rateLimit: {
-        window: '1m',
-        max: 100,
-        keyBy: (event) => event.getClientAddress()
-      }
-    })
-  ]
+	plugins: [
+		omniSvelte({
+			rateLimit: {
+				window: '1m',
+				max: 100,
+				keyBy: (event) => event.getClientAddress()
+			}
+		})
+	]
 });
 ```
 

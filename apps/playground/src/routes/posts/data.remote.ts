@@ -30,7 +30,7 @@ export const {
 	authorize: async ({ user, operation, record }) => {
 		// Public reads
 		if (operation === 'list' || operation === 'get') return true;
-		
+
 		// The record is perfectly pre-fetched by resource.ts and passed right here!
 		return can(user, operation, record, postPolicy);
 	}

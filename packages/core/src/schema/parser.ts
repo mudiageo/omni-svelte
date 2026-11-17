@@ -69,23 +69,24 @@ export class RegexSchemaParser implements ISchemaParser {
 			const content = readFileSync(filePath, 'utf8');
 			const schemas: Schema[] = [];
 
-			const defineRegex = /export\s+const\s+(\w+Schema)\s*=\s*defineSchema\s*\(\s*['"`](\w+)['"`]\s*,/g;
+			const defineRegex =
+				/export\s+const\s+(\w+Schema)\s*=\s*defineSchema\s*\(\s*['"`](\w+)['"`]\s*,/g;
 			let match;
-			
+
 			while ((match = defineRegex.exec(content)) !== null) {
 				const schemaName = match[2];
 				const startIndex = defineRegex.lastIndex;
-				
+
 				let fieldsContent = '';
 				let configContent = '';
-				
+
 				let depth = 0;
 				let inString = false;
 				let stringChar = '';
 				let currentBlock = '';
 				let i = startIndex;
 				let started = false;
-				
+
 				for (; i < content.length; i++) {
 					const char = content[i];
 					if (!inString && (char === '"' || char === "'" || char === '`')) {
@@ -94,7 +95,7 @@ export class RegexSchemaParser implements ISchemaParser {
 					} else if (inString && char === stringChar && content[i - 1] !== '\\') {
 						inString = false;
 					}
-					
+
 					if (!inString) {
 						if (char === '{') {
 							depth++;
@@ -113,7 +114,7 @@ export class RegexSchemaParser implements ISchemaParser {
 					}
 					if (started) currentBlock += char;
 				}
-				
+
 				let hasConfig = false;
 				for (; i < content.length; i++) {
 					const char = content[i];
@@ -123,9 +124,9 @@ export class RegexSchemaParser implements ISchemaParser {
 						break;
 					}
 					if (char === ')' || char === ';') break;
-					if (char.trim()) break; 
+					if (char.trim()) break;
 				}
-				
+
 				if (hasConfig) {
 					depth = 0;
 					inString = false;
@@ -139,7 +140,7 @@ export class RegexSchemaParser implements ISchemaParser {
 						} else if (inString && char === stringChar && content[i - 1] !== '\\') {
 							inString = false;
 						}
-						
+
 						if (!inString) {
 							if (char === '{') {
 								depth++;
@@ -157,11 +158,13 @@ export class RegexSchemaParser implements ISchemaParser {
 						if (started) currentBlock += char;
 					}
 				}
-				
+
 				if (fieldsContent) {
 					fieldsContent = fieldsContent.trim().replace(/^\{/, '').replace(/\}$/, '');
-					configContent = configContent ? configContent.trim().replace(/^\{/, '').replace(/\}$/, '') : '';
-					
+					configContent = configContent
+						? configContent.trim().replace(/^\{/, '').replace(/\}$/, '')
+						: '';
+
 					const rawFields = this.extractFields(fieldsContent, content);
 					const fields: Record<string, any> = {};
 					const relations: Record<string, any> = {};
@@ -197,7 +200,11 @@ export class RegexSchemaParser implements ISchemaParser {
 		}
 	}
 
-	private parseSchemaFromMatch(match: string, filePath: string, fullContent: string = ''): Schema | null {
+	private parseSchemaFromMatch(
+		match: string,
+		filePath: string,
+		fullContent: string = ''
+	): Schema | null {
 		// Deprecated: logic moved to parseSchemas to handle brace balancing
 		return null;
 	}
@@ -252,7 +259,13 @@ export class RegexSchemaParser implements ISchemaParser {
 					}
 
 					// Field name separator
-					if (depthBrace === 0 && depthParen === 0 && depthBracket === 0 && char === ':' && !currentFieldName) {
+					if (
+						depthBrace === 0 &&
+						depthParen === 0 &&
+						depthBracket === 0 &&
+						char === ':' &&
+						!currentFieldName
+					) {
 						currentFieldName = currentField.trim();
 						currentField = '';
 						i++;
@@ -304,7 +317,9 @@ export class RegexSchemaParser implements ISchemaParser {
 					if (stringMatch) {
 						field.target = { kind: 'system', key: stringMatch[1] };
 					} else {
-						const thunkMatch = fieldDef.match(/field\.reference\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?\s*\)/);
+						const thunkMatch = fieldDef.match(
+							/field\.reference\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?\s*\)/
+						);
 						if (thunkMatch) {
 							const targetIdentifier = thunkMatch[1];
 							if (targetIdentifier.startsWith('auth.')) {
@@ -314,7 +329,9 @@ export class RegexSchemaParser implements ISchemaParser {
 								let targetTableName = targetIdentifier.replace(/Schema$/i, '');
 								if (!targetTableName.endsWith('s')) targetTableName += 's';
 								if (fullContent) {
-									const tableMatch = new RegExp(targetIdentifier + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(fullContent);
+									const tableMatch = new RegExp(
+										targetIdentifier + '\\s*=\\s*defineSchema\\s*\\(\\s*[\'"`]([^\'"`]+)[\'"`]'
+									).exec(fullContent);
 									if (tableMatch) {
 										targetTableName = tableMatch[1];
 									}
@@ -333,41 +350,49 @@ export class RegexSchemaParser implements ISchemaParser {
 			const relationMatch = fieldDef.match(/relation\.(\w+)\s*\(/);
 			if (relationMatch) {
 				field.kind = relationMatch[1];
-				
-				const fullMatch = fieldDef.match(/relation\.\w+\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?(?:\s*,\s*(\{[\s\S]*?\}))?\s*\)/);
+
+				const fullMatch = fieldDef.match(
+					/relation\.\w+\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?(?:\s*,\s*(\{[\s\S]*?\}))?\s*\)/
+				);
 				if (fullMatch) {
 					const targetVar = fullMatch[1];
 					const optionsRaw = fullMatch[2];
-					
+
 					if (targetVar.startsWith('auth.')) {
 						const authKey = targetVar.split('.')[1];
 						field.target = () => ({ __omniSystem: true, key: authKey, name: authKey });
 					} else {
 						let targetTableName = targetVar.replace(/Schema$/i, '');
 						if (!targetTableName.endsWith('s')) targetTableName += 's';
-						
+
 						if (fullContent) {
-							const tableMatch = new RegExp(targetVar + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(fullContent);
+							const tableMatch = new RegExp(
+								targetVar + '\\s*=\\s*defineSchema\\s*\\(\\s*[\'"`]([^\'"`]+)[\'"`]'
+							).exec(fullContent);
 							if (tableMatch) {
 								targetTableName = tableMatch[1];
 							}
 						}
-						
+
 						field.target = () => ({ name: targetTableName });
 					}
-					
+
 					if (optionsRaw) {
 						const viaMatch = optionsRaw.match(/via:\s*['"`]([^'"`]+)['"`]/);
 						if (viaMatch) {
 							field.options = { ...field.options, via: viaMatch[1] };
 						}
-						const throughMatch = optionsRaw.match(/through:\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_]+)/);
+						const throughMatch = optionsRaw.match(
+							/through:\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_]+)/
+						);
 						if (throughMatch) {
 							const pivotVar = throughMatch[1];
 							let pivotTableName = pivotVar.replace(/Schema$/i, '');
 							if (!pivotTableName.endsWith('s')) pivotTableName += 's';
 							if (fullContent) {
-								const tableMatch = new RegExp(pivotVar + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(fullContent);
+								const tableMatch = new RegExp(
+									pivotVar + '\\s*=\\s*defineSchema\\s*\\(\\s*[\'"`]([^\'"`]+)[\'"`]'
+								).exec(fullContent);
 								if (tableMatch) {
 									pivotTableName = tableMatch[1];
 								}
@@ -683,7 +708,7 @@ export class ASTSchemaParser implements ISchemaParser {
 
 		if (ts.isCallExpression(node) || ts.isPropertyAccessExpression(node)) {
 			const text = node.getText(this.sourceFile);
-			
+
 			// Extract type from fluent field API
 			const fluentTypeMatch = text.match(/field\.(\w+)\s*\(/);
 			if (fluentTypeMatch) {
@@ -699,7 +724,9 @@ export class ASTSchemaParser implements ISchemaParser {
 					if (stringMatch) {
 						fieldDef.target = { kind: 'system', key: stringMatch[1] };
 					} else {
-						const thunkMatch = text.match(/field\.reference\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?\s*\)/);
+						const thunkMatch = text.match(
+							/field\.reference\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?\s*\)/
+						);
 						if (thunkMatch) {
 							const targetIdentifier = thunkMatch[1];
 							if (targetIdentifier.startsWith('auth.')) {
@@ -710,7 +737,9 @@ export class ASTSchemaParser implements ISchemaParser {
 								if (!targetTableName.endsWith('s')) targetTableName += 's';
 								if (this.sourceFile) {
 									const sourceCode = this.sourceFile.getFullText();
-									const tableMatch = new RegExp(targetIdentifier + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(sourceCode);
+									const tableMatch = new RegExp(
+										targetIdentifier + '\\s*=\\s*defineSchema\\s*\\(\\s*[\'"`]([^\'"`]+)[\'"`]'
+									).exec(sourceCode);
 									if (tableMatch) {
 										targetTableName = tableMatch[1];
 									}
@@ -726,48 +755,56 @@ export class ASTSchemaParser implements ISchemaParser {
 
 				return fieldDef as FieldDefinition;
 			}
-			
+
 			// Extract relation from fluent relation API
 			const relationMatch = text.match(/relation\.(\w+)\s*\(/);
 			if (relationMatch) {
 				fieldDef.kind = relationMatch[1];
-				
-				const fullMatch = text.match(/relation\.\w+\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?(?:\s*,\s*(\{[\s\S]*?\}))?\s*\)/);
+
+				const fullMatch = text.match(
+					/relation\.\w+\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?(?:\s*,\s*(\{[\s\S]*?\}))?\s*\)/
+				);
 				if (fullMatch) {
 					const targetVar = fullMatch[1];
 					const optionsRaw = fullMatch[2];
-					
+
 					if (targetVar.startsWith('auth.')) {
 						const authKey = targetVar.split('.')[1];
 						fieldDef.target = () => ({ __omniSystem: true, key: authKey, name: authKey });
 					} else {
 						let targetTableName = targetVar.replace(/Schema$/i, '');
 						if (!targetTableName.endsWith('s')) targetTableName += 's';
-						
+
 						if (this.sourceFile) {
 							const sourceCode = this.sourceFile.getFullText();
-							const tableMatch = new RegExp(targetVar + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(sourceCode);
+							const tableMatch = new RegExp(
+								targetVar + '\\s*=\\s*defineSchema\\s*\\(\\s*[\'"`]([^\'"`]+)[\'"`]'
+							).exec(sourceCode);
 							if (tableMatch) {
 								targetTableName = tableMatch[1];
 							}
 						}
-						
+
 						fieldDef.target = () => ({ name: targetTableName });
 					}
-					
+
 					if (optionsRaw) {
 						const viaMatch = optionsRaw.match(/via:\s*['"`]([^'"`]+)['"`]/);
 						if (viaMatch) {
 							fieldDef.options = { ...fieldDef.options, via: viaMatch[1] };
 						}
-						const throughMatch = optionsRaw.match(/through:\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_]+)/);
+						const throughMatch = optionsRaw.match(
+							/through:\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_]+)/
+						);
 						if (throughMatch) {
 							const pivotVar = throughMatch[1];
 							let pivotTableName = pivotVar.replace(/Schema$/i, '');
 							if (!pivotTableName.endsWith('s')) pivotTableName += 's';
 							if (this.sourceFile) {
 								const sourceCode = this.sourceFile.getFullText();
-								const tableMatch = new RegExp(pivotVar + "\\s*=\\s*defineSchema\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]").exec(sourceCode);
+								const tableMatch = new RegExp(
+									pivotVar + '\\s*=\\s*defineSchema\\s*\\(\\s*[\'"`]([^\'"`]+)[\'"`]'
+								).exec(sourceCode);
 								if (tableMatch) {
 									pivotTableName = tableMatch[1];
 								}
@@ -776,7 +813,7 @@ export class ASTSchemaParser implements ISchemaParser {
 						}
 					}
 				}
-				
+
 				return fieldDef as any;
 			}
 		}

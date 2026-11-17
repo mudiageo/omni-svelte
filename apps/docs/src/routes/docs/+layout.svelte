@@ -24,7 +24,7 @@
 
 	<Sidebar.Inset>
 		<!-- Top header bar inside inset -->
-		<header class="flex h-14 shrink-0 items-center gap-2 border-b border-border/50 px-4">
+		<header class="border-border/50 flex h-14 shrink-0 items-center gap-2 border-b px-4">
 			<Sidebar.Trigger class="-ml-1" />
 			<Separator orientation="vertical" class="h-4" />
 			<!-- Breadcrumb built from current path -->
@@ -43,7 +43,7 @@
 									{segment.replace(/-/g, ' ')}
 								</Breadcrumb.Link>
 							{:else}
-								<span class="capitalize text-muted-foreground">{segment.replace(/-/g, ' ')}</span>
+								<span class="text-muted-foreground capitalize">{segment.replace(/-/g, ' ')}</span>
 							{/if}
 						</Breadcrumb.Item>
 					{/each}
@@ -52,7 +52,7 @@
 		</header>
 
 		<!-- Content area -->
-		<div class="flex flex-1 flex-col p-6 md:p-8 lg:p-10 max-w-5xl mx-auto w-full">
+		<div class="mx-auto flex w-full max-w-5xl flex-1 flex-col p-6 md:p-8 lg:p-10">
 			{@render children()}
 		</div>
 	</Sidebar.Inset>

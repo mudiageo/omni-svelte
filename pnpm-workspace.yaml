@@ -11,3 +11,18 @@ allowBuilds:
   sharp: true
 minimumReleaseAgeExclude:
   - '@sveltejs/kit@3.0.0-next.12'
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+  vitest: 5.0.5
+  vite-plus: 1.4.0
+  '@vitest/browser-playwright': 5.0.5
+overrides:
+  vite@*: 'catalog:'
+  vitest@*: 'catalog:'
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    vite: '*'
+    vitest: '*'

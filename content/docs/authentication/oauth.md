@@ -44,15 +44,15 @@ import { authClient } from '$auth/client';
 
 // Redirect-based — most common
 await authClient.signIn.social({
-  provider:    'google',
-  callbackURL: '/dashboard'
+	provider: 'google',
+	callbackURL: '/dashboard'
 });
 
 // With error handling
 const { data, error } = await authClient.signIn.social({
-  provider:    'github',
-  callbackURL: '/dashboard',
-  errorCallbackURL: '/error'
+	provider: 'github',
+	callbackURL: '/dashboard',
+	errorCallbackURL: '/error'
 });
 ```
 
@@ -60,17 +60,17 @@ const { data, error } = await authClient.signIn.social({
 
 Better-Auth supports a wide range of providers. Add any of these to `socialProviders`:
 
-| Key | Provider |
-|---|---|
-| `google` | Google |
-| `github` | GitHub |
-| `discord` | Discord |
-| `twitter` | Twitter / X |
-| `microsoft` | Microsoft |
-| `apple` | Apple |
-| `linkedin` | LinkedIn |
-| `spotify` | Spotify |
-| `twitch` | Twitch |
+| Key         | Provider    |
+| ----------- | ----------- |
+| `google`    | Google      |
+| `github`    | GitHub      |
+| `discord`   | Discord     |
+| `twitter`   | Twitter / X |
+| `microsoft` | Microsoft   |
+| `apple`     | Apple       |
+| `linkedin`  | LinkedIn    |
+| `spotify`   | Spotify     |
+| `twitch`    | Twitch      |
 
 ## Callback URL
 

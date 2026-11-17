@@ -44,5 +44,3 @@ export {
 	mapAdditionalFields,
 	type BetterAuthField
 } from './additional-fields.js';
-
-

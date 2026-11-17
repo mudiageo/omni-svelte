@@ -65,7 +65,11 @@ export const docsNav: NavSection[] = [
 			{ title: '2FA & Passkeys', href: '/docs/authentication/2fa-passkeys' },
 			{ title: 'Sessions', href: '/docs/authentication/sessions' },
 			{ title: 'Route Protection', href: '/docs/authentication/route-protection' },
-			{ title: 'Auth Schema Integration', href: '/docs/authentication/auth-schema-integration', label: 'new' },
+			{
+				title: 'Auth Schema Integration',
+				href: '/docs/authentication/auth-schema-integration',
+				label: 'new'
+			},
 			{ title: 'Policies & Authorization', href: '/docs/authentication/policies', label: 'new' }
 		]
 	},

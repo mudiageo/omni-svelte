@@ -20,15 +20,15 @@ This is equivalent to importing from the generated `src/lib/db/server/schema.ts`
 ## Usage with `$db`
 
 ```ts
-import { db }    from '$db';
+import { db } from '$db';
 import { posts, users } from '$schema';
 import { eq } from 'omni-svelte/drizzle/pg';
 
 const result = await db
-  .select()
-  .from(posts)
-  .innerJoin(users, eq(posts.userId, users.id))
-  .where(eq(posts.published, true));
+	.select()
+	.from(posts)
+	.innerJoin(users, eq(posts.userId, users.id))
+	.where(eq(posts.published, true));
 ```
 
 ## Usage with Drizzle Kit
@@ -38,7 +38,7 @@ const result = await db
 ```ts
 // drizzle.config.ts
 export default defineConfig({
-  schema: './src/lib/db/server/schema.ts',   // real path
-  // NOT '$schema'
+	schema: './src/lib/db/server/schema.ts' // real path
+	// NOT '$schema'
 });
 ```

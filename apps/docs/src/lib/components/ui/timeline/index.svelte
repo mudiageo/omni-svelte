@@ -28,7 +28,7 @@
 		<div class="relative flex gap-4 pb-8 last:pb-0">
 			<!-- Line -->
 			{#if i < items.length - 1}
-				<div class="absolute top-6 bottom-0 left-[11px] w-px bg-border"></div>
+				<div class="bg-border absolute top-6 bottom-0 left-[11px] w-px"></div>
 			{/if}
 
 			<!-- Dot -->
@@ -48,11 +48,11 @@
 			<!-- Content -->
 			<div class="flex-1 pt-0.5 pb-1">
 				{#if item.date}
-					<p class="mb-1 text-xs font-medium text-muted-foreground">{item.date}</p>
+					<p class="text-muted-foreground mb-1 text-xs font-medium">{item.date}</p>
 				{/if}
 				<h4 class="text-sm leading-tight font-semibold">{item.title}</h4>
 				{#if item.description}
-					<p class="mt-1 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+					<p class="text-muted-foreground mt-1 text-sm leading-relaxed">{item.description}</p>
 				{/if}
 			</div>
 		</div>

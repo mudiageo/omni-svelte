@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vite-plus/test';
 import { PathResolver } from '../../schema/utils/path-resolver';
 
 describe('Path Resolution - Final Validation', () => {

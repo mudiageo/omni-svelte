@@ -1,12 +1,54 @@
-import { defineConfig } from 'vitest/config';
+// vp migrate: merged apps%2Fplayground%2F.oxlintrc.json (52ebc9bd2218a5a07ba9f710d64a3e1a).
+import { defineConfig, lazyPlugins } from 'vite-plus';
 import tailwindcss from '@tailwindcss/vite';
 import { omniSvelte } from 'omni-svelte/vite';
-import { playwright } from '@vitest/browser-playwright';
+import { playwright } from 'vite-plus/test/browser-playwright';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import adapter from '@sveltejs/adapter-auto';
 
 export default defineConfig({
-	plugins: [
+	lint: {
+		plugins: ['unicorn'],
+		categories: {
+			correctness: 'off'
+		},
+		env: {
+			builtin: true
+		},
+		rules: {
+			'vite-plus/prefer-vite-plus-imports': 'error'
+		},
+		overrides: [
+			{
+				files: ['*.svelte', '**/*.svelte'],
+				rules: {
+					'no-inner-declarations': 'off',
+					'no-self-assign': 'off'
+				},
+				jsPlugins: [],
+				globals: {
+					$state: 'readonly',
+					$derived: 'readonly',
+					$effect: 'readonly',
+					$props: 'readonly',
+					$bindable: 'readonly',
+					$inspect: 'readonly',
+					$host: 'readonly'
+				}
+			}
+		],
+		options: {
+			typeAware: false,
+			typeCheck: false
+		},
+		jsPlugins: [
+			{
+				name: 'vite-plus',
+				specifier: 'vite-plus/oxlint-plugin'
+			}
+		]
+	},
+	plugins: lazyPlugins(() => [
 		tailwindcss(),
 		omniSvelte({
 			preprocess: vitePreprocess(),
@@ -80,8 +122,18 @@ export default defineConfig({
 				}
 			}
 		})
-	],
+	]),
 	test: {
+		// Vitest v4 compatibility: preserve mock call history.
+		// Remove after tests no longer rely on calls from setup or earlier tests.
+		// https://viteplus.dev/guide/vitest-v5#remove-unneeded-compatibility-settings
+		// https://vitest.dev/guide/migration/#clearmocks-is-enabled-by-default
+		clearMocks: false,
+		// Vitest v4 compatibility: keep separate Vite servers for inline projects.
+		// Remove when plugins and config hooks can run once for shared projects.
+		// https://viteplus.dev/guide/vitest-v5#remove-unneeded-compatibility-settings
+		// https://vitest.dev/guide/migration/#inline-projects-share-the-vite-server-by-default
+		sharedViteServer: false,
 		projects: [
 			{
 				extends: './vite.config.ts',

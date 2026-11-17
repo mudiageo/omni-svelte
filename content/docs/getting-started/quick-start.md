@@ -17,16 +17,16 @@ Create `src/lib/posts.schema.ts`:
 import { defineSchema, field } from 'omni-svelte/schema';
 
 export default defineSchema(
-  'posts',
-  {
-    id:        field.serial().primaryKey(),
-    title:     field.string(255).required(),
-    slug:      field.slug().required().unique(),
-    content:   field.string().required(),
-    published: field.boolean().default(false),
-    userId:    field.integer().required()
-  },
-  { timestamps: true, indexes: ['slug', 'published'] }
+	'posts',
+	{
+		id: field.serial().primaryKey(),
+		title: field.string(255).required(),
+		slug: field.slug().required().unique(),
+		content: field.string().required(),
+		published: field.boolean().default(false),
+		userId: field.integer().required()
+	},
+	{ timestamps: true, indexes: ['slug', 'published'] }
 );
 ```
 
@@ -43,13 +43,9 @@ Save the file. OmniSvelte generates:
 import { Posts } from '$models/posts.model';
 
 export async function load() {
-  const posts = await Posts
-    .query()
-    .where('published', true)
-    .orderBy('created_at', 'desc')
-    .get();
+	const posts = await Posts.query().where('published', true).orderBy('created_at', 'desc').get();
 
-  return { posts };
+	return { posts };
 }
 ```
 
@@ -61,10 +57,10 @@ import { auth } from '$auth/server';
 import { redirect } from '@sveltejs/kit';
 
 export async function load({ request }) {
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session) redirect(302, '/login');
+	const session = await auth.api.getSession({ headers: request.headers });
+	if (!session) redirect(302, '/login');
 
-  return { user: session.user };
+	return { user: session.user };
 }
 ```
 
@@ -77,17 +73,17 @@ import { createPostSchema } from '$validation/posts.validation';
 import { fail } from '@sveltejs/kit';
 
 export const actions = {
-  default: async ({ request }) => {
-    const formData = await request.formData();
-    const result = createPostSchema.safeParse(Object.fromEntries(formData));
+	default: async ({ request }) => {
+		const formData = await request.formData();
+		const result = createPostSchema.safeParse(Object.fromEntries(formData));
 
-    if (!result.success) {
-      return fail(400, { errors: result.error.flatten() });
-    }
+		if (!result.success) {
+			return fail(400, { errors: result.error.flatten() });
+		}
 
-    const post = await Posts.create(result.data);
-    return { success: true, id: post.id };
-  }
+		const post = await Posts.create(result.data);
+		return { success: true, id: post.id };
+	}
 };
 ```
 
@@ -96,23 +92,23 @@ export const actions = {
 ```svelte
 <!-- src/routes/login/+page.svelte -->
 <script lang="ts">
-  import { authClient } from '$auth/client';
-  import { goto } from '$app/navigation';
+	import { authClient } from '$auth/client';
+	import { goto } from '$app/navigation';
 
-  let email = $state('');
-  let password = $state('');
+	let email = $state('');
+	let password = $state('');
 
-  async function login(event) {
-    event.preventDefault()
-    await authClient.signIn.email({ email, password });
-    goto('/dashboard');
-  }
+	async function login(event) {
+		event.preventDefault();
+		await authClient.signIn.email({ email, password });
+		goto('/dashboard');
+	}
 </script>
 
 <form onsubmit={login}>
-  <input bind:value={email} type="email" placeholder="Email" required />
-  <input bind:value={password} type="password" placeholder="Password" required />
-  <button type="submit">Sign in</button>
+	<input bind:value={email} type="email" placeholder="Email" required />
+	<input bind:value={password} type="password" placeholder="Password" required />
+	<button type="submit">Sign in</button>
 </form>
 ```
 

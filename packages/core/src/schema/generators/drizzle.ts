@@ -2,7 +2,12 @@ import * as pg from 'drizzle-orm/pg-core';
 import { relative, resolve, dirname } from 'node:path';
 import type { Schema, FieldDefinition, GeneratedOutput } from '../types.js';
 import { PathResolver } from '../utils/path-resolver.js';
-import { resolveReference, buildUserSchemaMap, isSystemRef, type ResolvedReference } from '../auth-reference.js';
+import {
+	resolveReference,
+	buildUserSchemaMap,
+	isSystemRef,
+	type ResolvedReference
+} from '../auth-reference.js';
 import { getAuthRegistry } from '../../runtime/auth/registry.js';
 import { AuthDiagnostic } from '../../runtime/auth/diagnostics.js';
 
@@ -319,7 +324,7 @@ export class DrizzleGenerator {
 		const lines: string[] = [];
 
 		for (const [key, rel] of Object.entries(this.schema.relations)) {
-			let targetTable = this.resolveTargetName(rel.target);
+			const targetTable = this.resolveTargetName(rel.target);
 
 			if (rel.kind === 'belongsTo') {
 				// FK sits on this table; convention: `${key}Id` unless overridden via `via`

@@ -11,35 +11,35 @@ OmniSvelte models support lifecycle hooks for running logic before and after dat
 
 ## Available hooks
 
-| Hook | Fires |
-|---|---|
+| Hook       | Fires                             |
+| ---------- | --------------------------------- |
 | `creating` | Before `INSERT` — can modify data |
-| `created` | After `INSERT` |
+| `created`  | After `INSERT`                    |
 | `updating` | Before `UPDATE` — can modify data |
-| `updated` | After `UPDATE` |
-| `deleting` | Before `DELETE` |
-| `deleted` | After `DELETE` |
+| `updated`  | After `UPDATE`                    |
+| `deleting` | Before `DELETE`                   |
+| `deleted`  | After `DELETE`                    |
 
 ## Defining hooks in a schema
 
 ```ts
 defineSchema('posts', fields, {
-  hooks: {
-    creating(data) {
-      // Automatically generate slug from title
-      if (!data.slug && data.title) {
-        data.slug = data.title.toLowerCase().replace(/\s+/g, '-');
-      }
-      return data;
-    },
-    created(post) {
-      console.log('Post created:', post.id);
-    },
-    updating(data) {
-      data.updatedAt = new Date();
-      return data;
-    }
-  }
+	hooks: {
+		creating(data) {
+			// Automatically generate slug from title
+			if (!data.slug && data.title) {
+				data.slug = data.title.toLowerCase().replace(/\s+/g, '-');
+			}
+			return data;
+		},
+		created(post) {
+			console.log('Post created:', post.id);
+		},
+		updating(data) {
+			data.updatedAt = new Date();
+			return data;
+		}
+	}
 });
 ```
 
@@ -49,13 +49,13 @@ You can also override hooks in the generated model file (or a manually created m
 
 ```ts
 export class Posts extends Model<typeof posts> {
-  static async creating(data: CreatePost) {
-    data.slug ??= slugify(data.title);
-    return data;
-  }
+	static async creating(data: CreatePost) {
+		data.slug ??= slugify(data.title);
+		return data;
+	}
 
-  static async created(post: Post) {
-    await sendNotification('New post: ' + post.title);
-  }
+	static async created(post: Post) {
+		await sendNotification('New post: ' + post.title);
+	}
 }
 ```

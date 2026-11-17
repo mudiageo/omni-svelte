@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vite-plus/test';
 import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs';
 import { join } from 'path';
 import {
@@ -145,9 +145,7 @@ describe('buildDrizzleConfigContent', () => {
 			true,
 			'./.omni/auth-schema.ts'
 		);
-		expect(content).toContain(
-			"schema: ['./src/lib/db/server/**/*.ts', './.omni/auth-schema.ts'],"
-		);
+		expect(content).toContain("schema: ['./src/lib/db/server/**/*.ts', './.omni/auth-schema.ts'],");
 	});
 });
 
@@ -243,8 +241,6 @@ describe('generateDrizzleConfig', () => {
 		await generateDrizzleConfig(ROOT, config, makeOmniConfig());
 
 		const content = readFileSync(configPath, 'utf-8');
-		expect(content).toContain(
-			"schema: ['./src/lib/db/server/**/*.ts', './.omni/auth-schema.ts'],"
-		);
+		expect(content).toContain("schema: ['./src/lib/db/server/**/*.ts', './.omni/auth-schema.ts'],");
 	});
 });

@@ -1,7 +1,12 @@
 import { z } from 'zod';
 import type { Schema, FieldDefinition, GeneratedOutput } from '../types.js';
 import { PathResolver } from '../utils/path-resolver.js';
-import { resolveReference, buildUserSchemaMap, isSystemRef, type ResolvedReference } from '../auth-reference.js';
+import {
+	resolveReference,
+	buildUserSchemaMap,
+	isSystemRef,
+	type ResolvedReference
+} from '../auth-reference.js';
 import { getAuthRegistry } from '../../runtime/auth/registry.js';
 import { AuthDiagnostic } from '../../runtime/auth/diagnostics.js';
 
@@ -294,7 +299,7 @@ export class ZodGenerator {
 					const generator = new ZodGenerator(schema, userSchemaByTable);
 					const content = generator.generate();
 					// Remove the import line since we'll add it once at the top
-					return content.replace(/^import { z } from 'omni\-svelte\/validation';\s*\n/m, '');
+					return content.replace(/^import { z } from 'omni-svelte\/validation';\s*\n/m, '');
 				})
 				.join('\n\n');
 
@@ -322,7 +327,7 @@ export class ZodGenerator {
 	}
 
 	private generateImports(): string {
-		return `import { z } from 'omni\-svelte\/validation';`;
+		return `import { z } from 'omni-svelte/validation';`;
 	}
 
 	private generateCreateSchema(): string {

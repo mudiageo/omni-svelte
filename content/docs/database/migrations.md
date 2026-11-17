@@ -18,10 +18,10 @@ OmniSvelte writes a `drizzle.config.ts` on first run:
 import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
-  schema:  './src/lib/db/server/schema.ts',
-  out:     './drizzle/migrations',
-  dialect: 'postgresql',
-  dbCredentials: { url: process.env.DATABASE_URL! }
+	schema: './src/lib/db/server/schema.ts',
+	out: './drizzle/migrations',
+	dialect: 'postgresql',
+	dbCredentials: { url: process.env.DATABASE_URL! }
 });
 ```
 
@@ -29,13 +29,13 @@ Add convenience scripts to `package.json`:
 
 ```json
 {
-  "scripts": {
-    "db:push":    "drizzle-kit push",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio":  "drizzle-kit studio",
-    "db:drop":    "drizzle-kit drop"
-  }
+	"scripts": {
+		"db:push": "drizzle-kit push",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:studio": "drizzle-kit studio",
+		"db:drop": "drizzle-kit drop"
+	}
 }
 ```
 
@@ -104,12 +104,10 @@ OmniSvelte doesn't ship a seeder runner yet (planned for v0.2). Use a plain scri
 
 ```ts
 // scripts/seed.ts
-import { db }   from '../src/lib/db/server/index.js';
+import { db } from '../src/lib/db/server/index.js';
 import { users } from '../src/lib/db/server/schema.js';
 
-await db.insert(users).values([
-  { name: 'Admin', email: 'admin@example.com', role: 'admin' }
-]);
+await db.insert(users).values([{ name: 'Admin', email: 'admin@example.com', role: 'admin' }]);
 console.log('Seeded!');
 process.exit(0);
 ```

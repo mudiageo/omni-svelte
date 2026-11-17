@@ -62,7 +62,7 @@ Plugins are composed in order. If plugin A's `handle` depends on locals set by p
 
 ```js
 plugins: [
-  sessionPlugin(),   // sets event.locals.session
-  permissionPlugin() // reads event.locals.session
-]
+	sessionPlugin(), // sets event.locals.session
+	permissionPlugin() // reads event.locals.session
+];
 ```

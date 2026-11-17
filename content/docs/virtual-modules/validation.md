@@ -26,10 +26,10 @@ For a schema with required fields `title`, `content`, `userId` and optional `pub
 ```ts
 // $validation/posts.validation
 export const createPostSchema = z.object({
-  title:     z.string().max(255),
-  content:   z.string(),
-  userId:    z.number().int(),
-  published: z.boolean().optional().default(false)
+	title: z.string().max(255),
+	content: z.string(),
+	userId: z.number().int(),
+	published: z.boolean().optional().default(false)
 });
 
 export const updatePostSchema = createPostSchema.partial();
@@ -46,19 +46,19 @@ import { createPostSchema } from '$validation/posts.validation';
 import { fail } from '@sveltejs/kit';
 
 export const actions = {
-  default: async ({ request }) => {
-    const data = Object.fromEntries(await request.formData());
-    const result = createPostSchema.safeParse(data);
+	default: async ({ request }) => {
+		const data = Object.fromEntries(await request.formData());
+		const result = createPostSchema.safeParse(data);
 
-    if (!result.success) {
-      return fail(400, {
-        errors: result.error.flatten().fieldErrors
-      });
-    }
+		if (!result.success) {
+			return fail(400, {
+				errors: result.error.flatten().fieldErrors
+			});
+		}
 
-    const post = await Posts.create(result.data);
-    return { success: true, postId: post.id };
-  }
+		const post = await Posts.create(result.data);
+		return { success: true, postId: post.id };
+	}
 };
 ```
 
@@ -70,14 +70,14 @@ import { createPostSchema } from '$validation/posts.validation';
 import { json, error } from '@sveltejs/kit';
 
 export async function POST({ request }) {
-  const body = await request.json();
-  const result = createPostSchema.safeParse(body);
+	const body = await request.json();
+	const result = createPostSchema.safeParse(body);
 
-  if (!result.success) {
-    error(400, { message: 'Validation failed', errors: result.error.flatten() });
-  }
+	if (!result.success) {
+		error(400, { message: 'Validation failed', errors: result.error.flatten() });
+	}
 
-  const post = await Posts.create(result.data);
-  return json(post, { status: 201 });
+	const post = await Posts.create(result.data);
+	return json(post, { status: 201 });
 }
 ```

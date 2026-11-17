@@ -18,10 +18,10 @@ pnpm add -D vitest @vitest/coverage-v8
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  test: {
-    environment: 'node',
-    globals:     true
-  }
+	test: {
+		environment: 'node',
+		globals: true
+	}
 });
 ```
 
@@ -33,32 +33,32 @@ import { describe, it, expect, vi } from 'vitest';
 import { auditPlugin } from './audit.js';
 
 describe('auditPlugin', () => {
-  it('registers the audit_logs table', () => {
-    const plugin = auditPlugin();
-    const tables = plugin.registerTables?.();
-    expect(tables).toHaveProperty('auditLogs');
-  });
+	it('registers the audit_logs table', () => {
+		const plugin = auditPlugin();
+		const tables = plugin.registerTables?.();
+		expect(tables).toHaveProperty('auditLogs');
+	});
 
-  it('logs model events', async () => {
-    const insertMock = vi.fn().mockResolvedValue([]);
-    const plugin = auditPlugin({ db: { insert: () => ({ values: insertMock }) } as any });
+	it('logs model events', async () => {
+		const insertMock = vi.fn().mockResolvedValue([]);
+		const plugin = auditPlugin({ db: { insert: () => ({ values: insertMock }) } as any });
 
-    await plugin.onModelEvent?.({
-      type:      'created',
-      modelName: 'posts',
-      data:      { id: 1, title: 'Test' }
-    });
+		await plugin.onModelEvent?.({
+			type: 'created',
+			modelName: 'posts',
+			data: { id: 1, title: 'Test' }
+		});
 
-    expect(insertMock).toHaveBeenCalledOnce();
-  });
+		expect(insertMock).toHaveBeenCalledOnce();
+	});
 
-  it('ignores creating/updating hooks', async () => {
-    const insertMock = vi.fn();
-    const plugin = auditPlugin({ db: { insert: () => ({ values: insertMock }) } as any });
+	it('ignores creating/updating hooks', async () => {
+		const insertMock = vi.fn();
+		const plugin = auditPlugin({ db: { insert: () => ({ values: insertMock }) } as any });
 
-    await plugin.onModelEvent?.({ type: 'creating', modelName: 'posts', data: {} });
-    expect(insertMock).not.toHaveBeenCalled();
-  });
+		await plugin.onModelEvent?.({ type: 'creating', modelName: 'posts', data: {} });
+		expect(insertMock).not.toHaveBeenCalled();
+	});
 });
 ```
 
@@ -69,15 +69,15 @@ import { describe, it, expect, vi } from 'vitest';
 import { requestLogPlugin } from './request-log.js';
 
 describe('requestLogPlugin handle', () => {
-  it('logs request duration', async () => {
-    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
-    const plugin = requestLogPlugin();
+	it('logs request duration', async () => {
+		const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+		const plugin = requestLogPlugin();
 
-    const mockEvent = { request: { method: 'GET' }, url: { pathname: '/test' } } as any;
-    const mockResolve = vi.fn().mockResolvedValue({ status: 200 });
+		const mockEvent = { request: { method: 'GET' }, url: { pathname: '/test' } } as any;
+		const mockResolve = vi.fn().mockResolvedValue({ status: 200 });
 
-    await plugin.handle?.({ event: mockEvent, resolve: mockResolve });
-    expect(log).toHaveBeenCalledWith(expect.stringContaining('GET /test → 200'));
-  });
+		await plugin.handle?.({ event: mockEvent, resolve: mockResolve });
+		expect(log).toHaveBeenCalledWith(expect.stringContaining('GET /test → 200'));
+	});
 });
 ```

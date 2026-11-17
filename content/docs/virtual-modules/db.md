@@ -27,13 +27,13 @@ const db: PostgresJsDatabase;
 ## Basic usage
 
 ```ts
-import { db }    from '$db';
+import { db } from '$db';
 import { users } from '$schema';
-import { eq }    from 'omni-svelte/drizzle/pg';
+import { eq } from 'omni-svelte/drizzle/pg';
 
 // Select
 const allUsers = await db.select().from(users);
-const user     = await db.select().from(users).where(eq(users.id, 1));
+const user = await db.select().from(users).where(eq(users.id, 1));
 
 // Insert
 const [newUser] = await db.insert(users).values({ name, email }).returning();
@@ -51,17 +51,17 @@ await db.delete(users).where(eq(users.id, 1));
 import { db } from '$db';
 
 await db.transaction(async (tx) => {
-  const [user] = await tx.insert(users).values({ name, email }).returning();
-  await tx.insert(profiles).values({ userId: user.id });
+	const [user] = await tx.insert(users).values({ name, email }).returning();
+	await tx.insert(profiles).values({ userId: user.id });
 });
 ```
 
 ## When to use `$db` vs. the Model API
 
-| Situation | Use |
-|---|---|
-| Simple CRUD | `Posts.find()`, `Posts.create()`, `Posts.query()` |
-| Complex multi-table joins | `$db` |
-| Transactions spanning multiple tables | `$db` |
-| Aggregates, raw SQL | `$db` |
-| Migrations, one-off scripts | `$db` |
+| Situation                             | Use                                               |
+| ------------------------------------- | ------------------------------------------------- |
+| Simple CRUD                           | `Posts.find()`, `Posts.create()`, `Posts.query()` |
+| Complex multi-table joins             | `$db`                                             |
+| Transactions spanning multiple tables | `$db`                                             |
+| Aggregates, raw SQL                   | `$db`                                             |
+| Migrations, one-off scripts           | `$db`                                             |

@@ -12,8 +12,8 @@ OmniSvelte generates a `Model` class for every `.schema.ts` file. The model wrap
 ## Import
 
 ```ts
-import { Posts } from '$models/posts.model';    // single model
-import { Posts, Users } from '$models';          // barrel — all models
+import { Posts } from '$models/posts.model'; // single model
+import { Posts, Users } from '$models'; // barrel — all models
 ```
 
 ---
@@ -31,10 +31,10 @@ const post = await Posts.find(1);
 
 ```ts
 const posts = await Posts.findMany({
-  where:   { published: true },
-  orderBy: { createdAt: 'desc' },
-  limit:   10,
-  offset:  0
+	where: { published: true },
+	orderBy: { createdAt: 'desc' },
+	limit: 10,
+	offset: 0
 });
 ```
 
@@ -42,10 +42,10 @@ const posts = await Posts.findMany({
 
 ```ts
 const post = await Posts.create({
-  title:   'Hello World',
-  slug:    'hello-world',
-  content: 'My first post',
-  userId:  1
+	title: 'Hello World',
+	slug: 'hello-world',
+	content: 'My first post',
+	userId: 1
 });
 // Returns Post (with generated id, createdAt, updatedAt)
 ```
@@ -53,13 +53,12 @@ const post = await Posts.create({
 ### `query()` — fluent query builder
 
 ```ts
-const posts = await Posts
-  .query()
-  .where('published', true)
-  .where('userId', userId)
-  .orderBy('created_at', 'desc')
-  .limit(10)
-  .get();
+const posts = await Posts.query()
+	.where('published', true)
+	.where('userId', userId)
+	.orderBy('created_at', 'desc')
+	.limit(10)
+	.get();
 ```
 
 ### `drizzle()`
@@ -69,10 +68,10 @@ Escape hatch to the raw Drizzle instance:
 ```ts
 const db = Posts.drizzle();
 const result = await db
-  .select({ id: posts.id, title: posts.title })
-  .from(posts)
-  .innerJoin(users, eq(posts.userId, users.id))
-  .where(and(eq(posts.published, true), gt(posts.createdAt, cutoff)));
+	.select({ id: posts.id, title: posts.title })
+	.from(posts)
+	.innerJoin(users, eq(posts.userId, users.id))
+	.where(and(eq(posts.published, true), gt(posts.createdAt, cutoff)));
 ```
 
 ---
@@ -105,11 +104,11 @@ import { userSchema } from './users.schema';
 import { commentSchema } from './comments.schema';
 
 export const postSchema = defineSchema('posts', {
-  id: field.serial().primaryKey(),
-  title: field.string(255).required(),
-  authorId: field.integer().required(),
-  author: relation.belongsTo(() => userSchema, { via: 'authorId' }),
-  comments: relation.hasMany(() => commentSchema)
+	id: field.serial().primaryKey(),
+	title: field.string(255).required(),
+	authorId: field.integer().required(),
+	author: relation.belongsTo(() => userSchema, { via: 'authorId' }),
+	comments: relation.hasMany(() => commentSchema)
 });
 ```
 
@@ -150,7 +149,7 @@ import { db } from '$db';
 import { posts } from '$schema';
 
 export const PostModel = createModel(db, posts, {
-  primaryKey: 'id',
-  timestamps: true
+	primaryKey: 'id',
+	timestamps: true
 });
 ```

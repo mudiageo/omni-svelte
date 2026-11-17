@@ -12,7 +12,7 @@ export interface URLParamsMapping {
 }
 
 /**
- * Extracts and maps URL query parameters into a `ListInput` object 
+ * Extracts and maps URL query parameters into a `ListInput` object
  * suitable for `resource().list` queries.
  *
  * @param url The URL object (e.g. from `$page.url` or `event.url`)
@@ -57,8 +57,16 @@ export function fromURL(url: URL, mapping?: URLParamsMapping): ListInput {
 	} else {
 		// Default: gather any URL param that is NOT page, per_page, perPage, search, or q
 		// as a filter.
-		const reserved = new Set([pageParamName, perPageParamName, searchParamName, 'per_page', 'perPage', 'q', 'search']);
-		
+		const reserved = new Set([
+			pageParamName,
+			perPageParamName,
+			searchParamName,
+			'per_page',
+			'perPage',
+			'q',
+			'search'
+		]);
+
 		for (const [key, val] of params.entries()) {
 			if (!reserved.has(key)) {
 				if (!input.filters) input.filters = {};
@@ -76,11 +84,11 @@ export function fromURL(url: URL, mapping?: URLParamsMapping): ListInput {
 function parseFilterValue(val: string): string | number | boolean {
 	if (val === 'true') return true;
 	if (val === 'false') return false;
-	
+
 	const num = Number(val);
 	if (!isNaN(num) && val.trim() !== '') {
 		return num;
 	}
-	
+
 	return val;
 }

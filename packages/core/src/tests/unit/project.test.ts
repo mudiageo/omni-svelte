@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach } from 'vite-plus/test';
 import { addOmniToViteConfig } from '../../cli/utils/project.js';
 import { writeFileSync, existsSync, rmSync, mkdirSync, readFileSync } from 'fs';
 import { join } from 'path';

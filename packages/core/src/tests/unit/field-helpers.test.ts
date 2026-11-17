@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vite-plus/test';
 import { field } from '../../schema/field.js';
 
 describe('field.* builder API', () => {

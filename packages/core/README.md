@@ -92,22 +92,22 @@ import { defineConfig } from 'vite';
 import { omniSvelte } from 'omni-svelte/vite';
 
 export default defineConfig({
-  plugins: [
-    omniSvelte({
-      database: {
-        enabled: true,
-        connection: { url: process.env.DATABASE_URL }
-      },
-      auth: {
-        enabled: true,
-        secret: process.env.BETTER_AUTH_SECRET,
-        emailAndPassword: { enabled: true }
-      },
-      kit: {
-        // SvelteKit options go here
-      }
-    })
-  ]
+	plugins: [
+		omniSvelte({
+			database: {
+				enabled: true,
+				connection: { url: process.env.DATABASE_URL }
+			},
+			auth: {
+				enabled: true,
+				secret: process.env.BETTER_AUTH_SECRET,
+				emailAndPassword: { enabled: true }
+			},
+			kit: {
+				// SvelteKit options go here
+			}
+		})
+	]
 });
 ```
 

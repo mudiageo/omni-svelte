@@ -49,10 +49,7 @@ export function isSvelteKitProject(cwd: string): boolean {
 		}
 	}
 	// Fallback: legacy svelte.config.js/ts (SvelteKit < 3)
-	return (
-		existsSync(join(cwd, 'svelte.config.js')) ||
-		existsSync(join(cwd, 'svelte.config.ts'))
-	);
+	return existsSync(join(cwd, 'svelte.config.js')) || existsSync(join(cwd, 'svelte.config.ts'));
 }
 
 /**
@@ -65,8 +62,7 @@ export function isOmniProject(cwd: string): boolean {
 	try {
 		const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
 		return (
-			'omni-svelte' in (pkg.dependencies ?? {}) ||
-			'omni-svelte' in (pkg.devDependencies ?? {})
+			'omni-svelte' in (pkg.dependencies ?? {}) || 'omni-svelte' in (pkg.devDependencies ?? {})
 		);
 	} catch {
 		return false;

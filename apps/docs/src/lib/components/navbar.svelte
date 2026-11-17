@@ -28,7 +28,7 @@
 </script>
 
 <header
-	class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
+	class="border-border/40 bg-background/80 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur-md"
 >
 	<div class="container mx-auto flex h-14 max-w-screen-2xl items-center px-4 sm:px-6">
 		<!-- Logo -->
@@ -54,7 +54,7 @@
 					class={cn(
 						'rounded-md px-3 py-1.5 transition-colors',
 						isActive(link.match)
-							? 'bg-accent font-medium text-foreground'
+							? 'bg-accent text-foreground font-medium'
 							: 'text-muted-foreground hover:bg-accent hover:text-foreground'
 					)}
 				>
@@ -87,7 +87,7 @@
 			</Button>
 			<ShinyButton
 				href="/docs/getting-started/installation"
-				class="ml-1 hidden h-8 gap-1.5 border-0 bg-primary px-3 text-xs text-primary-foreground hover:bg-primary/80 md:inline-flex"
+				class="bg-primary text-primary-foreground hover:bg-primary/80 ml-1 hidden h-8 gap-1.5 border-0 px-3 text-xs md:inline-flex"
 			>
 				Get Started <ArrowRight class="h-3 w-3" />
 			</ShinyButton>
@@ -104,7 +104,7 @@
 
 	<!-- Mobile menu -->
 	{#if menuOpen}
-		<div class="flex flex-col gap-1 border-t border-border/40 bg-background px-4 py-3 md:hidden">
+		<div class="border-border/40 bg-background flex flex-col gap-1 border-t px-4 py-3 md:hidden">
 			{#each navLinks as link}
 				<a
 					href={link.href}
@@ -112,7 +112,7 @@
 					class={cn(
 						'rounded-md px-3 py-2 text-sm transition-colors',
 						isActive(link.match)
-							? 'bg-accent font-medium text-foreground'
+							? 'bg-accent text-foreground font-medium'
 							: 'text-muted-foreground hover:bg-accent hover:text-foreground'
 					)}>{link.label}</a
 				>
@@ -121,7 +121,7 @@
 			<Button
 				href="/docs/getting-started/installation"
 				size="sm"
-				class="border-0 bg-primary text-primary-foreground hover:bg-primary/80"
+				class="bg-primary text-primary-foreground hover:bg-primary/80 border-0"
 			>
 				Get Started
 			</Button>

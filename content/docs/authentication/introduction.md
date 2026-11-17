@@ -78,9 +78,9 @@ import { auth } from '$auth/server';
 import { redirect } from '@sveltejs/kit';
 
 export async function load({ request }) {
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session) redirect(302, '/login');
-  return { user: session.user };
+	const session = await auth.api.getSession({ headers: request.headers });
+	if (!session) redirect(302, '/login');
+	return { user: session.user };
 }
 ```
 
@@ -96,11 +96,11 @@ Auth routes are automatically registered at `/api/auth/**`. Better-Auth handles:
 
 ## Supported strategies
 
-| Strategy | Config key | Notes |
-|---|---|---|
-| Email + password | `emailAndPassword.enabled` | Enabled by default |
-| Magic link | `plugins.magicLink` | Passwordless email |
-| Two-factor (TOTP) | `plugins.twoFactor` | Works with any strategy |
-| Passkeys | `plugins.passkey` | WebAuthn |
-| Username | `plugins.username` | Add username to email flow |
-| OAuth | Social providers via Better-Auth config | Google, GitHub, etc. |
+| Strategy          | Config key                              | Notes                      |
+| ----------------- | --------------------------------------- | -------------------------- |
+| Email + password  | `emailAndPassword.enabled`              | Enabled by default         |
+| Magic link        | `plugins.magicLink`                     | Passwordless email         |
+| Two-factor (TOTP) | `plugins.twoFactor`                     | Works with any strategy    |
+| Passkeys          | `plugins.passkey`                       | WebAuthn                   |
+| Username          | `plugins.username`                      | Add username to email flow |
+| OAuth             | Social providers via Better-Auth config | Google, GitHub, etc.       |

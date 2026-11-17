@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vite-plus/test';
 import { z } from 'zod';
 import { formSchema } from '../../remote/form-schema.js';
 
@@ -43,7 +43,7 @@ describe('formSchema', () => {
 
 		// Validation should fail for short titles now
 		expect(() => form.parse({ title: 'Hi', content: 'World', status: 'draft' })).toThrow();
-		
+
 		// Validation passes for valid overrides
 		expect(form.parse({ title: 'Hello', content: 'World', status: 'draft' })).toEqual({
 			title: 'Hello',

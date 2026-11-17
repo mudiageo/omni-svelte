@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vite-plus/test';
 import { handleInitCommand } from '../../cli/commands/init.js';
 import * as runStep from '../../cli/utils/run-step.js';
 import * as pm from '../../cli/utils/package-manager.js';
@@ -25,10 +25,10 @@ vi.mock('@clack/prompts', () => ({
 describe('init command', () => {
 	beforeEach(() => {
 		vi.resetAllMocks();
-		
+
 		// Mock runStep to always return true
 		vi.spyOn(runStep, 'runStep').mockResolvedValue(true);
-		
+
 		// Mock runInProcessStep to immediately invoke the callback
 		vi.spyOn(runStep, 'runInProcessStep').mockImplementation(async (label, cb) => {
 			await (cb as any)();
@@ -36,7 +36,7 @@ describe('init command', () => {
 		});
 
 		vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-		
+
 		// Mock readFileSync to return a fake package.json and CLI package.json
 		vi.spyOn(fs, 'readFileSync').mockImplementation((path: any) => {
 			const pathStr = path.toString();
@@ -49,7 +49,7 @@ describe('init command', () => {
 			}
 			return '';
 		});
-		
+
 		vi.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
 	});
 
@@ -61,9 +61,11 @@ describe('init command', () => {
 
 		// It should read the project's package.json and write it back with the version
 		expect(fs.writeFileSync).toHaveBeenCalled();
-		const writeCall = vi.mocked(fs.writeFileSync).mock.calls.find(call => call[0].toString().includes('package.json'));
+		const writeCall = vi
+			.mocked(fs.writeFileSync)
+			.mock.calls.find((call) => call[0].toString().includes('package.json'));
 		expect(writeCall).toBeDefined();
-		
+
 		const writtenJson = JSON.parse(writeCall![1] as string);
 		expect(writtenJson.dependencies['omni-svelte']).toBe('^1.2.3');
 	});

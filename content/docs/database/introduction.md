@@ -26,11 +26,11 @@ omni: {
 
 For every `.schema.ts` file, OmniSvelte generates three outputs:
 
-| Output | Import from | Description |
-|---|---|---|
-| Drizzle table | `$schema` | Raw Drizzle table definition |
+| Output         | Import from   | Description                      |
+| -------------- | ------------- | -------------------------------- |
+| Drizzle table  | `$schema`     | Raw Drizzle table definition     |
 | Zod validators | `$validation` | `createXSchema`, `updateXSchema` |
-| Model class | `$models` | ActiveRecord-style CRUD class |
+| Model class    | `$models`     | ActiveRecord-style CRUD class    |
 
 ## Quick example
 
@@ -40,10 +40,10 @@ For every `.schema.ts` file, OmniSvelte generates three outputs:
 import { defineSchema, field } from 'omni-svelte/schema';
 
 export default defineSchema('posts', {
-  id:        field.serial().primaryKey(),
-  title:     field.text().notNull(),
-  published: field.boolean().default(false),
-  createdAt: field.timestamp().defaultNow()
+	id: field.serial().primaryKey(),
+	title: field.text().notNull(),
+	published: field.boolean().default(false),
+	createdAt: field.timestamp().defaultNow()
 });
 ```
 
@@ -52,7 +52,7 @@ export default defineSchema('posts', {
 import { Posts } from '$models/posts.model';
 
 const posts = await Posts.query().where('published', true).get();
-const post  = await Posts.find(1);
+const post = await Posts.find(1);
 const newPost = await Posts.create({ title: 'Hello', published: true });
 await post.update({ title: 'Updated' });
 await post.delete();

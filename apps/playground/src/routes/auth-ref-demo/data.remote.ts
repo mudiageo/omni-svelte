@@ -19,10 +19,7 @@ type Ctx = { user?: { id: string } | null; operation: string; input?: unknown; r
 const signedIn = ({ user }: Ctx) => Boolean(user);
 
 // Profile: integer PK, text FK -> auth.user
-export const {
-	list: profiles,
-	create: createProfile
-} = resource(Profile, {
+export const { list: profiles, create: createProfile } = resource(Profile, {
 	only: ['list', 'create'],
 	mutationMode: 'command',
 	authorize: signedIn
@@ -46,10 +43,7 @@ export const {
 });
 
 // Posts: integer FK -> profiles AND text FK -> auth.user on the same row
-export const {
-	list: posts,
-	create: createPost
-} = resource(Post, {
+export const { list: posts, create: createPost } = resource(Post, {
 	only: ['list', 'create'],
 	mutationMode: 'command',
 	pagination: { perPage: 20 },

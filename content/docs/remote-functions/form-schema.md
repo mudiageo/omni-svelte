@@ -19,8 +19,8 @@ import { Post } from '$models';
 
 // Automatically infers Zod string for title, text for content, etc.
 export const postFormSchema = formSchema(Post.schema, {
-  pick: ['title', 'content'],
-  partial: false
+	pick: ['title', 'content'],
+	partial: false
 });
 ```
 
@@ -30,11 +30,11 @@ You can then pass this derived schema into a remote `form` function to enforce s
 import { form } from '@sveltejs/kit';
 
 export const createPost = form({
-  schema: postFormSchema,
-  action: async (event, input) => {
-    // input is strongly typed based on the schema!
-    return await Post.create(input);
-  }
+	schema: postFormSchema,
+	action: async (event, input) => {
+		// input is strongly typed based on the schema!
+		return await Post.create(input);
+	}
 });
 ```
 
@@ -44,12 +44,12 @@ export const createPost = form({
 
 The second argument to `formSchema` allows you to pick, omit, and modify the fields derived from the database model.
 
-| Option | Type | Description |
-| --- | --- | --- |
-| `pick` | `string[]` | Only include these specific field names. |
-| `omit` | `string[]` | Exclude these specific field names. |
-| `partial` | `boolean` | If true, wraps all included fields in `.optional()`. Ideal for update forms. |
-| `overrides` | `Record<string, ZodTypeAny>` | Override the inferred Zod type for specific fields. |
+| Option      | Type                         | Description                                                                  |
+| ----------- | ---------------------------- | ---------------------------------------------------------------------------- |
+| `pick`      | `string[]`                   | Only include these specific field names.                                     |
+| `omit`      | `string[]`                   | Exclude these specific field names.                                          |
+| `partial`   | `boolean`                    | If true, wraps all included fields in `.optional()`. Ideal for update forms. |
+| `overrides` | `Record<string, ZodTypeAny>` | Override the inferred Zod type for specific fields.                          |
 
 ### Picking and Omitting
 
@@ -58,12 +58,12 @@ Use `pick` to whitelist fields (recommended for security) or `omit` to blacklist
 ```ts
 // Only allow title and content
 const createSchema = formSchema(Post.schema, {
-  pick: ['title', 'content']
+	pick: ['title', 'content']
 });
 
 // Allow everything except internal timestamps
 const updateSchema = formSchema(Post.schema, {
-  omit: ['created_at', 'updated_at']
+	omit: ['created_at', 'updated_at']
 });
 ```
 
@@ -75,8 +75,8 @@ When building an update form, you usually don't require the user to submit every
 
 ```ts
 const updateSchema = formSchema(Post.schema, {
-  pick: ['title', 'content', 'published'],
-  partial: true // All fields become optional
+	pick: ['title', 'content', 'published'],
+	partial: true // All fields become optional
 });
 ```
 
@@ -90,11 +90,11 @@ Use `overrides` to inject a custom Zod validation for specific keys:
 import { z } from 'zod';
 
 const schema = formSchema(Post.schema, {
-  pick: ['title', 'author_id'],
-  overrides: {
-    // Override the default number validation with a custom rule
-    author_id: z.number().positive("Author must be a valid ID")
-  }
+	pick: ['title', 'author_id'],
+	overrides: {
+		// Override the default number validation with a custom rule
+		author_id: z.number().positive('Author must be a valid ID')
+	}
 });
 ```
 
@@ -106,9 +106,9 @@ If you are using the `resource()` generator, you don't need to call `formSchema(
 
 ```ts
 export const { create, update } = resource(Post, {
-  fillable: {
-    create: ['title', 'content'], // Uses formSchema with pick
-    update: ['title', 'content', 'published'] // Uses formSchema with pick + partial
-  }
+	fillable: {
+		create: ['title', 'content'], // Uses formSchema with pick
+		update: ['title', 'content', 'published'] // Uses formSchema with pick + partial
+	}
 });
 ```

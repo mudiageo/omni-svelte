@@ -4,24 +4,34 @@
 //       All paths below use the #lib alias resolved by SvelteKit's tsconfig.
 
 // SERVER-ONLY: Models (contain database queries)
-declare module '$models' { export * from '#lib/db/models/index'; }
-declare module '$models/*' { export * from '#lib/db/models/index'; }
+declare module '$models' {
+	export * from '#lib/db/models/index';
+}
+declare module '$models/*' {
+	export * from '#lib/db/models/index';
+}
 
 // SERVER-ONLY: Drizzle schema table definitions
-declare module '$schema' { export * from '#lib/db/server/schema'; }
+declare module '$schema' {
+	export * from '#lib/db/server/schema';
+}
 
 // SERVER-ONLY: Raw database connection
 declare module '$db' {
-  import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-  export const db: PostgresJsDatabase;
+	import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+	export const db: PostgresJsDatabase;
 }
 
 // SERVER-ONLY: Configured Cache Manager
 declare module '$omni/cache' {
-  import { cache } from 'omni-svelte/cache';
-  export { cache };
+	import { cache } from 'omni-svelte/cache';
+	export { cache };
 }
 
 // UNIVERSAL: Zod validation schemas (safe for client and server)
-declare module '$validation' { export * from '#lib/db/validation/index'; }
-declare module '$validation/*' { export * from '#lib/db/validation/index'; }
+declare module '$validation' {
+	export * from '#lib/db/validation/index';
+}
+declare module '$validation/*' {
+	export * from '#lib/db/validation/index';
+}

@@ -55,12 +55,15 @@ program
 	.option('--skip-install', 'Skip final dependency installation', false)
 	.option('--package-manager <name>', 'Force package manager (npm|pnpm|yarn|bun|deno|vp)')
 	.option('--omni-pkg <package>', 'Install omni-svelte from a specific package/path (for testing)')
-	.addHelpText('after', `
+	.addHelpText(
+		'after',
+		`
 ${pc.bold('Examples:')}
   $ omni init my-app
   $ omni i blog --package-manager pnpm
   $ omni init --skip-install
-`)
+`
+	)
 	.action(async (name, options) => {
 		await runAction(() =>
 			handleInitCommand({
@@ -82,12 +85,15 @@ program
 	.option('-D, --dev', 'Install omni-svelte as a dev dependency', false)
 	.option('--package-manager <name>', 'Force package manager (npm|pnpm|yarn|bun|deno|vp)')
 	.option('--omni-pkg <package>', 'Install omni-svelte from a specific package/path (for testing)')
-	.addHelpText('after', `
+	.addHelpText(
+		'after',
+		`
 ${pc.bold('Examples:')}
   $ omni migrate
   $ omni migrate sveltekit
   $ omni m sveltekit --package-manager pnpm
-`)
+`
+	)
 	.action(async (type, options) => {
 		await runAction(() =>
 			handleMigrateCommand({
@@ -106,12 +112,15 @@ program
 	.alias('a')
 	.description('Add OmniSvelte features and plugins to your project')
 	.option('--cwd <path>', 'Target project directory', process.cwd())
-	.addHelpText('after', `
+	.addHelpText(
+		'after',
+		`
 ${pc.bold('Examples:')}
   $ omni add
   $ omni add stripe
   $ omni a docker
-`)
+`
+	)
 	.action(async (feature, options) => {
 		await runAction(() =>
 			handleAddCommand({
@@ -134,13 +143,16 @@ program
 	.option('--cwd <path>', 'Working directory', process.cwd())
 	.option('--schema-mode <mode>', 'Override OmniConfig.schema.mode')
 	.option('--schema-output-dir <dir>', 'Override OmniConfig.schema.output.directory')
-	.addHelpText('after', `
+	.addHelpText(
+		'after',
+		`
 ${pc.bold('Examples:')}
   $ omni generate schema User
   $ omni g migration add_posts_table
   $ omni generate schema Post --output src/db/schemas
   $ omni g schema Article --dry-run
-`)
+`
+	)
 	.action(async (type, name, options) => {
 		await runAction(() =>
 			handleGenerateCommand({
@@ -163,14 +175,17 @@ program
 	.option('--script <name>', 'Script name for db seed task', 'db:seed')
 	.option('--cwd <path>', 'Working directory', process.cwd())
 	.option('--db-url <url>', 'Override database connection URL')
-	.addHelpText('after', `
+	.addHelpText(
+		'after',
+		`
 ${pc.bold('Examples:')}
   $ omni db push
   $ omni db migrate
   $ omni db seed --script db:seed
   $ omni db studio
   $ omni db:migrate
-`)
+`
+	)
 	.action(async (action, options) => {
 		const selectedAction = action ?? (await promptDbAction());
 		if (!selectedAction) return;
@@ -333,7 +348,6 @@ main().catch((error) => {
 	process.exit(1);
 });
 
-
 /**
  * Main execution function for the CLI.
  * If no arguments are provided, it launches the interactive menu.
@@ -415,7 +429,16 @@ async function promptDbAction() {
 		return null;
 	}
 
-	return selected as 'seed' | 'studio' | 'push' | 'pull' | 'generate' | 'check' | 'migrate' | 'rollback' | 'fresh';
+	return selected as
+		| 'seed'
+		| 'studio'
+		| 'push'
+		| 'pull'
+		| 'generate'
+		| 'check'
+		| 'migrate'
+		| 'rollback'
+		| 'fresh';
 }
 
 /**
@@ -426,7 +449,9 @@ async function runAction(action: () => Promise<void>) {
 	try {
 		await action();
 		// Non-blocking update check — prints a notice if a newer version is available
-		await checkForUpdates().catch(() => {/* silently ignore network errors */});
+		await checkForUpdates().catch(() => {
+			/* silently ignore network errors */
+		});
 	} catch (error) {
 		console.error(pc.red(error instanceof Error ? error.message : String(error)));
 		process.exitCode = 1;
@@ -445,16 +470,16 @@ async function checkForUpdates() {
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), 3000);
 	try {
-		const res = await fetch(
-			'https://registry.npmjs.org/omni-svelte/latest',
-			{ signal: controller.signal, headers: { Accept: 'application/json' } }
-		);
-		const data = await res.json() as { version?: string };
+		const res = await fetch('https://registry.npmjs.org/omni-svelte/latest', {
+			signal: controller.signal,
+			headers: { Accept: 'application/json' }
+		});
+		const data = (await res.json()) as { version?: string };
 		const latest = data?.version;
 		if (latest && latest !== currentVersion) {
 			log.info(
 				`Update available: ${pc.dim(currentVersion)} → ${pc.green(latest)}\n` +
-				`Run ${pc.cyan('npm add -g omni-svelte')} to update.`
+					`Run ${pc.cyan('npm add -g omni-svelte')} to update.`
 			);
 		}
 	} finally {

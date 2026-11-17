@@ -1,15 +1,15 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 import { runInProcessStep, runStep } from '../../cli/utils/run-step.js';
 import * as prompts from '@clack/prompts';
 
 vi.mock('@clack/prompts', () => {
 	const spinnerObj = {
 		start: vi.fn(),
-		stop: vi.fn(),
+		stop: vi.fn()
 	};
 	return {
 		cancel: vi.fn(),
-		spinner: vi.fn(() => spinnerObj),
+		spinner: vi.fn(() => spinnerObj)
 	};
 });
 

@@ -1,6 +1,11 @@
 import { cancel, intro, isCancel, log, note, outro, select } from '@clack/prompts';
 import pc from 'picocolors';
-import { addOmniToViteConfig, hasPackageJson, hasViteConfig, isSvelteKitProject } from '../utils/project.js';
+import {
+	addOmniToViteConfig,
+	hasPackageJson,
+	hasViteConfig,
+	isSvelteKitProject
+} from '../utils/project.js';
 import {
 	type PackageManager,
 	SUPPORTED_PACKAGE_MANAGERS,
@@ -64,7 +69,9 @@ export async function handleMigrateCommand(options: MigrateCommandOptions): Prom
 			await runSvelteKitMigration(cwd, options);
 			break;
 		default:
-			cancel(`Unknown migration type: ${pc.bold(migrationType)}. Available: ${MIGRATION_TYPES.map((t) => t.value).join(', ')}`);
+			cancel(
+				`Unknown migration type: ${pc.bold(migrationType)}. Available: ${MIGRATION_TYPES.map((t) => t.value).join(', ')}`
+			);
 			process.exitCode = 1;
 	}
 }
@@ -109,17 +116,16 @@ async function runSvelteKitMigration(cwd: string, options: MigrateCommandOptions
 				cwd,
 				dev: Boolean(options.dev),
 				packageManager
-			})
-		}
-		))
+			});
+		}))
 	)
 		return;
 
 	if (!hasViteConfig(cwd)) {
 		log.warn(
 			`No vite.config.ts found. Add the following manually:\n` +
-			pc.dim(`  import { omniSvelte } from 'omni-svelte/vite';\n`) +
-			pc.dim(`  // in your plugins array: omniSvelte()`)
+				pc.dim(`  import { omniSvelte } from 'omni-svelte/vite';\n`) +
+				pc.dim(`  // in your plugins array: omniSvelte()`)
 		);
 		note(`${packageManager} run dev`, 'Next steps');
 		outro(pc.yellow('omni-svelte installed — configure Vite plugin manually.'));

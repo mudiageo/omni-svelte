@@ -36,7 +36,7 @@ jobs:
           node-version: 24.x
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
-          package-manager-cache: false  # never use caching in release builds
+          package-manager-cache: false # never use caching in release builds
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile

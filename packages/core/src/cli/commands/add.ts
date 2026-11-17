@@ -1,13 +1,7 @@
 import { cancel, intro, isCancel, log, outro, select, text } from '@clack/prompts';
 import pc from 'picocolors';
 
-export type AddFeature =
-	| 'stripe'
-	| 'resend'
-	| 'docker'
-	| 'redis'
-	| 's3'
-	| 'sentry';
+export type AddFeature = 'stripe' | 'resend' | 'docker' | 'redis' | 's3' | 'sentry';
 
 export interface AddCommandOptions {
 	feature?: AddFeature;
@@ -22,12 +16,42 @@ interface FeatureDef {
 }
 
 const FEATURES: FeatureDef[] = [
-	{ value: 'stripe', label: 'stripe — Stripe payments integration', hint: 'coming soon', available: false },
-	{ value: 'resend', label: 'resend — Resend email integration', hint: 'coming soon', available: false },
-	{ value: 'docker', label: 'docker — Docker + docker-compose setup', hint: 'coming soon', available: false },
-	{ value: 'redis', label: 'redis — Upstash Redis for caching/rate limiting', hint: 'coming soon', available: false },
-	{ value: 's3', label: 's3 — AWS S3 / UploadThing for file uploads', hint: 'coming soon', available: false },
-	{ value: 'sentry', label: 'sentry — Sentry error tracking', hint: 'coming soon', available: false }
+	{
+		value: 'stripe',
+		label: 'stripe — Stripe payments integration',
+		hint: 'coming soon',
+		available: false
+	},
+	{
+		value: 'resend',
+		label: 'resend — Resend email integration',
+		hint: 'coming soon',
+		available: false
+	},
+	{
+		value: 'docker',
+		label: 'docker — Docker + docker-compose setup',
+		hint: 'coming soon',
+		available: false
+	},
+	{
+		value: 'redis',
+		label: 'redis — Upstash Redis for caching/rate limiting',
+		hint: 'coming soon',
+		available: false
+	},
+	{
+		value: 's3',
+		label: 's3 — AWS S3 / UploadThing for file uploads',
+		hint: 'coming soon',
+		available: false
+	},
+	{
+		value: 'sentry',
+		label: 'sentry — Sentry error tracking',
+		hint: 'coming soon',
+		available: false
+	}
 ];
 
 export async function handleAddCommand(options: AddCommandOptions): Promise<void> {
@@ -57,7 +81,9 @@ export async function handleAddCommand(options: AddCommandOptions): Promise<void
 
 	const featureDef = FEATURES.find((f) => f.value === feature);
 	if (!featureDef) {
-		cancel(`Unknown feature: ${pc.bold(feature)}. Available: ${FEATURES.map((f) => f.value).join(', ')}`);
+		cancel(
+			`Unknown feature: ${pc.bold(feature)}. Available: ${FEATURES.map((f) => f.value).join(', ')}`
+		);
 		process.exitCode = 1;
 		return;
 	}
@@ -65,7 +91,7 @@ export async function handleAddCommand(options: AddCommandOptions): Promise<void
 	if (!featureDef.available) {
 		outro(
 			pc.yellow(`✦ ${pc.bold(feature)} is coming soon!\n`) +
-			pc.dim('  Follow https://github.com/mudiageo/omni-svelte for updates.')
+				pc.dim('  Follow https://github.com/mudiageo/omni-svelte for updates.')
 		);
 		return;
 	}

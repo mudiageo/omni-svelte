@@ -1,4 +1,4 @@
-﻿{
+{
 	"compilerOptions": {
 		"target": "ESNext",
 		"module": "NodeNext",
@@ -15,11 +15,10 @@
 		"declaration": true,
 		"declarationMap": true,
 		"outDir": "dist",
-		"baseUrl": ".",
 		"allowImportingTsExtensions": true,
 		"noEmit": true,
 		"paths": {
-			"@omni-svelte/*": ["packages/*/src"]
+			"@omni-svelte/*": ["./packages/*/src"]
 		}
 	}
 }

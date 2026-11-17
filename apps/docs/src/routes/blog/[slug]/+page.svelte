@@ -23,7 +23,7 @@
 		href="/blog"
 		variant="ghost"
 		size="sm"
-		class="mb-8 -ml-2 gap-1.5 text-muted-foreground hover:text-foreground"
+		class="text-muted-foreground hover:text-foreground mb-8 -ml-2 gap-1.5"
 	>
 		<ArrowLeft class="h-3.5 w-3.5" />
 		All posts
@@ -37,8 +37,8 @@
 				{/each}
 			</div>
 			<h1 class="mb-4 text-4xl leading-tight font-bold tracking-tight">{post.title}</h1>
-			<p class="mb-6 text-xl leading-relaxed text-muted-foreground">{post.description}</p>
-			<div class="flex items-center gap-5 text-sm text-muted-foreground">
+			<p class="text-muted-foreground mb-6 text-xl leading-relaxed">{post.description}</p>
+			<div class="text-muted-foreground flex items-center gap-5 text-sm">
 				<span class="flex items-center gap-1.5"><User class="h-4 w-4" />{post.author}</span>
 				<span class="flex items-center gap-1.5"
 					><Calendar class="h-4 w-4" />{formatDate(post.date)}</span
