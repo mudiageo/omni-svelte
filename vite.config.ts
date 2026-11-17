@@ -200,7 +200,14 @@ export default defineConfig({
 			'/static/',
 			'/drizzle/',
 			'.test-cli-tmp/',
-			'**/.test-cli-tmp/'
+			'**/.test-cli-tmp/',
+			'**/.omni/**',
+			'**/.svelte-kit/**',
+			'**/dist/**',
+			'**/build/**',
+			'**/.output/**',
+			'**/.velite/**',
+			'**/omni-env.d.ts'
 		]
 	}
 });
