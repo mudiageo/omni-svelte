@@ -207,7 +207,8 @@ export default defineConfig({
 			'**/build/**',
 			'**/.output/**',
 			'**/.velite/**',
-			'**/omni-env.d.ts'
+			'**/omni-env.d.ts',
+			'**/drizzle.config.ts'
 		]
 	}
 });
