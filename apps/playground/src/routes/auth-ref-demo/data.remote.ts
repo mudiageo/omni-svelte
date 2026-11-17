@@ -16,7 +16,7 @@ export const getContext = query(async () => {
 // NOTE (demo only): ownerId / sessionId / userId are supplied by the client on create.
 // A real app would set them server-side from the session.
 type Ctx = { user?: { id: string } | null; operation: string; input?: unknown; record?: any };
-const signedIn = ({ user }: Ctx) => Boolean(user);
+const signedIn = (ctx: any) => Boolean(ctx?.user);
 
 // Profile: integer PK, text FK -> auth.user
 export const { list: profiles, create: createProfile } = resource(Profile, {
@@ -34,7 +34,7 @@ export const {
 	only: ['list', 'create', 'remove'],
 	mutationMode: 'command',
 	pagination: { perPage: 20 },
-	authorize: ({ user, operation, record }: Ctx) => {
+	authorize: ({ user, operation, record }: any) => {
 		if (!user) return false;
 		// `record` is pre-fetched by the framework for get/update/remove
 		if (operation === 'remove') return record?.ownerId === user.id;

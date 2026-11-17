@@ -10,9 +10,9 @@
 		<a href="/posts" class="text-blue-600 hover:text-blue-800"> &larr; Back to Posts </a>
 	</div>
 
-	{#if createPost.result?.error}
+	{#if (createPost.result as any)?.error}
 		<div class="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
-			{createPost.result.error}
+			{(createPost.result as any).error}
 		</div>
 	{/if}
 

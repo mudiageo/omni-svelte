@@ -66,6 +66,9 @@ export default defineConfig({
 				},
 				schema: {
 					mode: 'files',
+					parsing: {
+						strategy: 'ast'
+					},
 					input: {
 						patterns: ['src/**/*.schema.ts', 'src/lib/schema.ts'],
 						exclude: ['**/node_modules/**', '**/*.test.ts']

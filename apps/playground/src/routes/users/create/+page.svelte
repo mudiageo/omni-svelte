@@ -1,8 +1,7 @@
 <script>
 	import { enhance } from '$app/forms';
 
-	export let data;
-	export let form;
+	let { form } = $props();
 </script>
 
 <div class="container mx-auto max-w-2xl p-6">

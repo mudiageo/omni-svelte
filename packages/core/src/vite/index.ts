@@ -394,7 +394,12 @@ const plugin_omni_virtual_aliases = (omniConfig: OmniConfig): Plugin => ({
 			``,
 			`// UNIVERSAL: Zod validation schemas (safe for client and server)`,
 			`declare module '$validation' { export * from '${zodIndex}'; }`,
-			`declare module '$validation/*' { export * from '${zodIndex}'; }`
+			`declare module '$validation/*' { export * from '${zodIndex}'; }`,
+			``,
+			`// AUTH: Virtual modules provided by omni-svelte`,
+			`declare module '$auth/server' { export const auth: any; }`,
+			`declare module '$auth/client' { export const authClient: any; }`,
+			`declare module '$auth' { export const auth: any; export const authClient: any; }`
 		].join('\n');
 
 		const dtsPath = resolve(root, 'src/omni-env.d.ts');

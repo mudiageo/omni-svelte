@@ -5,7 +5,7 @@
 	import { fromURL } from 'omni-svelte/remote';
 
 	// Parse URL params for SSR and client reactivity
-	let queryInput = $derived(fromURL(page.url));
+	let queryInput = $derived(fromURL(new URL(page.url.href)));
 
 	// Fetch data
 	let postsQuery = $derived(posts(queryInput));
@@ -23,7 +23,7 @@
 
 	function handleSearch(e: SubmitEvent) {
 		e.preventDefault();
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 		if (searchValue) {
 			url.searchParams.set('search', searchValue);
 		} else {
@@ -39,7 +39,7 @@
 	}
 
 	function goToPage(pageNum: number) {
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 		url.searchParams.set('page', pageNum.toString());
 		goto(url.search);
 	}
@@ -116,26 +116,33 @@
 								Edit
 							</a>
 
-							<form {...updatePost.for(`${post.id}-${Date.now()}`)} class="inline">
-								<input {...updatePost.fields.id.as('hidden', post.id || '')} />
-								<input
-									{...updatePost.fields.published.as('hidden', !post.published ? 'true' : 'false')}
-								/>
-								<button type="submit" class="text-sm text-yellow-600 hover:text-yellow-800">
-									{post.published ? 'Unpublish' : 'Publish'}
-								</button>
-							</form>
+							{#if updatePost}
+								<form {...updatePost.for(`${post.id}-${Date.now()}`)} class="inline">
+									<input {...updatePost.fields.id.as('hidden', post.id || '')} />
+									<input
+										{...updatePost.fields.published.as(
+											'hidden',
+											!post.published ? 'true' : 'false'
+										)}
+									/>
+									<button type="submit" class="text-sm text-yellow-600 hover:text-yellow-800">
+										{post.published ? 'Unpublish' : 'Publish'}
+									</button>
+								</form>
+							{/if}
 
-							<button
-								class="text-sm text-red-600 hover:text-red-800"
-								onclick={async () => {
-									if (confirm('Are you sure you want to delete this post?')) {
-										await deletePost(post.id);
-									}
-								}}
-							>
-								Delete
-							</button>
+							{#if deletePost}
+								<button
+									class="text-sm text-red-600 hover:text-red-800"
+									onclick={async () => {
+										if (confirm('Are you sure you want to delete this post?')) {
+											await deletePost?.(post.id);
+										}
+									}}
+								>
+									Delete
+								</button>
+							{/if}
 						</div>
 					</div>
 				</div>

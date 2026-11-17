@@ -20,6 +20,8 @@ export interface BelongsToOptions {
 export interface ManyToManyOptions {
 	through: () => any;
 	pivotFields?: string[];
+	sourceKey?: string;
+	targetKey?: string;
 	inverse?: string;
 	[key: string]: any;
 }

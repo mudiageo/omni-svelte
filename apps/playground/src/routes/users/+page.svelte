@@ -11,7 +11,7 @@
 	function handleSearch(e: SubmitEvent) {
 		e.preventDefault();
 
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 		if (searchValue) {
 			url.searchParams.set('search', searchValue);
 		} else {
@@ -22,7 +22,7 @@
 	}
 
 	function goToPage(pageNum: number) {
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 		url.searchParams.set('page', pageNum.toString());
 		goto(url.search);
 	}

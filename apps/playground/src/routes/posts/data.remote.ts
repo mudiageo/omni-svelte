@@ -5,8 +5,8 @@ import { Post } from '#lib/schema';
 // Define our authorization rules for posts
 const postPolicy = definePolicy(Post, {
 	create: (user) => !!user,
-	update: (user, post) => user?.id === post?.userId,
-	remove: (user, post) => user?.id === post?.userId
+	update: (user, post: any) => user?.id === post?.userId,
+	remove: (user, post: any) => user?.id === post?.userId
 });
 
 export const {
@@ -18,7 +18,7 @@ export const {
 } = resource(Post, {
 	with: ['author'],
 	pagination: { perPage: 10 },
-	listQuery: (q, input) => {
+	listQuery: (q: any, input: any) => {
 		if (input.search) {
 			q = q.whereAny([
 				['title', 'ilike', `%${input.search}%`],
@@ -27,7 +27,7 @@ export const {
 		}
 		return q.orderBy('created_at', 'desc');
 	},
-	authorize: async ({ user, operation, record }) => {
+	authorize: async ({ user, operation, record }: any) => {
 		// Public reads
 		if (operation === 'list' || operation === 'get') return true;
 

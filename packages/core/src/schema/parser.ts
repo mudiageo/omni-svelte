@@ -303,7 +303,7 @@ export class RegexSchemaParser implements ISchemaParser {
 			if (typeMatch) field.type = typeMatch[1];
 
 			// Extract type from fluent field API
-			const fluentTypeMatch = fieldDef.match(/field\.(\w+)\s*\(/);
+			const fluentTypeMatch = fieldDef.match(/field\s*\.\s*(\w+)\s*\(/);
 			if (fluentTypeMatch) {
 				field.type = fluentTypeMatch[1];
 				if (fieldDef.includes('.primaryKey()')) field.primary = true;
@@ -313,12 +313,14 @@ export class RegexSchemaParser implements ISchemaParser {
 				if (fieldDef.includes('.hidden()')) field.hidden = true;
 
 				if (field.type === 'reference') {
-					const stringMatch = fieldDef.match(/field\.reference\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/);
+					const stringMatch = fieldDef.match(
+						/field\s*\.\s*reference\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/
+					);
 					if (stringMatch) {
 						field.target = { kind: 'system', key: stringMatch[1] };
 					} else {
 						const thunkMatch = fieldDef.match(
-							/field\.reference\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?\s*\)/
+							/field\s*\.\s*reference\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?\s*\)/
 						);
 						if (thunkMatch) {
 							const targetIdentifier = thunkMatch[1];
@@ -347,12 +349,12 @@ export class RegexSchemaParser implements ISchemaParser {
 			}
 
 			// Extract relation from fluent relation API
-			const relationMatch = fieldDef.match(/relation\.(\w+)\s*\(/);
+			const relationMatch = fieldDef.match(/relation\s*\.\s*(\w+)\s*\(/);
 			if (relationMatch) {
 				field.kind = relationMatch[1];
 
 				const fullMatch = fieldDef.match(
-					/relation\.\w+\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?(?:\s*,\s*(\{[\s\S]*?\}))?\s*\)/
+					/relation\s*\.\s*\w+\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?(?:\s*,\s*(\{[\s\S]*?\}))?\s*\)/
 				);
 				if (fullMatch) {
 					const targetVar = fullMatch[1];
@@ -381,6 +383,14 @@ export class RegexSchemaParser implements ISchemaParser {
 						const viaMatch = optionsRaw.match(/via:\s*['"`]([^'"`]+)['"`]/);
 						if (viaMatch) {
 							field.options = { ...field.options, via: viaMatch[1] };
+						}
+						const sourceKeyMatch = optionsRaw.match(/sourceKey:\s*['"`]([^'"`]+)['"`]/);
+						if (sourceKeyMatch) {
+							field.options = { ...field.options, sourceKey: sourceKeyMatch[1] };
+						}
+						const targetKeyMatch = optionsRaw.match(/targetKey:\s*['"`]([^'"`]+)['"`]/);
+						if (targetKeyMatch) {
+							field.options = { ...field.options, targetKey: targetKeyMatch[1] };
 						}
 						const throughMatch = optionsRaw.match(
 							/through:\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_]+)/
@@ -710,7 +720,7 @@ export class ASTSchemaParser implements ISchemaParser {
 			const text = node.getText(this.sourceFile);
 
 			// Extract type from fluent field API
-			const fluentTypeMatch = text.match(/field\.(\w+)\s*\(/);
+			const fluentTypeMatch = text.match(/field\s*\.\s*(\w+)\s*\(/);
 			if (fluentTypeMatch) {
 				fieldDef.type = fluentTypeMatch[1];
 				if (text.includes('.primaryKey()')) fieldDef.primary = true;
@@ -720,12 +730,12 @@ export class ASTSchemaParser implements ISchemaParser {
 				if (text.includes('.hidden()')) fieldDef.hidden = true;
 
 				if (fieldDef.type === 'reference') {
-					const stringMatch = text.match(/field\.reference\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/);
+					const stringMatch = text.match(/field\s*\.\s*reference\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/);
 					if (stringMatch) {
 						fieldDef.target = { kind: 'system', key: stringMatch[1] };
 					} else {
 						const thunkMatch = text.match(
-							/field\.reference\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?\s*\)/
+							/field\s*\.\s*reference\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?\s*\)/
 						);
 						if (thunkMatch) {
 							const targetIdentifier = thunkMatch[1];
@@ -757,12 +767,12 @@ export class ASTSchemaParser implements ISchemaParser {
 			}
 
 			// Extract relation from fluent relation API
-			const relationMatch = text.match(/relation\.(\w+)\s*\(/);
+			const relationMatch = text.match(/relation\s*\.\s*(\w+)\s*\(/);
 			if (relationMatch) {
 				fieldDef.kind = relationMatch[1];
 
 				const fullMatch = text.match(
-					/relation\.\w+\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?(?:\s*,\s*(\{[\s\S]*?\}))?\s*\)/
+					/relation\s*\.\s*\w+\s*\(\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_.]+)\s*\}?(?:\s*,\s*(\{[\s\S]*?\}))?\s*\)/
 				);
 				if (fullMatch) {
 					const targetVar = fullMatch[1];
@@ -792,6 +802,14 @@ export class ASTSchemaParser implements ISchemaParser {
 						const viaMatch = optionsRaw.match(/via:\s*['"`]([^'"`]+)['"`]/);
 						if (viaMatch) {
 							fieldDef.options = { ...fieldDef.options, via: viaMatch[1] };
+						}
+						const sourceKeyMatch = optionsRaw.match(/sourceKey:\s*['"`]([^'"`]+)['"`]/);
+						if (sourceKeyMatch) {
+							fieldDef.options = { ...fieldDef.options, sourceKey: sourceKeyMatch[1] };
+						}
+						const targetKeyMatch = optionsRaw.match(/targetKey:\s*['"`]([^'"`]+)['"`]/);
+						if (targetKeyMatch) {
+							fieldDef.options = { ...fieldDef.options, targetKey: targetKeyMatch[1] };
 						}
 						const throughMatch = optionsRaw.match(
 							/through:\s*(?:\(\s*\)\s*=>|function\s*\(\s*\)\s*\{?\s*return)?\s*([a-zA-Z0-9_]+)/

@@ -347,9 +347,11 @@ export class DrizzleGenerator {
 				lines.push(`    }),`);
 			} else if (rel.kind === 'manyToMany') {
 				const pivotTable = this.resolveTargetName(rel.options?.through);
+				const fromFk = rel.options?.sourceKey ?? rel.options?.fromKey ?? `${tableName}Id`;
+				const toFk = rel.options?.targetKey ?? rel.options?.toKey ?? `${targetTable}Id`;
 				lines.push(`    ${key}: r.many.${targetTable}({`);
-				lines.push(`      from: r.${tableName}.id.through(r.${pivotTable}.${tableName}Id),`);
-				lines.push(`      to: r.${targetTable}.id.through(r.${pivotTable}.${targetTable}Id),`);
+				lines.push(`      from: r.${tableName}.id.through(r.${pivotTable}.${fromFk}),`);
+				lines.push(`      to: r.${targetTable}.id.through(r.${pivotTable}.${toFk}),`);
 				lines.push(`    }),`);
 			} else if (rel.kind === 'morphTo' || rel.kind === 'morphMany') {
 				// Polymorphic relations are not yet supported in Drizzle 1.0 generation.

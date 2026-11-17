@@ -35,7 +35,11 @@ export const profileSchema = defineSchema(
 
 		posts: relation.hasMany(() => postSchema),
 		comments: relation.hasMany(() => commentSchema),
-		roles: relation.manyToMany(() => roleSchema, { through: () => userRoleSchema })
+		roles: relation.manyToMany(() => roleSchema, {
+			through: () => userRoleSchema,
+			sourceKey: 'userId',
+			targetKey: 'roleId'
+		})
 	},
 	{
 		timestamps: true,
@@ -115,7 +119,11 @@ export const roleSchema = defineSchema(
 	{
 		id: field.serial().primaryKey(),
 		name: field.string().unique(),
-		users: relation.manyToMany(() => profileSchema, { through: () => userRoleSchema })
+		users: relation.manyToMany(() => profileSchema, {
+			through: () => userRoleSchema,
+			sourceKey: 'roleId',
+			targetKey: 'userId'
+		})
 	},
 	{
 		timestamps: true

@@ -8,7 +8,7 @@
 		"build": "vp build",
 		"preview": "vp preview",
 		"prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-check --tsconfig ./tsconfig.json",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "vp fmt --check . && vp lint .",
 		"format": "vp fmt .",

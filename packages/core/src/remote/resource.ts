@@ -91,7 +91,10 @@ function getMutationMode(op: 'create' | 'update', options?: ResourceOptions<any>
  * @param options Configuration options for the generated resource
  * @returns An object containing the generated remote functions
  */
-export function resource<M extends any, O extends ResourceOptions<M> = {}>(model: M, options?: O) {
+export function resource<M extends any, const O extends ResourceOptions<M> = ResourceOptions<M>>(
+	model: M,
+	options?: O
+) {
 	const isReadonly = Boolean((model as any)?.readonly);
 	const key =
 		(model as any)?.tableName || (model as any)?.table?.name || (model as any)?.name || 'auth';
@@ -296,6 +299,10 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 		if (removeFn) defaultExports[getName('remove')] = removeFn;
 	}
 
+	type ListFn = Exclude<typeof listFn, undefined>;
+	type GetFn = Exclude<typeof getFn, undefined>;
+	type RemoveFn = Exclude<typeof removeFn, undefined>;
+
 	type CreateFn = typeof createFn;
 	type CreateForm = Extract<CreateFn, { for: any }>;
 	type CreateCommand = Exclude<CreateFn, { for: any } | undefined>;
@@ -304,29 +311,42 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 	type UpdateForm = Extract<UpdateFn, { for: any }>;
 	type UpdateCommand = Exclude<UpdateFn, { for: any } | undefined>;
 
-	type NarrowedCreate = O['mutationMode'] extends 'command'
-		? CreateCommand
-		: O['mutationMode'] extends { create: 'command' }
-			? CreateCommand
-			: CreateForm;
+	type IsCommand<Mode, Op extends 'create' | 'update'> = Mode extends 'command'
+		? true
+		: Mode extends Record<Op, 'command'>
+			? true
+			: false;
 
-	type NarrowedUpdate = O['mutationMode'] extends 'command'
-		? UpdateCommand
-		: O['mutationMode'] extends { update: 'command' }
-			? UpdateCommand
-			: UpdateForm;
+	type NarrowedCreate =
+		IsCommand<O['mutationMode'], 'create'> extends true ? CreateCommand : CreateForm;
+
+	type NarrowedUpdate =
+		IsCommand<O['mutationMode'], 'update'> extends true ? UpdateCommand : UpdateForm;
+
+	type IsSelected<Op extends OperationName> = O extends { only: readonly (infer Only)[] }
+		? [Op] extends [Only]
+			? true
+			: false
+		: O extends { exclude: readonly (infer Excl)[] }
+			? [Op] extends [Excl]
+				? false
+				: true
+			: true;
+
+	type OpReturnMap = {
+		list: ListFn;
+		get: GetFn;
+		create: NarrowedCreate;
+		update: NarrowedUpdate;
+		remove: RemoveFn;
+	};
 
 	type StandardReturn = {
-		list?: typeof listFn;
-		get?: typeof getFn;
-		create?: NarrowedCreate;
-		update?: NarrowedUpdate;
-		remove?: typeof removeFn;
+		[Op in OperationName as IsSelected<Op> extends true ? Op : never]: OpReturnMap[Op];
 	};
 
 	type ReadonlyReturn = {
-		list?: typeof listFn;
-		get?: typeof getFn;
+		[Op in 'list' | 'get' as IsSelected<Op> extends true ? Op : never]: OpReturnMap[Op];
 	};
 
 	type ResolveOpName<Op extends string> = O extends { names: infer N }
@@ -338,7 +358,7 @@ export function resource<M extends any, O extends ResourceOptions<M> = {}>(model
 		: Op;
 
 	type RemapOperations<Ops extends Record<string, any>> = {
-		[K in keyof Ops as ResolveOpName<K & string>]?: Ops[K];
+		[K in keyof Ops as ResolveOpName<K & string>]: Ops[K];
 	};
 
 	type Result = M extends { readonly: true }

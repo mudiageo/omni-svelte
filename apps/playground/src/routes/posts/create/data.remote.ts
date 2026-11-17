@@ -5,7 +5,7 @@ import { Post, User } from '#lib/schema';
 
 export const getUsers = query(async () => {
 	const users = await User.query().where('active', true).orderBy('name', 'asc').get();
-	return users.map((user) => ({
+	return users.map((user: any) => ({
 		id: user.getAttribute('id') as number,
 		name: user.getAttribute('name') as string
 	}));

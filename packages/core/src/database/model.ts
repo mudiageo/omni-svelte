@@ -348,17 +348,19 @@ export abstract class Model extends ReadonlyModel {
 		this.setAttribute('updated_at', now);
 	}
 
-	static fromAttributes<T extends typeof Model>(
+	static override fromAttributes<T extends typeof ReadonlyModel>(
 		this: T,
 		attributes: Record<string, any>
 	): InstanceType<T> {
-		const instance = new this() as InstanceType<T>;
+		const instance = new (this as any)() as InstanceType<T>;
 
 		// Directly set attributes without going through fill() to avoid fillable restrictions
 		instance.attributes = { ...attributes };
 		instance.exists = true;
 		instance.isDirty = false;
-		instance.syncOriginal();
+		if (typeof (instance as any).syncOriginal === 'function') {
+			(instance as any).syncOriginal();
+		}
 		instance.setupAttributeAccessors();
 
 		return instance;
