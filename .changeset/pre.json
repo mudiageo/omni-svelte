@@ -2,6 +2,8 @@
 	"mode": "pre",
 	"tag": "next",
 	"changesets": [
+		"auth-additional-fields",
+		"auth-inverse-relations",
 		"auth-policies",
 		"auth-readonly-models",
 		"auth-reference-api",
@@ -15,6 +17,7 @@
 		"feat-drizzle-kit-export",
 		"feat-relations-api",
 		"feat-resource-authorize-record",
+		"fix-auth-reference-fallback",
 		"fix-cli-pnpm-allow-builds",
 		"fix-drizzle-config-auth-schema",
 		"fix-model-updated-at-timestamp",
