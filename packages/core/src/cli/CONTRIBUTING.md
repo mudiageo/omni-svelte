@@ -59,6 +59,7 @@ pnpm vitest run --project server
 ```
 
 This runs all 12 test files (173 tests) covering:
+
 - CLI snapshot tests (help text, error messages, interactive flows)
 - Package manager utility unit tests
 - Vite plugin virtual module tests
@@ -110,10 +111,12 @@ import { runStep } from '../utils/run-step.js';
 // Returns true on success, false on failure.
 // On failure: cancel() is called with the error, process.exitCode is set to 1.
 // The caller must 'return' immediately when false is returned.
-if (!(await runStep('Installing omni-svelte', () =>
-    installDependencies(['omni-svelte'], { cwd, packageManager })
-)))
-    return;
+if (
+	!(await runStep('Installing omni-svelte', () =>
+		installDependencies(['omni-svelte'], { cwd, packageManager })
+	))
+)
+	return;
 ```
 
 ### `runInProcessStep(label, fn)` — for in-process steps
@@ -124,8 +127,7 @@ with no subprocess. The spinner stays animated while `fn` runs.
 ```ts
 import { runInProcessStep } from '../utils/run-step.js';
 
-if (!(await runInProcessStep('Configuring vite plugin', () => addOmniToViteConfig(cwd))))
-    return;
+if (!(await runInProcessStep('Configuring vite plugin', () => addOmniToViteConfig(cwd)))) return;
 ```
 
 ### Validations before steps
@@ -134,9 +136,9 @@ For simple guard checks (not async steps), cancel manually and return:
 
 ```ts
 if (!hasPackageJson(cwd)) {
-    cancel(`No package.json found in ${cwd}.`);
-    process.exitCode = 1;
-    return;
+	cancel(`No package.json found in ${cwd}.`);
+	process.exitCode = 1;
+	return;
 }
 ```
 
@@ -145,6 +147,7 @@ if (!hasPackageJson(cwd)) {
 ## Ctrl+C / Signal Handling
 
 A `SIGINT` handler is registered in `index.ts` that:
+
 1. Displays a styled `cancel('Operation cancelled')` message via `@clack`
 2. Exits with code `130` (the UNIX convention for Ctrl+C termination)
 
@@ -163,13 +166,15 @@ When passing arguments to subprocesses via `runPackageExec` or `execa` directly,
 of the `args` array is passed **literally** to the process. There is no shell to interpret quotes.
 
 ❌ Wrong:
+
 ```ts
-'tailwindcss="plugins:none"'  // sv create receives literal quotes — Invalid option error
+'tailwindcss="plugins:none"'; // sv create receives literal quotes — Invalid option error
 ```
 
 ✅ Correct:
+
 ```ts
-'tailwindcss=plugins:none'    // sv create receives the value as-is
+'tailwindcss=plugins:none'; // sv create receives the value as-is
 ```
 
 > This was the root cause of the `omni init` tailwindcss bug (fixed in `fa7ff18`).
@@ -188,12 +193,14 @@ Always call `intro()` at the top of a command handler, **before** any validation
 call `cancel()`. This ensures all output (including errors) is framed inside the `@clack` UI.
 
 ❌ Wrong:
+
 ```ts
 if (!hasPackageJson(cwd)) cancel('No package.json found.'); // no intro box = unstyled output
 intro(...);
 ```
 
 ✅ Correct:
+
 ```ts
 intro(...);
 if (!hasPackageJson(cwd)) {
@@ -222,30 +229,29 @@ import { runStep, runInProcessStep } from '../utils/run-step.js';
 import { installDependencies } from '../utils/package-manager.js';
 
 export interface MyCommandOptions {
-    cwd?: string;
+	cwd?: string;
 }
 
 export async function handleMyCommand(options: MyCommandOptions): Promise<void> {
-    const cwd = options.cwd ?? process.cwd();
+	const cwd = options.cwd ?? process.cwd();
 
-    intro(pc.bgGreen(pc.black(' OmniSvelte My Command ')));
+	intro(pc.bgGreen(pc.black(' OmniSvelte My Command ')));
 
-    // Validation: manual cancel + return
-    if (!someCondition) {
-        cancel('Required condition not met.');
-        process.exitCode = 1;
-        return;
-    }
+	// Validation: manual cancel + return
+	if (!someCondition) {
+		cancel('Required condition not met.');
+		process.exitCode = 1;
+		return;
+	}
 
-    // Subprocess step: use runStep
-    if (!(await runStep('Doing subprocess work', () => installDependencies(['some-pkg'], { cwd }))))
-        return;
+	// Subprocess step: use runStep
+	if (!(await runStep('Doing subprocess work', () => installDependencies(['some-pkg'], { cwd }))))
+		return;
 
-    // In-process step: use runInProcessStep
-    if (!(await runInProcessStep('Doing in-process work', () => someInProcessFn(cwd))))
-        return;
+	// In-process step: use runInProcessStep
+	if (!(await runInProcessStep('Doing in-process work', () => someInProcessFn(cwd)))) return;
 
-    outro(pc.green('Done!'));
+	outro(pc.green('Done!'));
 }
 ```
 
@@ -255,29 +261,29 @@ export async function handleMyCommand(options: MyCommandOptions): Promise<void> 
 import { handleMyCommand } from './commands/my-command.js';
 
 program
-    .command('my-command')
-    .description('What it does')
-    .option('--cwd <path>', 'Working directory', process.cwd())
-    .action(async (options) => {
-        await runAction(() => handleMyCommand({ cwd: options.cwd }));
-    });
+	.command('my-command')
+	.description('What it does')
+	.option('--cwd <path>', 'Working directory', process.cwd())
+	.action(async (options) => {
+		await runAction(() => handleMyCommand({ cwd: options.cwd }));
+	});
 ```
 
 **3. Add snapshot tests in `src/tests/unit/cli-snapshot.test.ts`**
 
 ```ts
 describe('CLI my-command', () => {
-    it('my-command --help output matches snapshot', async () => {
-        const { stdout, exitCode } = await runCli(['my-command', '--help']);
-        expect(exitCode).toBe(0);
-        expect(stdout).toMatchSnapshot();
-    });
+	it('my-command --help output matches snapshot', async () => {
+		const { stdout, exitCode } = await runCli(['my-command', '--help']);
+		expect(exitCode).toBe(0);
+		expect(stdout).toMatchSnapshot();
+	});
 
-    it('my-command with unknown option exits 1', async () => {
-        const { stderr, exitCode } = await runCli(['my-command', '--bad-flag']);
-        expect(exitCode).toBe(1);
-        expect(stderr).toMatchSnapshot();
-    });
+	it('my-command with unknown option exits 1', async () => {
+		const { stderr, exitCode } = await runCli(['my-command', '--bad-flag']);
+		expect(exitCode).toBe(1);
+		expect(stderr).toMatchSnapshot();
+	});
 });
 ```
 
@@ -308,16 +314,16 @@ Before committing CLI changes:
 
 All PM-specific logic lives in [`utils/package-manager.ts`](./utils/package-manager.ts).
 
-| Function | Purpose |
-|---|---|
-| `detectPackageManager(cwd)` | Auto-detect PM from lockfile |
-| `installDependencies(pkgs, opts)` | Install packages using detected or specified PM |
-| `runPackageInstall(cwd, pm?)` | Run full `install` (e.g. `pnpm install`) |
-| `runPackageExec(pkg, args, cwd, pm?)` | Run `dlx`/`bunx`/`npx` equivalent |
-| `runScript(script, args, cwd, pm?)` | Run a `package.json` script |
-| `getInstallArgs(pm, pkgs, dev)` | *(unit-testable)* Returns `{ command, args }` for install |
-| `getExecArgs(pm, pkg, args)` | *(unit-testable)* Returns `{ command, args }` for exec |
-| `addAllowBuildsIfPnpm(options)` | Injects package build approval into `pnpm-workspace.yaml` when using pnpm / vp |
+| Function                              | Purpose                                                                        |
+| ------------------------------------- | ------------------------------------------------------------------------------ |
+| `detectPackageManager(cwd)`           | Auto-detect PM from lockfile                                                   |
+| `installDependencies(pkgs, opts)`     | Install packages using detected or specified PM                                |
+| `runPackageInstall(cwd, pm?)`         | Run full `install` (e.g. `pnpm install`)                                       |
+| `runPackageExec(pkg, args, cwd, pm?)` | Run `dlx`/`bunx`/`npx` equivalent                                              |
+| `runScript(script, args, cwd, pm?)`   | Run a `package.json` script                                                    |
+| `getInstallArgs(pm, pkgs, dev)`       | _(unit-testable)_ Returns `{ command, args }` for install                      |
+| `getExecArgs(pm, pkg, args)`          | _(unit-testable)_ Returns `{ command, args }` for exec                         |
+| `addAllowBuildsIfPnpm(options)`       | Injects package build approval into `pnpm-workspace.yaml` when using pnpm / vp |
 
 All functions throw a descriptive `Error` on non-zero subprocess exit.
 All subprocess calls use `cleanup: true` so child processes die with the parent.
@@ -328,14 +334,13 @@ All subprocess calls use `cleanup: true` so child processes die with the parent.
 
 All project-detection logic lives in [`utils/project.ts`](./utils/project.ts).
 
-| Function | Purpose |
-|---|---|
-| `findProjectRoot(start?)` | Walks up directory tree from `start` to find the package.json root |
-| `hasPackageJson(cwd)` | Returns true if `package.json` exists in `cwd` |
-| `hasViteConfig(cwd)` | Returns true if `vite.config.ts` exists in `cwd` |
-| `isSvelteKitProject(cwd)` | Returns true if `@sveltejs/kit` is in the project's deps (covers all SK versions including SK3+ where `svelte.config.js` is optional). Falls back to checking for `svelte.config.js/ts` for older projects. |
-| `isOmniProject(cwd)` | Returns true if `omni-svelte` is in the project's dependencies |
-| `addOmniToViteConfig(cwd)` | Injects `omniSvelte()` into `vite.config.ts`; returns true if file was changed |
+| Function                   | Purpose                                                                                                                                                                                                     |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `findProjectRoot(start?)`  | Walks up directory tree from `start` to find the package.json root                                                                                                                                          |
+| `hasPackageJson(cwd)`      | Returns true if `package.json` exists in `cwd`                                                                                                                                                              |
+| `hasViteConfig(cwd)`       | Returns true if `vite.config.ts` exists in `cwd`                                                                                                                                                            |
+| `isSvelteKitProject(cwd)`  | Returns true if `@sveltejs/kit` is in the project's deps (covers all SK versions including SK3+ where `svelte.config.js` is optional). Falls back to checking for `svelte.config.js/ts` for older projects. |
+| `isOmniProject(cwd)`       | Returns true if `omni-svelte` is in the project's dependencies                                                                                                                                              |
+| `addOmniToViteConfig(cwd)` | Injects `omniSvelte()` into `vite.config.ts`; returns true if file was changed                                                                                                                              |
 
 > **Tip**: Use `isSvelteKitProject(cwd)` at the top of any command that requires a SvelteKit context (e.g. `generate`, `db`). Call `cancel()` and return early if it's false.
-

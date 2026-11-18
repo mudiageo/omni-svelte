@@ -38,9 +38,9 @@
 		{/if}
 
 		<!-- Page header -->
-		<h1 class="mt-1 mb-3 text-3xl font-bold tracking-tight text-foreground">{doc.title}</h1>
+		<h1 class="text-foreground mt-1 mb-3 text-3xl font-bold tracking-tight">{doc.title}</h1>
 		{#if doc.description}
-			<p class="mb-6 text-lg leading-relaxed text-muted-foreground">{doc.description}</p>
+			<p class="text-muted-foreground mb-6 text-lg leading-relaxed">{doc.description}</p>
 		{/if}
 		<Separator class="mb-8" />
 
@@ -54,15 +54,15 @@
 			{#if prev?.href}
 				<a
 					href={prev.href}
-					class="group flex max-w-[48%] flex-1 flex-col gap-1 rounded-lg border border-border p-4 transition-colors hover:border-primary/50"
+					class="group border-border hover:border-primary/50 flex max-w-[48%] flex-1 flex-col gap-1 rounded-lg border p-4 transition-colors"
 				>
 					<span
-						class="flex items-center gap-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
+						class="text-muted-foreground flex items-center gap-1 text-[11px] font-semibold tracking-wide uppercase"
 					>
 						<ChevronLeft class="h-3 w-3" /> Previous
 					</span>
 					<span
-						class="text-sm leading-tight font-medium text-foreground transition-colors group-hover:text-primary"
+						class="text-foreground group-hover:text-primary text-sm leading-tight font-medium transition-colors"
 					>
 						{prev.title}
 					</span>
@@ -72,15 +72,15 @@
 			{#if next?.href}
 				<a
 					href={next.href}
-					class="group flex max-w-[48%] flex-1 flex-col items-end gap-1 rounded-lg border border-border p-4 transition-colors hover:border-primary/50"
+					class="group border-border hover:border-primary/50 flex max-w-[48%] flex-1 flex-col items-end gap-1 rounded-lg border p-4 transition-colors"
 				>
 					<span
-						class="flex items-center gap-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
+						class="text-muted-foreground flex items-center gap-1 text-[11px] font-semibold tracking-wide uppercase"
 					>
 						Next <ChevronRight class="h-3 w-3" />
 					</span>
 					<span
-						class="text-right text-sm leading-tight font-medium text-foreground transition-colors group-hover:text-primary"
+						class="text-foreground group-hover:text-primary text-right text-sm leading-tight font-medium transition-colors"
 					>
 						{next.title}
 					</span>
@@ -94,7 +94,7 @@
 				href="https://github.com/mudiageo/omni-svelte/edit/main/apps/docs/content/docs/{doc.slugAsParams}.md"
 				target="_blank"
 				rel="noopener noreferrer"
-				class="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+				class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-xs transition-colors"
 			>
 				<Pencil class="h-3 w-3" />
 				Edit this page on GitHub

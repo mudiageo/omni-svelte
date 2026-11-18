@@ -1,9 +1,9 @@
 ---
-title: "OmniSvelte v0.1: SvelteKit, but with superpowers"
-description: "The first release of OmniSvelte is here. A schema-driven data layer, ActiveRecord-style models, and first-class auth for SvelteKit, with zero config."
+title: 'OmniSvelte v0.1: SvelteKit, but with superpowers'
+description: 'The first release of OmniSvelte is here. A schema-driven data layer, ActiveRecord-style models, and first-class auth for SvelteKit, with zero config.'
 date: 2026-07-23
-author: "Mudiaga Arharhire"
-tags: ["announcement", "release"]
+author: 'Mudiaga Arharhire'
+tags: ['announcement', 'release']
 featured: false
 ---
 
@@ -11,7 +11,7 @@ featured: false
 
 For me, every new SvelteKit project starts the same way: wire up a database client, hand-write your Drizzle schema, bolt on an auth library, set up a UI library, duplicate your validation logic between the client and the server, and repeat all of it on the next project. None of that is hard, exactly — it's just the same fifty decisions made over and over, in every app, forever.
 
-I found myself wondering: *what if we had an opinionated framework that handled all of this automatically?*
+I found myself wondering: _what if we had an opinionated framework that handled all of this automatically?_
 
 I've been working on OmniSvelte off and on for some time now (since July 2025, actually), taking pauses here and there, but that core idea has remained the same. This release represents the foundation of my vision for what such a framework could look like. **v0.1 is live today**, bringing that vision to life with a schema-driven data layer, a real ORM, first-class auth, and a Vite plugin that wires it all together with zero config.
 

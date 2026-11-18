@@ -7,7 +7,10 @@ export const profileSchema = defineSchema(
 
 		// Identity (name, email, password) lives in the Better Auth `user` table.
 		// The profile only holds app-specific data and points at the auth user (text FK).
-		userId: field.reference(() => auth.user).required().unique(),
+		userId: field
+			.reference(() => auth.user)
+			.required()
+			.unique(),
 		user: relation.belongsTo(() => auth.user, {
 			via: 'userId',
 			inverse: { name: 'profile', kind: 'hasOne' }
@@ -17,11 +20,14 @@ export const profileSchema = defineSchema(
 
 		avatar: field.url().optional(), // Note: storage configuration might need custom extensions, omitted for basic demo
 
-		settings: field.json().default('{}').validate({
-			theme: 'string?',
-			notifications: 'boolean?',
-			language: { enum: ['en', 'es', 'fr'] }
-		}),
+		settings: field
+			.json()
+			.default('{}')
+			.validate({
+				theme: 'string?',
+				notifications: 'boolean?',
+				language: { enum: ['en', 'es', 'fr'] }
+			}),
 
 		status: field.enum('active', 'inactive', 'suspended').default('active'),
 
@@ -29,7 +35,11 @@ export const profileSchema = defineSchema(
 
 		posts: relation.hasMany(() => postSchema),
 		comments: relation.hasMany(() => commentSchema),
-		roles: relation.manyToMany(() => roleSchema, { through: () => userRoleSchema })
+		roles: relation.manyToMany(() => roleSchema, {
+			through: () => userRoleSchema,
+			sourceKey: 'userId',
+			targetKey: 'roleId'
+		})
 	},
 	{
 		timestamps: true,
@@ -53,18 +63,18 @@ export const postSchema = defineSchema(
 		id: field.serial().primaryKey(),
 
 		title: field.string().required().minLength(1, 'Title is required'),
-		
+
 		content: field.string().required().minLength(1, 'Content is required'),
-		
+
 		// Replaced integer with the new reference field type!
 		userId: field.reference(() => profileSchema),
 		ownerId: field.reference(() => auth.user).required(),
-		
+
 		// New relations API
 		author: relation.belongsTo(() => profileSchema, { via: 'userId' }),
 
 		published: field.boolean(),
-		
+
 		comments: relation.hasMany(() => commentSchema)
 	},
 	{
@@ -93,7 +103,7 @@ export const commentSchema = defineSchema(
 		content: field.string().required(),
 		postId: field.reference(() => postSchema),
 		authorId: field.reference(() => profileSchema),
-		
+
 		post: relation.belongsTo(() => postSchema, { via: 'postId' }),
 		author: relation.belongsTo(() => profileSchema, { via: 'authorId' })
 	},
@@ -109,7 +119,11 @@ export const roleSchema = defineSchema(
 	{
 		id: field.serial().primaryKey(),
 		name: field.string().unique(),
-		users: relation.manyToMany(() => profileSchema, { through: () => userRoleSchema })
+		users: relation.manyToMany(() => profileSchema, {
+			through: () => userRoleSchema,
+			sourceKey: 'roleId',
+			targetKey: 'userId'
+		})
 	},
 	{
 		timestamps: true
@@ -118,16 +132,13 @@ export const roleSchema = defineSchema(
 
 export const Role = roleSchema.model;
 
-export const userRoleSchema = defineSchema(
-	'userRoles',
-	{
-		id: field.serial().primaryKey(),
-		userId: field.reference(() => profileSchema),
-		roleId: field.reference(() => roleSchema),
-		
-		user: relation.belongsTo(() => profileSchema, { via: 'userId' }),
-		role: relation.belongsTo(() => roleSchema, { via: 'roleId' })
-	}
-);
+export const userRoleSchema = defineSchema('userRoles', {
+	id: field.serial().primaryKey(),
+	userId: field.reference(() => profileSchema),
+	roleId: field.reference(() => roleSchema),
+
+	user: relation.belongsTo(() => profileSchema, { via: 'userId' }),
+	role: relation.belongsTo(() => roleSchema, { via: 'roleId' })
+});
 
 export const UserRole = userRoleSchema.model;

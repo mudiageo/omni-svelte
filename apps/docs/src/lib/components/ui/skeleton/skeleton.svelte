@@ -12,6 +12,6 @@
 <div
 	bind:this={ref}
 	data-slot="skeleton"
-	class={cn('animate-pulse rounded-2xl bg-muted', className)}
+	class={cn('bg-muted animate-pulse rounded-2xl', className)}
 	{...restProps}
 ></div>

@@ -4,10 +4,10 @@
 </script>
 
 {#if title}
-	<div class="mb-8 border-b border-border pb-8">
-		<h1 class="mb-2 text-4xl font-bold text-foreground">{title}</h1>
+	<div class="border-border mb-8 border-b pb-8">
+		<h1 class="text-foreground mb-2 text-4xl font-bold">{title}</h1>
 		{#if description}
-			<p class="text-lg text-muted-foreground">{description}</p>
+			<p class="text-muted-foreground text-lg">{description}</p>
 		{/if}
 	</div>
 {/if}

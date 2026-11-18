@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vite-plus/test';
 import fs from 'fs';
 import path from 'path';
 import { SchemaParser } from '../../schema/parser.js';
@@ -7,7 +7,11 @@ import { ZodGenerator } from '../../schema/generators/zod.js';
 import { ModelGenerator } from '../../schema/generators/model.js';
 import type { Schema } from '../../schema/types.js';
 import { auth } from '../../schema/auth-reference.js';
-import { setAuthRegistry, resetAuthRegistryCache, introspectAuthModule } from '../../runtime/auth/index.js';
+import {
+	setAuthRegistry,
+	resetAuthRegistryCache,
+	introspectAuthModule
+} from '../../runtime/auth/index.js';
 import * as pgFixture from '../fixtures/auth/auth-schema.pg.js';
 import * as pluralPgFixture from '../fixtures/auth/auth-schema.plural.pg.js';
 
@@ -211,7 +215,8 @@ describe('Schema System', () => {
 			expect(outputs[0].content).toContain('export const users = pgTable');
 			expect(outputs[0].content).toContain('export const posts = pgTable');
 			// Should import from omni-svelte/drizzle/pg exactly once
-			const importCount = (outputs[0].content.match(/from 'omni-svelte\/drizzle\/pg'/g) || []).length;
+			const importCount = (outputs[0].content.match(/from 'omni-svelte\/drizzle\/pg'/g) || [])
+				.length;
 			expect(importCount).toBe(1);
 		});
 
@@ -265,8 +270,8 @@ describe('Schema System', () => {
 			const generator = new DrizzleGenerator(schema);
 			const output = generator.generate();
 			expect(output).toContain("text('authorId')");
-			expect(output).toContain(".references(() => user.id)");
-			expect(output).toContain(".notNull()");
+			expect(output).toContain('.references(() => user.id)');
+			expect(output).toContain('.notNull()');
 		});
 
 		it('should generate uuid column with .references() when referencing schema with uuid PK', () => {
@@ -288,7 +293,7 @@ describe('Schema System', () => {
 			const generator = new DrizzleGenerator(schema);
 			const output = generator.generate();
 			expect(output).toContain("uuid('orgId')");
-			expect(output).toContain(".references(() => organizations.id)");
+			expect(output).toContain('.references(() => organizations.id)');
 		});
 
 		it('should throw AUTH007 when .unsigned() is used on non-integer reference', () => {
@@ -397,7 +402,7 @@ describe('Schema System', () => {
 			expect(outputs[0].content).toContain("import { users } from '");
 			expect(outputs[0].content).not.toContain("import { user } from '");
 			expect(outputs[0].content).not.toContain("from './users'");
-			expect(outputs[0].content).toContain("r.one.users(");
+			expect(outputs[0].content).toContain('r.one.users(');
 		});
 
 		// ── relations ────────────────────────────────────────────────
@@ -461,7 +466,11 @@ describe('Schema System', () => {
 		});
 
 		it('should generate correct hasOne syntax with from/to FK direction', () => {
-			const profileSchema: Schema = { name: 'profiles', fields: { id: { type: 'serial', primary: true } }, config: {} };
+			const profileSchema: Schema = {
+				name: 'profiles',
+				fields: { id: { type: 'serial', primary: true } },
+				config: {}
+			};
 			const schema: Schema = {
 				name: 'users',
 				fields: { id: { type: 'serial', primary: true } },
@@ -637,7 +646,10 @@ describe('Schema System', () => {
 	// ─── ModelGenerator ───────────────────────────────────────────
 	describe('ModelGenerator', () => {
 		it('should generate relationships object correctly', () => {
-			const schemaWithRelations = { ...mockUserSchema, relations: { posts: { kind: 'hasMany', target: () => ({ name: 'posts' }) } } };
+			const schemaWithRelations = {
+				...mockUserSchema,
+				relations: { posts: { kind: 'hasMany', target: () => ({ name: 'posts' }) } }
+			};
 			const generator = new ModelGenerator(schemaWithRelations);
 			const content = generator.generate();
 

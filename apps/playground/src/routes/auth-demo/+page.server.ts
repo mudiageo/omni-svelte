@@ -1,13 +1,13 @@
 import type { PageServerLoad } from './$types.js';
 import { error } from '@sveltejs/kit';
 import { auth } from '$auth/server';
-import { User } from '$lib/db/models/auth/user';
+import { User } from '#lib/schema';
 
 export const load: PageServerLoad = async ({ request, locals }) => {
 	// Require an authenticated session before reading user records
 	let session = null;
 	try {
-		session = locals?.session ?? (await auth.api.getSession({ headers: request.headers }));
+		session = (locals as any)?.session ?? (await auth.api.getSession({ headers: request.headers }));
 	} catch {
 		// Better Auth might not be connected in offline/test environments
 	}
@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ request, locals }) => {
 	try {
 		// Load users with inverse relations: notes and profile
 		// Using the read-only User model derived from Better Auth
-		const users = await User.query().with(['notes', 'profile']).limit(10).get();
+		const users = await (User as any).query().with(['notes', 'profile']).limit(10).get();
 
 		return {
 			users,

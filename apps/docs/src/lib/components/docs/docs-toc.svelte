@@ -34,7 +34,7 @@
 {#if headings.length > 0}
 	<div class="hidden xl:block">
 		<div class="sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto pb-10">
-			<p class="mb-3 text-xs font-semibold tracking-widest text-muted-foreground/60 uppercase">
+			<p class="text-muted-foreground/60 mb-3 text-xs font-semibold tracking-widest uppercase">
 				On This Page
 			</p>
 			<ul class="space-y-1">
@@ -46,7 +46,7 @@
 								'block py-0.5 text-[13px] leading-snug transition-colors',
 								h.level === 3 ? 'pl-3 text-[12px]' : '',
 								activeId === h.id
-									? 'font-medium text-primary'
+									? 'text-primary font-medium'
 									: 'text-muted-foreground hover:text-foreground'
 							)}
 						>
@@ -62,7 +62,7 @@
 					href="https://github.com/mudiageo/omnisvelte"
 					target="_blank"
 					rel="noopener"
-					class="block py-0.5 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+					class="text-muted-foreground hover:text-foreground block py-0.5 text-[12px] transition-colors"
 				>
 					GitHub Repository ↗
 				</a>
@@ -70,7 +70,7 @@
 					href="https://discord.gg/omnisvelte"
 					target="_blank"
 					rel="noopener"
-					class="block py-0.5 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+					class="text-muted-foreground hover:text-foreground block py-0.5 text-[12px] transition-colors"
 				>
 					Discord Community ↗
 				</a>

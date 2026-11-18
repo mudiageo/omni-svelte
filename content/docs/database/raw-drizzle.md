@@ -11,7 +11,7 @@ The generated Model API covers most use cases. When you need complex joins, cust
 
 ## Drizzle Imports
 
-When writing custom queries, you will often need Drizzle utilities like `eq`, `and`, `sql`, or `desc`. 
+When writing custom queries, you will often need Drizzle utilities like `eq`, `and`, `sql`, or `desc`.
 
 Omni Svelte provides built-in barrel exports for these so you **do not** need to install `drizzle-orm` in your project. This guarantees you are using the exact same version of Drizzle that Omni Svelte uses internally, preventing frustrating type mismatches.
 
@@ -31,7 +31,7 @@ import { eq, and, sql, desc } from 'omni-svelte/drizzle/sqlite';
 ## Importing Database Instance
 
 ```ts
-import { db }    from '$db';          // Drizzle database instance
+import { db } from '$db'; // Drizzle database instance
 import { posts, users, comments } from '$schema'; // all Drizzle tables
 ```
 
@@ -43,19 +43,19 @@ import { posts, users, comments } from '$schema';
 import { eq, and, count, sql, desc, gt } from 'omni-svelte/drizzle/pg';
 
 const results = await db
-  .select({
-    postId:       posts.id,
-    title:        posts.title,
-    authorName:   users.name,
-    commentCount: count(comments.id).as('comment_count')
-  })
-  .from(posts)
-  .innerJoin(users, eq(posts.userId, users.id))
-  .leftJoin(comments, eq(comments.postId, posts.id))
-  .where(eq(posts.published, true))
-  .groupBy(posts.id, users.name)
-  .orderBy(desc(sql`comment_count`))
-  .limit(10);
+	.select({
+		postId: posts.id,
+		title: posts.title,
+		authorName: users.name,
+		commentCount: count(comments.id).as('comment_count')
+	})
+	.from(posts)
+	.innerJoin(users, eq(posts.userId, users.id))
+	.leftJoin(comments, eq(comments.postId, posts.id))
+	.where(eq(posts.published, true))
+	.groupBy(posts.id, users.name)
+	.orderBy(desc(sql`comment_count`))
+	.limit(10);
 ```
 
 ## Transactions
@@ -65,18 +65,13 @@ import { db } from '$db';
 import { posts, tags, postTags } from '$schema';
 
 const result = await db.transaction(async (tx) => {
-  const [post] = await tx
-    .insert(posts)
-    .values({ title, content, userId })
-    .returning();
+	const [post] = await tx.insert(posts).values({ title, content, userId }).returning();
 
-  if (tagIds.length) {
-    await tx.insert(postTags).values(
-      tagIds.map(tagId => ({ postId: post.id, tagId }))
-    );
-  }
+	if (tagIds.length) {
+		await tx.insert(postTags).values(tagIds.map((tagId) => ({ postId: post.id, tagId })));
+	}
 
-  return post;
+	return post;
 });
 ```
 
@@ -84,9 +79,9 @@ const result = await db.transaction(async (tx) => {
 
 ```ts
 await db.insert(users).values([
-  { name: 'Alice', email: 'alice@example.com' },
-  { name: 'Bob',   email: 'bob@example.com' },
-  { name: 'Carol', email: 'carol@example.com' }
+	{ name: 'Alice', email: 'alice@example.com' },
+	{ name: 'Bob', email: 'bob@example.com' },
+	{ name: 'Carol', email: 'carol@example.com' }
 ]);
 ```
 
@@ -94,12 +89,12 @@ await db.insert(users).values([
 
 ```ts
 await db
-  .insert(posts)
-  .values({ slug, title, content, userId })
-  .onConflictDoUpdate({
-    target: posts.slug,
-    set:    { title, content, updatedAt: new Date() }
-  });
+	.insert(posts)
+	.values({ slug, title, content, userId })
+	.onConflictDoUpdate({
+		target: posts.slug,
+		set: { title, content, updatedAt: new Date() }
+	});
 ```
 
 ## Raw SQL
@@ -108,7 +103,7 @@ await db
 import { sql } from 'omni-svelte/drizzle/pg';
 
 const result = await db.execute(
-  sql`SELECT id, title, ts_rank(search_vector, plainto_tsquery(${query})) AS rank
+	sql`SELECT id, title, ts_rank(search_vector, plainto_tsquery(${query})) AS rank
       FROM posts
       WHERE search_vector @@ plainto_tsquery(${query})
       ORDER BY rank DESC

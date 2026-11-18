@@ -17,7 +17,7 @@
 	} = $props();
 
 	const clipboard = new UseClipboard();
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 	const rp = $derived(restProps as any);
 </script>
 

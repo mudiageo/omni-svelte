@@ -86,14 +86,14 @@
 	<div class="mb-12">
 		<Badge
 			variant="outline"
-			class="mb-4 border-primary/30 text-primary dark:border-primary/50 dark:text-primary"
+			class="border-primary/30 text-primary dark:border-primary/50 dark:text-primary mb-4"
 		>
 			Showcase
 		</Badge>
 		<div class="flex flex-wrap items-end justify-between gap-4">
 			<div>
 				<h1 class="mb-2 text-4xl font-bold tracking-tight">Built with OmniSvelte</h1>
-				<p class="text-lg text-muted-foreground">
+				<p class="text-muted-foreground text-lg">
 					Real projects shipping with OmniSvelte in production and beyond.
 				</p>
 			</div>
@@ -115,8 +115,8 @@
 	<div class="mb-12 grid grid-cols-3 gap-6 sm:grid-cols-3">
 		{#each [{ label: 'Projects Submitted', value: '4+' }, { label: 'Countries Reached', value: '6+' }, { label: 'Industries', value: '5+' }] as stat}
 			<Card class="py-5 text-center">
-				<p class="mb-1 text-3xl font-bold text-foreground">{stat.value}</p>
-				<p class="text-xs tracking-wide text-muted-foreground uppercase">{stat.label}</p>
+				<p class="text-foreground mb-1 text-3xl font-bold">{stat.value}</p>
+				<p class="text-muted-foreground text-xs tracking-wide uppercase">{stat.label}</p>
 			</Card>
 		{/each}
 	</div>
@@ -137,10 +137,10 @@
 										pulse={project.status === 'live'}
 										size="sm"
 									/>
-									<span class="text-xs text-muted-foreground">{statusLabel[project.status]}</span>
+									<span class="text-muted-foreground text-xs">{statusLabel[project.status]}</span>
 								</div>
 							</div>
-							<p class="text-xs text-muted-foreground">by {project.author}</p>
+							<p class="text-muted-foreground text-xs">by {project.author}</p>
 						</div>
 						<div class="flex items-center gap-1">
 							{#if project.github}
@@ -168,20 +168,20 @@
 					</div>
 
 					<!-- Description -->
-					<p class="mb-4 flex-1 text-sm leading-relaxed text-muted-foreground">
+					<p class="text-muted-foreground mb-4 flex-1 text-sm leading-relaxed">
 						{project.description}
 					</p>
 
 					<!-- Stack -->
-					<div class="border-t border-border/50 pt-3">
+					<div class="border-border/50 border-t pt-3">
 						<p
-							class="mb-2 text-[11px] font-semibold tracking-wider text-muted-foreground/60 uppercase"
+							class="text-muted-foreground/60 mb-2 text-[11px] font-semibold tracking-wider uppercase"
 						>
 							Stack
 						</p>
 						<div class="flex flex-wrap gap-1.5">
 							{#each project.stack as tech}
-								<span class="rounded bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground"
+								<span class="bg-muted text-muted-foreground rounded px-2 py-0.5 font-mono text-xs"
 									>{tech}</span
 								>
 							{/each}
@@ -193,9 +193,9 @@
 	</div>
 
 	<!-- Submit CTA -->
-	<div class="mt-14 rounded-xl border border-border bg-muted/30 p-8 text-center">
+	<div class="border-border bg-muted/30 mt-14 rounded-xl border p-8 text-center">
 		<h2 class="mb-2 text-xl font-bold">Built something with OmniSvelte?</h2>
-		<p class="mb-5 text-sm text-muted-foreground">
+		<p class="text-muted-foreground mb-5 text-sm">
 			Share your project with the community. Open a GitHub Discussion in the Showcase category.
 		</p>
 		<Button

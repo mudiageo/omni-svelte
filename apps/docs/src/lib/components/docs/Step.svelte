@@ -5,12 +5,12 @@
 
 <div class="step relative mt-8 [counter-increment:step]">
 	<div
-		class="absolute -left-[49px] mt-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-sm font-medium"
+		class="border-border bg-background absolute -left-[49px] mt-1 flex h-8 w-8 items-center justify-center rounded-full border text-sm font-medium"
 	>
 		<span class="after:content-[counter(step)]"></span>
 	</div>
 	<h3 class="mt-0 text-xl font-semibold tracking-tight">{title}</h3>
-	<div class="prose-p:my-4 mt-4 text-muted-foreground">
+	<div class="prose-p:my-4 text-muted-foreground mt-4">
 		{@render children()}
 	</div>
 </div>

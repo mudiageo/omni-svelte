@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		const recentProfiles = await locals.query
 			.model(Profile)
 			.where('active', true)
-      .with(['user'])
+			.with(['user'])
 			.orderBy('created_at', 'desc')
 			.limit(5)
 			.get();

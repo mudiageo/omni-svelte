@@ -1,15 +1,15 @@
 ---
-title: "OmniSvelte v0.2: CLI, Resource API, and a Cleaner Config"
-description: "v0.2 ships a full CLI suite, the new resource() API that auto-generates remote functions, formSchema() for form validation, fromURL() for URL-driven queries, and a streamlined configuration model aligned with SvelteKit 3."
+title: 'OmniSvelte v0.2: CLI, Resource API, and a Cleaner Config'
+description: 'v0.2 ships a full CLI suite, the new resource() API that auto-generates remote functions, formSchema() for form validation, fromURL() for URL-driven queries, and a streamlined configuration model aligned with SvelteKit 3.'
 date: 2026-07-30
-author: "Mudiaga Arharhire"
-tags: ["announcement", "release"]
+author: 'Mudiaga Arharhire'
+tags: ['announcement', 'release']
 featured: true
 ---
 
 # OmniSvelte v0.2: CLI, Resource API, and a Cleaner Config
 
-v0.1 just shipped, and almost immediately the thing I kept hitting was: *"I love the model layer, but I still have to write a lot of plumbing to connect it to my routes."* Remote functions, form schemas, URL-driven queries — none of that was automatic. You had to wire it all up yourself.
+v0.1 just shipped, and almost immediately the thing I kept hitting was: _"I love the model layer, but I still have to write a lot of plumbing to connect it to my routes."_ Remote functions, form schemas, URL-driven queries — none of that was automatic. You had to wire it all up yourself.
 
 v0.2 fixes that. Today we're shipping the `resource()` API, a full CLI suite, and a configuration model that's cleaner and better aligned with where SvelteKit 3 is heading.
 
@@ -29,33 +29,33 @@ We've moved all configuration out of `svelte.config.js` and into the `omniSvelte
 
 ```ts
 // vite.config.ts
-import { omniSvelte } from 'omni-svelte/vite'
+import { omniSvelte } from 'omni-svelte/vite';
 
 export default defineConfig({
-  plugins: [
-    omniSvelte({
-      database: { /* ... */ },
-      schema: './src/schema.ts',
-      kit: {
-        adapter: adapter()
-      }
-    })
-  ]
-})
+	plugins: [
+		omniSvelte({
+			database: {/* ... */},
+			schema: './src/schema.ts',
+			kit: {
+				adapter: adapter()
+			}
+		})
+	]
+});
 ```
 
 SvelteKit 3 is moving its own configuration into the Vite plugin, and this change keeps us aligned with that direction. If you need to manage `sveltekit()` yourself — for example if you're pinning a specific SvelteKit version — use the lower-level `omni()` export, which gives you the omni-svelte plugins without injecting `sveltekit()` automatically. That's actually the primary reason `omni()` is exposed at all.
 
 ```ts
-import { sveltekit } from '@sveltejs/kit/vite'
-import { omni } from 'omni-svelte/vite'
+import { sveltekit } from '@sveltejs/kit/vite';
+import { omni } from 'omni-svelte/vite';
 
 export default defineConfig({
-  plugins: [
-    sveltekit(), // fully under your control
-    ...omni({ database: { /* ... */ } })
-  ]
-})
+	plugins: [
+		sveltekit(), // fully under your control
+		...omni({ database: {/* ... */} })
+	]
+});
 ```
 
 ---
@@ -68,40 +68,40 @@ This is the headline feature of v0.2.
 
 ```ts
 // post.remote.ts
-import { resource } from 'omni-svelte/remote'
-import { Post } from '$models/post.schema.js'
+import { resource } from 'omni-svelte/remote';
+import { Post } from '$models/post.schema.js';
 
 export const {
-  list: posts,
-  get: post,
-  create: createPost,
-  update: updatePost,
-  remove: deletePost
-} = resource(Post)
+	list: posts,
+	get: post,
+	create: createPost,
+	update: updatePost,
+	remove: deletePost
+} = resource(Post);
 ```
 
 Mutations default to SvelteKit `form()` remote functions — which means they are **progressively enhanced by default**. They work in a plain `<form>` with zero JavaScript, and are upgraded to a smooth client-side experience when JS is available. If you need programmatic calls instead (triggered by `onclick` or a button outside a form), switch to `command` mode:
 
 ```ts
 export const { create: createPost } = resource(Post, {
-  mutationMode: 'command'
-  // or per-operation: { create: 'form', update: 'command' }
-})
+	mutationMode: 'command'
+	// or per-operation: { create: 'form', update: 'command' }
+});
 ```
 
 Other options let you scope which operations are generated, restrict fillable fields, eager-load relationships, add authorization logic, and hook into the list query:
 
 ```ts
 export const { list: posts, create: createPost } = resource(Post, {
-  only: ['list', 'create'],
-  with: ['author', 'tags'],
-  fillable: { create: ['title', 'body', 'published'] },
-  authorize: ({ user, operation }) => {
-    if (operation === 'list') return true
-    return Boolean(user)
-  },
-  listQuery: (q, input) => q.where('published', true)
-})
+	only: ['list', 'create'],
+	with: ['author', 'tags'],
+	fillable: { create: ['title', 'body', 'published'] },
+	authorize: ({ user, operation }) => {
+		if (operation === 'list') return true;
+		return Boolean(user);
+	},
+	listQuery: (q, input) => q.where('published', true)
+});
 ```
 
 ### `omni generate remote`
@@ -122,16 +122,16 @@ This creates a `post.remote.ts` in `src/routes/` wired to your model, with autho
 `formSchema()` takes any `ZodObject` and lets you derive a subset of it for a specific form — with support for `pick`, `omit`, `partial`, and field-level `overrides`. You can pass it anything: a schema from `$validation/*`, a model's built-in `validation.create` or `validation.update`, or a schema you wrote yourself.
 
 ```ts
-import { formSchema } from 'omni-svelte/remote'
-import { Post } from '$models/post.schema.js'
+import { formSchema } from 'omni-svelte/remote';
+import { Post } from '$models/post.schema.js';
 
 // Pick specific fields and override one
 const schema = formSchema(Post.validation.create, {
-  pick: ['title', 'body', 'published'],
-  overrides: {
-    published: z.boolean().default(false)
-  }
-})
+	pick: ['title', 'body', 'published'],
+	overrides: {
+		published: z.boolean().default(false)
+	}
+});
 ```
 
 `resource()` uses `formSchema()` internally — it derives the right shape from `Model.validation.create` or `Model.validation.update`, applies `fillable` constraints, and makes update schemas partial automatically.
@@ -160,10 +160,10 @@ By default, any URL param that isn't `page`, `perPage`, `search`, or `q` is trea
 
 ```ts
 fromURL(url, {
-  page: 'p',
-  search: 'q',
-  filters: { published: 'status' } // ?status=true → filters.published = true
-})
+	page: 'p',
+	search: 'q',
+	filters: { published: 'status' } // ?status=true → filters.published = true
+});
 ```
 
 ---
@@ -173,10 +173,10 @@ fromURL(url, {
 `getModel()` looks up a model class by name from the model registry. It returns the class or `undefined` if not found — useful for building generic admin utilities, dynamic forms, or any tooling that needs a model reference without a static import.
 
 ```ts
-import { getModel } from 'omni-svelte'
+import { getModel } from 'omni-svelte';
 
-const Post = getModel('Post')
-const record = await Post?.find(id)
+const Post = getModel('Post');
+const record = await Post?.find(id);
 ```
 
 ---
@@ -218,12 +218,12 @@ The CLI now supports a `--package-manager` flag with full support for **Vite+ (`
 
 This release tracks the latest SvelteKit 3 ecosystem:
 
-| Package | Version |
-|---|---|
-| `@sveltejs/kit` | `3.0.0-next.11` |
-| `svelte` | `5.56.7` |
-| `vite` | `8.1.5` |
-| `@sveltejs/vite-plugin-svelte` | `7.2.0` |
+| Package                        | Version         |
+| ------------------------------ | --------------- |
+| `@sveltejs/kit`                | `3.0.0-next.11` |
+| `svelte`                       | `5.56.7`        |
+| `vite`                         | `8.1.5`         |
+| `@sveltejs/vite-plugin-svelte` | `7.2.0`         |
 
 ---
 

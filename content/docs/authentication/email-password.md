@@ -37,9 +37,9 @@ omni: {
 import { authClient } from '$auth/client';
 
 const { data, error } = await authClient.signUp.email({
-  email:    'user@example.com',
-  password: 'SecurePass123!',
-  name:     'Alice'
+	email: 'user@example.com',
+	password: 'SecurePass123!',
+	name: 'Alice'
 });
 
 if (error) console.error(error.message);
@@ -50,9 +50,9 @@ else console.log('Signed up:', data.user.id);
 
 ```ts
 const { data, error } = await authClient.signIn.email({
-  email:      'user@example.com',
-  password:   'SecurePass123!',
-  rememberMe: true
+	email: 'user@example.com',
+	password: 'SecurePass123!',
+	rememberMe: true
 });
 ```
 
@@ -80,11 +80,11 @@ const session = authClient.useSession();
 import { auth } from '$auth/server';
 
 export async function load({ request }) {
-  const session = await auth.api.getSession({
-    headers: request.headers
-  });
+	const session = await auth.api.getSession({
+		headers: request.headers
+	});
 
-  return { user: session?.user ?? null };
+	return { user: session?.user ?? null };
 }
 ```
 
@@ -92,8 +92,8 @@ export async function load({ request }) {
 
 ```ts
 await authClient.changePassword({
-  currentPassword: 'OldPass123!',
-  newPassword:     'NewPass456!'
+	currentPassword: 'OldPass123!',
+	newPassword: 'NewPass456!'
 });
 ```
 
@@ -101,8 +101,8 @@ await authClient.changePassword({
 
 ```ts
 await authClient.forgetPassword({
-  email:       'user@example.com',
-  redirectTo:  '/reset-password'
+	email: 'user@example.com',
+	redirectTo: '/reset-password'
 });
 ```
 
@@ -110,8 +110,8 @@ await authClient.forgetPassword({
 
 ```ts
 await authClient.resetPassword({
-  newPassword: 'NewPass456!',
-  token:       searchParams.get('token')!
+	newPassword: 'NewPass456!',
+	token: searchParams.get('token')!
 });
 ```
 

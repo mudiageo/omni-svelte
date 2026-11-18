@@ -34,9 +34,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Lint
-        run: pnpm lint
-
       - name: Build shared
         run: pnpm --filter @omni-svelte/shared build
 
@@ -46,11 +43,14 @@ jobs:
       - name: Build core
         run: pnpm --filter omni-svelte build
 
+      - name: Lint
+        run: pnpm lint
+
       - name: Type check
         run: pnpm check
 
       - name: Install playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: pnpm --filter playground exec playwright install --with-deps chromium
 
       - name: Test
         run: pnpm --filter playground test

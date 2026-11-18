@@ -58,7 +58,7 @@
 							</div>
 							<div class="flex flex-col gap-0.5 leading-none">
 								<span class="font-semibold">OmniSvelte</span>
-								<span class="text-xs text-muted-foreground">{siteConfig.version}</span>
+								<span class="text-muted-foreground text-xs">{siteConfig.version}</span>
 							</div>
 						</a>
 					{/snippet}
@@ -71,7 +71,7 @@
 		<!-- Search hint -->
 		<div class="px-2 pb-2">
 			<button
-				class="flex w-full items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted"
+				class="border-border bg-muted/40 text-muted-foreground hover:bg-muted flex w-full items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors"
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -89,7 +89,7 @@
 				</svg>
 				<span class="flex-1 text-left text-xs">Search docs...</span>
 				<kbd
-					class="pointer-events-none hidden rounded border bg-background px-1.5 py-0.5 font-mono text-[10px] opacity-100 select-none sm:inline-flex"
+					class="bg-background pointer-events-none hidden rounded border px-1.5 py-0.5 font-mono text-[10px] opacity-100 select-none sm:inline-flex"
 					>⌘K</kbd
 				>
 			</button>
@@ -99,7 +99,7 @@
 			<Collapsible.Root bind:open={openSections[section.title]} class="group/collapsible">
 				<Sidebar.Group class="py-0">
 					<Sidebar.GroupLabel
-						class="group/label flex cursor-pointer items-center text-[11px] tracking-widest text-muted-foreground/60 uppercase transition-colors hover:text-foreground"
+						class="group/label text-muted-foreground/60 hover:text-foreground flex cursor-pointer items-center text-[11px] tracking-widest uppercase transition-colors"
 						asChild
 					>
 						{#snippet child({ props })}
@@ -123,7 +123,7 @@
 											class={cn(
 												'h-8 text-sm',
 												isActive(item.href)
-													? 'bg-sidebar-accent font-medium text-sidebar-primary'
+													? 'bg-sidebar-accent text-sidebar-primary font-medium'
 													: 'text-sidebar-foreground/70'
 											)}
 										>

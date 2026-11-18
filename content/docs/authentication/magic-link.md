@@ -13,9 +13,11 @@ Magic link lets users sign in without a password — they receive an email with 
 
 ```js
 omni: {
-  auth: {
-    plugins: { magicLink: true }
-  }
+	auth: {
+		plugins: {
+			magicLink: true;
+		}
+	}
 }
 ```
 
@@ -28,8 +30,8 @@ import { authClient } from '$auth/client';
 
 // Send magic link
 await authClient.signIn.magicLink({
-  email:       'user@example.com',
-  callbackURL: '/dashboard'
+	email: 'user@example.com',
+	callbackURL: '/dashboard'
 });
 ```
 

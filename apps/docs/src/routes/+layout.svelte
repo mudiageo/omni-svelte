@@ -19,7 +19,7 @@
 
 <TailwindIndicator />
 <ModeWatcher defaultMode="system" />
-<div class="relative flex min-h-svh flex-col bg-background">
+<div class="bg-background relative flex min-h-svh flex-col">
 	<Banner />
 	<Navbar />
 	<main class="flex-1">

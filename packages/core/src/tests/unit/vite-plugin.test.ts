@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vite-plus/test';
 import { omniSvelte, omni } from '../../vite/index';
 
 // mock sveltekit to prevent it from trying to do real vite resolution
@@ -11,7 +11,7 @@ describe('omniSvelte Vite plugin', () => {
 		const plugins = omniSvelte();
 		// Find the sveltekit plugin instance (which we mocked to return its options)
 		const kitPlugin = plugins.find((p: any) => p.name === 'sveltekit') as any;
-		
+
 		expect(kitPlugin).toBeDefined();
 		expect(kitPlugin.options.experimental.remoteFunctions).toBe(true);
 		expect(kitPlugin.options.compilerOptions.experimental.async).toBe(true);
@@ -19,7 +19,7 @@ describe('omniSvelte Vite plugin', () => {
 
 	it('warns and respects explicit false values for experimental flags', () => {
 		const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-		
+
 		const plugins = omniSvelte({
 			kit: {
 				experimental: { remoteFunctions: false }
@@ -30,13 +30,17 @@ describe('omniSvelte Vite plugin', () => {
 		} as any);
 
 		const kitPlugin = plugins.find((p: any) => p.name === 'sveltekit') as any;
-		
+
 		expect(kitPlugin.options.experimental.remoteFunctions).toBe(false);
 		expect(kitPlugin.options.compilerOptions.experimental.async).toBe(false);
-		
-		expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('kit.experimental.remoteFunctions is explicitly set to false'));
-		expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('compilerOptions.experimental.async is explicitly set to false'));
-		
+
+		expect(warnSpy).toHaveBeenCalledWith(
+			expect.stringContaining('kit.experimental.remoteFunctions is explicitly set to false')
+		);
+		expect(warnSpy).toHaveBeenCalledWith(
+			expect.stringContaining('compilerOptions.experimental.async is explicitly set to false')
+		);
+
 		warnSpy.mockRestore();
 	});
 

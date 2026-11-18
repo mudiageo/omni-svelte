@@ -22,13 +22,13 @@ OmniSvelte uses Better-Auth's cookie-based session management, wired into Svelte
 import { auth } from '$auth/server';
 
 export async function load({ request }) {
-  const session = await auth.api.getSession({
-    headers: request.headers
-  });
+	const session = await auth.api.getSession({
+		headers: request.headers
+	});
 
-  // session?.user    — the authenticated user or undefined
-  // session?.session — the raw session object
-  return { user: session?.user ?? null };
+	// session?.user    — the authenticated user or undefined
+	// session?.session — the raw session object
+	return { user: session?.user ?? null };
 }
 ```
 
@@ -36,19 +36,19 @@ export async function load({ request }) {
 
 ```svelte
 <script lang="ts">
-  import { authClient } from '$auth/client';
+	import { authClient } from '$auth/client';
 
-  const session = authClient.useSession();
-  // $session.data?.user
-  // $session.isPending
+	const session = authClient.useSession();
+	// $session.data?.user
+	// $session.isPending
 </script>
 
 {#if $session.isPending}
-  <p>Loading...</p>
+	<p>Loading...</p>
 {:else if $session.data?.user}
-  <p>Hello, {$session.data.user.name}</p>
+	<p>Hello, {$session.data.user.name}</p>
 {:else}
-  <a href="/login">Sign in</a>
+	<a href="/login">Sign in</a>
 {/if}
 ```
 
@@ -77,8 +77,8 @@ import { auth } from '$auth/server';
 import { redirect } from '@sveltejs/kit';
 
 export async function load({ request }) {
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session) redirect(302, '/login');
-  return { user: session.user };
+	const session = await auth.api.getSession({ headers: request.headers });
+	if (!session) redirect(302, '/login');
+	return { user: session.user };
 }
 ```

@@ -7,7 +7,7 @@ order: 1
 
 # Introduction
 
-**OmniSvelte** is a drop-in enhancement layer for SvelteKit. It isn't a separate framework — it *is* SvelteKit, supercharged with everything a production app needs baked in.
+**OmniSvelte** is a drop-in enhancement layer for SvelteKit. It isn't a separate framework — it _is_ SvelteKit, supercharged with everything a production app needs baked in.
 
 > **"SvelteKit, but with superpowers."** — Build production-ready applications in minutes, not months.
 
@@ -36,29 +36,29 @@ Add the `omniSvelte()` Vite plugin, define an `omni` block in `vite.config.ts`, 
 
 ### ✅ Stable
 
-| Feature | Description |
-|---|---|
-| 🗄️ Database ORM (Drizzle) | ActiveRecord-style `Model` class + `createModel` helper |
-| 🔐 Authentication (Better-Auth) | Email/password, magic link, 2FA, passkeys, OAuth |
-| 📋 Central schema → code gen | Auto-generates Drizzle tables, Zod validators, model files |
-| ⚡ Vite plugin | Zero-config server hooks, code generation on dev start |
-| 🔗 Model relationships | `hasMany`, `belongsTo`, `hasOne`, `belongsToMany` |
-| 🪝 Lifecycle hooks | `creating`, `created`, `updating`, `updated`, `deleted` |
-| 🏭 Factory & Faker | Test data generation with state transforms |
-| 🔌 Plugin API types | Full `OmniPlugin` interface with lifecycle hooks |
-| 📦 Virtual modules | `$auth/server`, `$auth/client`, `$db`, `$models/*`, etc. |
+| Feature                         | Description                                                |
+| ------------------------------- | ---------------------------------------------------------- |
+| 🗄️ Database ORM (Drizzle)       | ActiveRecord-style `Model` class + `createModel` helper    |
+| 🔐 Authentication (Better-Auth) | Email/password, magic link, 2FA, passkeys, OAuth           |
+| 📋 Central schema → code gen    | Auto-generates Drizzle tables, Zod validators, model files |
+| ⚡ Vite plugin                  | Zero-config server hooks, code generation on dev start     |
+| 🔗 Model relationships          | `hasMany`, `belongsTo`, `hasOne`, `belongsToMany`          |
+| 🪝 Lifecycle hooks              | `creating`, `created`, `updating`, `updated`, `deleted`    |
+| 🏭 Factory & Faker              | Test data generation with state transforms                 |
+| 🔌 Plugin API types             | Full `OmniPlugin` interface with lifecycle hooks           |
+| 📦 Virtual modules              | `$auth/server`, `$auth/client`, `$db`, `$models/*`, etc.   |
 
 ### 🔜 In Progress / Planned
 
-| Feature | Description |
-|---|---|
-| 🎨 UI layer | shadcn-svelte integration, accessible forms, layouts |
-| 📧 Email | Template-based email via Resend / Nodemailer |
-| ⚡ Caching | Redis / in-memory cache with model-level invalidation |
-| 📡 Realtime | WebSocket channels via CrossWS, SSE, model broadcast |
-| 🏗️ Jobs & Queues | Background jobs, scheduled tasks, queue management |
-| 💳 Payments | Stripe / Paystack for subscriptions and one-time payments |
-| 🧩 CLI (`omni`) | Full interactive dev CLI |
+| Feature          | Description                                               |
+| ---------------- | --------------------------------------------------------- |
+| 🎨 UI layer      | shadcn-svelte integration, accessible forms, layouts      |
+| 📧 Email         | Template-based email via Resend / Nodemailer              |
+| ⚡ Caching       | Redis / in-memory cache with model-level invalidation     |
+| 📡 Realtime      | WebSocket channels via CrossWS, SSE, model broadcast      |
+| 🏗️ Jobs & Queues | Background jobs, scheduled tasks, queue management        |
+| 💳 Payments      | Stripe / Paystack for subscriptions and one-time payments |
+| 🧩 CLI (`omni`)  | Full interactive dev CLI                                  |
 
 ---
 
@@ -75,11 +75,11 @@ export default defineConfig({ plugins: [omniSvelte()] });
 ```js
 // vite.config.ts
 const config = {
-  kit: { adapter: adapter() },
-  omni: {
-    database: { enabled: true, connection: { url: process.env.DATABASE_URL } },
-    auth:     { enabled: true, secret: process.env.BETTER_AUTH_SECRET }
-  }
+	kit: { adapter: adapter() },
+	omni: {
+		database: { enabled: true, connection: { url: process.env.DATABASE_URL } },
+		auth: { enabled: true, secret: process.env.BETTER_AUTH_SECRET }
+	}
 };
 export default config;
 ```
@@ -88,13 +88,17 @@ export default config;
 // src/lib/posts.schema.ts
 import { defineSchema, field } from 'omni-svelte/schema';
 
-export default defineSchema('posts', {
-  id:        field.serial().primaryKey(),
-  title:     field.string(255).required(),
-  content:   field.string().required(),
-  published: field.boolean().default(false),
-  userId:    field.integer().required()
-}, { timestamps: true });
+export default defineSchema(
+	'posts',
+	{
+		id: field.serial().primaryKey(),
+		title: field.string(255).required(),
+		content: field.string().required(),
+		published: field.boolean().default(false),
+		userId: field.integer().required()
+	},
+	{ timestamps: true }
+);
 ```
 
 OmniSvelte watches this file and generates your Drizzle table, Zod validators, and typed `Posts` model class automatically.

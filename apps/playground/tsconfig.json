@@ -1,7 +1,11 @@
 {
-  "extends": "$app/tsconfig",
-  "include": [
-    "src",
-    ".omni/**/*.d.ts"
-  ]
+	"extends": "$app/tsconfig",
+	"compilerOptions": {
+		"moduleResolution": "bundler",
+		"paths": {
+			"#lib": ["./src/lib/index"],
+			"#lib/*": ["./src/lib/*"]
+		}
+	},
+	"include": ["src", ".omni/**/*.d.ts"]
 }

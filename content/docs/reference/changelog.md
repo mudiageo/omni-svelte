@@ -12,6 +12,7 @@ order: 6
 **Initial release.**
 
 ### Added
+
 - `defineSchema()` and `field.*` builder API for schema-driven code generation
 - Drizzle ORM integration — generates `pgTable` definitions from `.schema.ts` files
 - Zod validator generation — `createXSchema` and `updateXSchema` per table
@@ -26,6 +27,7 @@ order: 6
 - Auto-generated `src/omni-env.d.ts` for virtual module TypeScript support
 
 ### Package exports
+
 - `omni-svelte` — `defineSchema`, `field`
 - `omni-svelte/vite` — `omniSvelte()`
 - `omni-svelte/database` — `createModel`, `Model`, `Factory`, `Faker`

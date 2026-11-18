@@ -13,7 +13,7 @@ OmniSvelte leverages SvelteKit's experimental Remote Functions (`query`, `form`,
 
 ## `formSchema()`
 
-Derives a Standard-Schema-compatible Zod object and per-field input metadata directly from a model's `defineSchema()` definition. 
+Derives a Standard-Schema-compatible Zod object and per-field input metadata directly from a model's `defineSchema()` definition.
 
 For options and full usage — see the dedicated [Form Schema API](./form-schema) page.
 

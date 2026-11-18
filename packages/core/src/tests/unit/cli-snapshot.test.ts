@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 import { execa } from 'execa';
 import { join } from 'path';
 
@@ -45,7 +45,7 @@ function normalizeOutput(output: string): string {
 		output
 			// Strip ANSI escape codes
 			.replace(/\x1B\[\d+m/g, '')
-			// eslint-disable-next-line no-control-regex
+			// oxlint-disable-next-line no-control-regex
 			.replace(/\x1B\[[\d;]*[A-Za-z]/g, '')
 			// Normalize Windows-style backslash paths (e.g. C:\Users\foo\bar)
 			.replace(/[A-Z]:\\[^\s")\n]*/gi, '<CWD>')
@@ -99,7 +99,6 @@ describe('CLI init command', () => {
 		expect(stderr).toMatchSnapshot();
 	});
 });
-
 
 // ─── migrate command ─────────────────────────────────────────────────────────────
 

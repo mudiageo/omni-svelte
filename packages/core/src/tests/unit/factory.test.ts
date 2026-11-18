@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vite-plus/test';
 import { Factory, Faker } from '../../database/index.js';
 
 describe('Factory and Faker exports', () => {

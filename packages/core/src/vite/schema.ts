@@ -15,10 +15,13 @@ import { dirname } from 'path';
 import { syncAuthSchemas } from '../runtime/auth/auth-sync.js';
 import { getAuthRegistry, renderSchemaDts } from '../runtime/auth/registry.js';
 import { checkAuthShadowing } from '../schema/auth-reference.js';
-import { collectVirtualRelations, getVirtualRelationRegistry } from '../schema/virtual-relations.js';
+import {
+	collectVirtualRelations,
+	getVirtualRelationRegistry
+} from '../schema/virtual-relations.js';
 
 let schemaConfig: SchemaConfig;
-let schemas: Schema[] = [];
+const schemas: Schema[] = [];
 let schemaWatcher: FSWatcher | null = null;
 
 export async function initializeSchemaConfig(omniConfig: OmniConfig, root: string) {

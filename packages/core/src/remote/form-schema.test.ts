@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vite-plus/test';
 import { formSchema } from './form-schema.js';
 import { z } from 'zod';
 
@@ -33,7 +33,9 @@ describe('formSchema', () => {
 	});
 
 	it('throws error when pick and omit are both used', () => {
-		expect(() => formSchema(userSchema, { pick: ['name'], omit: ['id'] })).toThrowError(/Cannot specify both/);
+		expect(() => formSchema(userSchema, { pick: ['name'], omit: ['id'] })).toThrowError(
+			/Cannot specify both/
+		);
 	});
 
 	it('handles partial correctly', () => {
@@ -43,8 +45,8 @@ describe('formSchema', () => {
 	});
 
 	it('accepts overrides', () => {
-		const fs = formSchema(userSchema, { 
-			pick: ['name', 'posts'], 
+		const fs = formSchema(userSchema, {
+			pick: ['name', 'posts'],
 			overrides: { posts: z.array(z.string()) }
 		});
 		expect(fs.shape.posts).toBeDefined();

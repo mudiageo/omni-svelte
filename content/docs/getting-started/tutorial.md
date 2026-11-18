@@ -1,5 +1,5 @@
 ---
-title: "Tutorial: Zero to Hero SaaS"
+title: 'Tutorial: Zero to Hero SaaS'
 description: Build a fully functional Customer Feedback SaaS in 15 minutes using OmniSvelte.
 section: Getting Started
 order: 4
@@ -18,7 +18,7 @@ order: 4
 
 # Build a SaaS in 15 Minutes
 
-Welcome to the OmniSvelte Zero-to-Hero tutorial! In this guide, we won't just build a toy app—we will build a **Customer Feedback SaaS** (think Canny or UserVoice) from scratch. 
+Welcome to the OmniSvelte Zero-to-Hero tutorial! In this guide, we won't just build a toy app—we will build a **Customer Feedback SaaS** (think Canny or UserVoice) from scratch.
 
 We will cover setting up your database, defining relationships, scaffolding the UI, securing API endpoints with authentication, and utilizing SvelteKit remote functions for real-time reactivity.
 
@@ -63,17 +63,17 @@ A real SaaS needs complex data. Open `src/lib/schema.ts` and define a `Product` 
 import { defineSchema, field } from '@omni-svelte/core';
 
 export const Product = defineSchema('products', {
-  name: field.string(),
-  slug: field.string().unique(),
+	name: field.string(),
+	slug: field.string().unique()
 });
 
 export const Feedback = defineSchema('feedback', {
-  title: field.string(),
-  description: field.text(),
-  status: field.enum(['open', 'planned', 'shipped']).default('open'),
-  upvotes: field.integer().default(0),
-  productId: field.references(() => Product.id),
-  userId: field.references(() => User.id) // Automatically injected by BetterAuth
+	title: field.string(),
+	description: field.text(),
+	status: field.enum(['open', 'planned', 'shipped']).default('open'),
+	upvotes: field.integer().default(0),
+	productId: field.references(() => Product.id),
+	userId: field.references(() => User.id) // Automatically injected by BetterAuth
 });
 ```
 
@@ -104,21 +104,21 @@ import { auth } from '$auth/server';
 import { Feedback } from '$models/Feedback';
 
 export const createFeedback = command()
-  .schema(Feedback.insertSchema)
-  .use(async ({ request, locals }) => {
-    // Middleware: Ensure user is logged in
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) throw new Error("Unauthorized");
-    
-    locals.user = session.user;
-  })
-  .handler(async ({ input, locals }) => {
-    // Handler: Create the feedback in the DB
-    return await Feedback.create({
-      ...input,
-      userId: locals.user.id
-    });
-  });
+	.schema(Feedback.insertSchema)
+	.use(async ({ request, locals }) => {
+		// Middleware: Ensure user is logged in
+		const session = await auth.api.getSession({ headers: request.headers });
+		if (!session) throw new Error('Unauthorized');
+
+		locals.user = session.user;
+	})
+	.handler(async ({ input, locals }) => {
+		// Handler: Create the feedback in the DB
+		return await Feedback.create({
+			...input,
+			userId: locals.user.id
+		});
+	});
 ```
 
 <div class="my-6 flex flex-col rounded-xl border bg-background shadow-sm">
@@ -135,24 +135,24 @@ Let's render a real-time list of feedback on our product page. OmniSvelte provid
 
 ```svelte
 <script lang="ts">
-  import { getFeedbackLive } from '#lib/server/feedback.remote';
-  
-  let { data } = $props();
-  
-  // This store will automatically update when anyone submits new feedback!
-  const feedbackFeed = getFeedbackLive({ productId: data.product.id });
+	import { getFeedbackLive } from '#lib/server/feedback.remote';
+
+	let { data } = $props();
+
+	// This store will automatically update when anyone submits new feedback!
+	const feedbackFeed = getFeedbackLive({ productId: data.product.id });
 </script>
 
 <div class="space-y-4">
-  {#each $feedbackFeed as item}
-    <div class="p-4 border rounded-md shadow-sm">
-      <h3 class="font-bold">{item.title}</h3>
-      <p class="text-sm text-muted-foreground">{item.description}</p>
-      <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-        {item.status}
-      </span>
-    </div>
-  {/each}
+	{#each $feedbackFeed as item}
+		<div class="rounded-md border p-4 shadow-sm">
+			<h3 class="font-bold">{item.title}</h3>
+			<p class="text-muted-foreground text-sm">{item.description}</p>
+			<span class="bg-primary/10 text-primary rounded-full px-2 py-1 text-xs">
+				{item.status}
+			</span>
+		</div>
+	{/each}
 </div>
 ```
 

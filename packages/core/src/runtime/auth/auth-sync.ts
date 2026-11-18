@@ -349,7 +349,7 @@ export class AuthSchemaSync {
 			return;
 		}
 
-		let schemaContent = read(userSchemaPath);
+		const schemaContent = read(userSchemaPath);
 
 		// Find the defineSchema call
 		const schemaMatch = schemaContent.match(
@@ -373,7 +373,7 @@ export class AuthSchemaSync {
 		}
 
 		// Add new auth fields
-		let fieldsToAdd: string[] = [];
+		const fieldsToAdd: string[] = [];
 
 		for (const [fieldName, column] of userTable.columns) {
 			// Skip if field already exists
@@ -455,10 +455,10 @@ export class AuthSchemaSync {
 			return;
 		}
 
-		let schemaContent = read(userSchemaPath);
+		const schemaContent = read(userSchemaPath);
 
 		// Add auth tables that don't exist
-		let tablesToAdd: string[] = [];
+		const tablesToAdd: string[] = [];
 
 		for (const [tableName, table] of authTables) {
 			// Check if schema already exists
@@ -495,7 +495,7 @@ export class AuthSchemaSync {
 	 * Marks all fields with isAuthField: true
 	 */
 	private generateOmniField(name: string, column: ParsedColumn): string {
-		let fieldType = this.mapDrizzleTypeToOmni(column.type);
+		const fieldType = this.mapDrizzleTypeToOmni(column.type);
 
 		let field = `  // 🔐 Auth-managed field\n`;
 		field += `  ${name}: {\n`;

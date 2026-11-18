@@ -11,9 +11,9 @@
 	let activeTab = $state<'code' | 'preview'>('preview');
 </script>
 
-<div class="my-6 overflow-hidden rounded-xl border bg-background shadow-sm">
-	<div class="flex items-center justify-between border-b bg-muted/50 px-4 py-2">
-		<div class="text-sm font-medium text-muted-foreground">
+<div class="bg-background my-6 overflow-hidden rounded-xl border shadow-sm">
+	<div class="bg-muted/50 flex items-center justify-between border-b px-4 py-2">
+		<div class="text-muted-foreground text-sm font-medium">
 			{title}
 		</div>
 		<div class="flex gap-1">

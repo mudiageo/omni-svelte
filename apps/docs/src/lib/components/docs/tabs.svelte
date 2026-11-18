@@ -12,6 +12,6 @@
 	});
 </script>
 
-<div class="my-4 overflow-hidden rounded-lg border border-border">
+<div class="border-border my-4 overflow-hidden rounded-lg border">
 	{@render children?.()}
 </div>

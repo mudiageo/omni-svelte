@@ -8,7 +8,7 @@
 
 {#if visible}
 	<div
-		class="group relative block bg-primary text-center text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+		class="group bg-primary text-primary-foreground hover:bg-primary/90 relative block text-center text-sm font-medium transition-colors"
 	>
 		<a
 			href={bannerConfig.link}

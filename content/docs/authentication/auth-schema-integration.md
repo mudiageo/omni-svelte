@@ -17,10 +17,10 @@ When the auth tables are generated in `.omni/auth-schema.ts`, `omni-svelte` auto
 import { defineSchema, field, auth } from 'omni-svelte/schema';
 
 export const postSchema = defineSchema('posts', {
-  id: field.serial().primaryKey(),
-  title: field.string().required(),
-  // Type-safe reference to the Better Auth 'user' table
-  authorId: field.reference(() => auth.user).required(),
+	id: field.serial().primaryKey(),
+	title: field.string().required(),
+	// Type-safe reference to the Better Auth 'user' table
+	authorId: field.reference(() => auth.user).required()
 });
 ```
 
@@ -34,12 +34,12 @@ authorId: field.reference('user').required(), // This works only for auth or int
 
 You don't need to manually configure column types for foreign keys. `field.reference()` automatically inspects the target's primary key:
 
-| Target Primary Key Type | PostgreSQL | MySQL | SQLite | Zod Validator |
-| --- | --- | --- | --- | --- |
-| `text` | `text()` | `varchar(255)` | `text()` | `z.string()` |
-| `uuid` | `uuid()` | `varchar(36)` | `text()` | `z.string().uuid()` |
-| `serial` / `integer` | `integer()` | `int()` | `integer()` | `z.number().int()` |
-| `bigint` | `bigint({ mode: 'number' })` | `bigint({ mode: 'number' })` | `integer()` | `z.number().int()` |
+| Target Primary Key Type | PostgreSQL                   | MySQL                        | SQLite      | Zod Validator       |
+| ----------------------- | ---------------------------- | ---------------------------- | ----------- | ------------------- |
+| `text`                  | `text()`                     | `varchar(255)`               | `text()`    | `z.string()`        |
+| `uuid`                  | `uuid()`                     | `varchar(36)`                | `text()`    | `z.string().uuid()` |
+| `serial` / `integer`    | `integer()`                  | `int()`                      | `integer()` | `z.number().int()`  |
+| `bigint`                | `bigint({ mode: 'number' })` | `bigint({ mode: 'number' })` | `integer()` | `z.number().int()`  |
 
 ## Generated Output
 
@@ -54,9 +54,11 @@ import { user } from '../../../../.omni/auth-schema';
 import { pgTable, text, serial } from 'omni-svelte/drizzle/pg';
 
 export const posts = pgTable('posts', {
-  id: serial('id').primaryKey(),
-  title: text('title').notNull(),
-  authorId: text('author_id').notNull().references(() => user.id),
+	id: serial('id').primaryKey(),
+	title: text('title').notNull(),
+	authorId: text('author_id')
+		.notNull()
+		.references(() => user.id)
 });
 ```
 
@@ -70,9 +72,11 @@ import { user } from '../../../../../.omni/auth-schema';
 import { pgTable, text, serial } from 'omni-svelte/drizzle/pg';
 
 export const posts = pgTable('posts', {
-  id: serial('id').primaryKey(),
-  title: text('title').notNull(),
-  authorId: text('author_id').notNull().references(() => user.id),
+	id: serial('id').primaryKey(),
+	title: text('title').notNull(),
+	authorId: text('author_id')
+		.notNull()
+		.references(() => user.id)
 });
 ```
 
@@ -85,15 +89,15 @@ When `.omni/auth-schema.ts` is present, `omni-svelte` automatically configures y
 import { defineConfig } from 'omni-svelte/drizzle/kit';
 
 export default defineConfig({
-  // Single-file mode:
-  schema: ['./src/lib/db/server/schema.ts', './.omni/auth-schema.ts'],
-  // Or per-schema mode:
-  // schema: ['./src/lib/db/server/**/*.ts', './.omni/auth-schema.ts'],
-  out: './drizzle',
-  dialect: 'postgresql',
-  dbCredentials: { url: process.env.DATABASE_URL },
-  verbose: true,
-  strict: true,
+	// Single-file mode:
+	schema: ['./src/lib/db/server/schema.ts', './.omni/auth-schema.ts'],
+	// Or per-schema mode:
+	// schema: ['./src/lib/db/server/**/*.ts', './.omni/auth-schema.ts'],
+	out: './drizzle',
+	dialect: 'postgresql',
+	dbCredentials: { url: process.env.DATABASE_URL },
+	verbose: true,
+	strict: true
 });
 ```
 
@@ -138,11 +142,10 @@ You can customize or disable model generation for specific auth tables in your `
 
 ```ts
 export default {
-  auth: {
-    generate: {
-      session: { model: false }, // Skips generating Session model
-    }
-  }
+	auth: {
+		generate: {
+			session: { model: false } // Skips generating Session model
+		}
+	}
 };
 ```
-

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vite-plus/test';
 import { DrizzleGenerator } from '../../schema/generators/drizzle';
 import { ZodGenerator } from '../../schema/generators/zod';
 import { ModelGenerator } from '../../schema/generators/model';
@@ -49,9 +49,9 @@ describe('Schema Generators with Path Resolution', () => {
 			expect(outputs[0].path).toBe('./src/lib/db/server/schema.ts');
 			expect(outputs[0].type).toBe('drizzle');
 			expect(outputs[0].content).toContain('export const users = pgTable');
-			expect(outputs[0].content).toContain("(t) => [");
+			expect(outputs[0].content).toContain('(t) => [');
 			expect(outputs[0].content).toContain("index('users_email_idx').on(t.email)");
-			expect(outputs[0].content).not.toContain("export const users_email_idx = index");
+			expect(outputs[0].content).not.toContain('export const users_email_idx = index');
 		});
 
 		it('should generate files with correct paths for per-schema format', async () => {
@@ -101,19 +101,21 @@ describe('Schema Generators with Path Resolution', () => {
 
 			expect(outputs).toHaveLength(1);
 			const content = outputs[0].content;
-			
+
 			// Should NOT double nest: e.g. "posts: {\nposts: {"
 			expect(content).not.toMatch(/posts:\s*{\s*posts:/);
-			
+
 			// Should generate correct blocks
-			expect(content).toContain('export const schemaRelations = defineRelations({ posts }, (r) => ({');
+			expect(content).toContain(
+				'export const schemaRelations = defineRelations({ posts }, (r) => ({'
+			);
 			expect(content).toContain('  posts: {');
 			expect(content).toContain('    author: r.one.users({');
 			expect(content).toContain('      from: r.posts.authorId,');
 			expect(content).toContain('      to: r.users.id,');
 			expect(content).toContain('    }),');
 			expect(content).toContain('    comments: r.many.comments(),');
-			
+
 			// Should NOT contain unknown targets
 			expect(content).not.toContain('unknown');
 		});

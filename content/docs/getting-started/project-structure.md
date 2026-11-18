@@ -7,7 +7,7 @@ order: 5
 
 # Project Structure
 
-When you initialize an OmniSvelte application, you'll see a structure that resembles a standard SvelteKit project, but with a few powerful additions. 
+When you initialize an OmniSvelte application, you'll see a structure that resembles a standard SvelteKit project, but with a few powerful additions.
 
 Here is what a typical OmniSvelte project looks like:
 
@@ -33,17 +33,17 @@ my-app/
 
 ## 1. Schema Definitions (`*.schema.ts`)
 
-OmniSvelte relies on schema files ending in `.schema.ts`. You place these anywhere inside `src/lib/` (or wherever configured). 
+OmniSvelte relies on schema files ending in `.schema.ts`. You place these anywhere inside `src/lib/` (or wherever configured).
 
 The OmniSvelte Vite plugin watches these files. Whenever you save a schema, the framework automatically generates the underlying Drizzle tables, Zod validation logic, and your Active Record models.
 
 ## 2. Standard SvelteKit Routing
 
-Everything inside `src/routes/` is standard SvelteKit. You can use `+page.svelte`, `+page.server.ts`, `+layout.svelte`, and API endpoints just like you normally would. 
+Everything inside `src/routes/` is standard SvelteKit. You can use `+page.svelte`, `+page.server.ts`, `+layout.svelte`, and API endpoints just like you normally would.
 
 ## 3. Generated Internals (`.omni/`)
 
-OmniSvelte generates files and types into the `.omni/` directory. **You should add this directory to your `.gitignore`.** 
+OmniSvelte generates files and types into the `.omni/` directory. **You should add this directory to your `.gitignore`.**
 
 The files here power OmniSvelte's **Virtual Modules**, allowing you to import your database, models, and auth clients cleanly across your project.
 
@@ -71,12 +71,12 @@ The `omni.config.ts` file sits at the root of your project. This is where you co
 import { defineConfig } from 'omni-svelte/config';
 
 export default defineConfig({
-  database: {
-    provider: 'sqlite',
-    url: process.env.DATABASE_URL
-  },
-  auth: {
-    enabled: true
-  }
+	database: {
+		provider: 'sqlite',
+		url: process.env.DATABASE_URL
+	},
+	auth: {
+		enabled: true
+	}
 });
 ```

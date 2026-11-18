@@ -1,12 +1,9 @@
 import { mkdtemp, rm, readFile, writeFile, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vite-plus/test';
 import { field } from '../../../schema/field.js';
-import {
-	toBetterAuthField,
-	mapAdditionalFields
-} from '../../../runtime/auth/additional-fields.js';
+import { toBetterAuthField, mapAdditionalFields } from '../../../runtime/auth/additional-fields.js';
 import { AuthDiagnostic } from '../../../runtime/auth/diagnostics.js';
 import { hashAuthConfig } from '../../../runtime/auth/schema-generator.js';
 import { generateAuthConfig } from '../../../runtime/auth/generator.js';
@@ -88,8 +85,12 @@ describe('additionalFields mapping', () => {
 		expect(() => toBetterAuthField('metadata', field.json())).toThrow(AuthDiagnostic);
 		expect(() => toBetterAuthField('metadata', field.json())).toThrow(/AUTH008/);
 
-		expect(() => toBetterAuthField('tags', field.array())).toThrow(/unsupported field type "array"/);
-		expect(() => toBetterAuthField('docs', field.files())).toThrow(/unsupported field type "files"/);
+		expect(() => toBetterAuthField('tags', field.array())).toThrow(
+			/unsupported field type "array"/
+		);
+		expect(() => toBetterAuthField('docs', field.files())).toThrow(
+			/unsupported field type "files"/
+		);
 	});
 
 	it('throws AUTH008 for invalid field builder or missing type', () => {
@@ -99,11 +100,17 @@ describe('additionalFields mapping', () => {
 
 	it('throws AUTH008 for function-based default values in field builders', () => {
 		expect(() => {
-			toBetterAuthField('createdAt', field.timestamp().default(() => new Date()));
+			toBetterAuthField(
+				'createdAt',
+				field.timestamp().default(() => new Date())
+			);
 		}).toThrow(AuthDiagnostic);
 
 		try {
-			toBetterAuthField('createdAt', field.timestamp().default(() => new Date()));
+			toBetterAuthField(
+				'createdAt',
+				field.timestamp().default(() => new Date())
+			);
 		} catch (err: any) {
 			expect(err.code).toBe('AUTH008');
 			expect(err.message).toContain('function-based default values are not currently supported');

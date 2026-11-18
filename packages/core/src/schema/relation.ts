@@ -1,7 +1,12 @@
 import { AuthDiagnostic } from '../runtime/auth/diagnostics.js';
 
 export type RelationKind =
-	'belongsTo' | 'hasMany' | 'hasOne' | 'manyToMany' | 'morphTo' | 'morphMany';
+	| 'belongsTo'
+	| 'hasMany'
+	| 'hasOne'
+	| 'manyToMany'
+	| 'morphTo'
+	| 'morphMany';
 
 export type InverseOption = string | { name: string; kind?: 'hasMany' | 'hasOne' };
 
@@ -15,6 +20,8 @@ export interface BelongsToOptions {
 export interface ManyToManyOptions {
 	through: () => any;
 	pivotFields?: string[];
+	sourceKey?: string;
+	targetKey?: string;
 	inverse?: string;
 	[key: string]: any;
 }

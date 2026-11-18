@@ -26,18 +26,18 @@ npx omni <command>
 
 ## Command groups
 
-| Group | Commands | Description |
-|---|---|---|
-| **Project** | `init`, `add` | Scaffold and configure projects |
-| **Generate** | `generate model\|resource\|auth-page\|email` | Code generators |
-| **Database** | `migrate`, `migrate:rollback`, `migrate:fresh`, `seed`, `db:push`, `db:pull` | Schema and data management |
-| **Development** | `serve`, `tinker` | Dev server and REPL |
-| **Code Quality** | `lint`, `format`, `test` | Quality tools |
-| **Cache** | `cache:clear`, `cache:stats` | Cache management |
-| **Monitor** | `monitor:queries`, `monitor:realtime` | Observability |
-| **Debug** | `debug:routes`, `debug:models`, `debug:permissions`, `debug:config` | Diagnostics |
-| **Docs** | `docs:generate`, `docs:serve` | Documentation |
-| **Deploy** | `build:production`, `deploy` | Deployment |
+| Group            | Commands                                                                     | Description                     |
+| ---------------- | ---------------------------------------------------------------------------- | ------------------------------- |
+| **Project**      | `init`, `add`                                                                | Scaffold and configure projects |
+| **Generate**     | `generate model\|resource\|auth-page\|email`                                 | Code generators                 |
+| **Database**     | `migrate`, `migrate:rollback`, `migrate:fresh`, `seed`, `db:push`, `db:pull` | Schema and data management      |
+| **Development**  | `serve`, `tinker`                                                            | Dev server and REPL             |
+| **Code Quality** | `lint`, `format`, `test`                                                     | Quality tools                   |
+| **Cache**        | `cache:clear`, `cache:stats`                                                 | Cache management                |
+| **Monitor**      | `monitor:queries`, `monitor:realtime`                                        | Observability                   |
+| **Debug**        | `debug:routes`, `debug:models`, `debug:permissions`, `debug:config`          | Diagnostics                     |
+| **Docs**         | `docs:generate`, `docs:serve`                                                | Documentation                   |
+| **Deploy**       | `build:production`, `deploy`                                                 | Deployment                      |
 
 ---
 
@@ -52,6 +52,7 @@ npx omni init my-app
 ```
 
 Interactive wizard asks:
+
 - Package manager (`pnpm`, `npm`, `bun`)
 - Database (PostgreSQL, SQLite, none)
 - Auth strategies (email, OAuth providers, magic link)
@@ -318,11 +319,12 @@ See [Creating Plugins](/docs/plugins/creating-plugins) for how to register comma
 
 ## Global flags
 
-| Flag | Description |
-|---|---|
-| `--help`, `-h` | Show help for a command |
+| Flag              | Description                             |
+| ----------------- | --------------------------------------- |
+| `--help`, `-h`    | Show help for a command                 |
 | `--version`, `-v` | Print the installed omni-svelte version |
-| `--verbose` | Enable verbose/debug output |
-| `--no-color` | Disable coloured output |
-| `--cwd <path>` | Set working directory |
->>>>>>> feat/omni-cli
+| `--verbose`       | Enable verbose/debug output             |
+| `--no-color`      | Disable coloured output                 |
+| `--cwd <path>`    | Set working directory                   |
+
+> > > > > > > feat/omni-cli

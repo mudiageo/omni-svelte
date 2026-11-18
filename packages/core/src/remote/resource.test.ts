@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vite-plus/test';
 import { resource } from './resource.js';
 import { z } from 'zod';
 import { Model } from '../database/model.js';
@@ -22,9 +22,15 @@ describe('resource', () => {
 				first: vi.fn().mockResolvedValue({ id: '1', name: 'Test' })
 			};
 		}
-		static async create(data: any) { return { id: '1', ...data }; }
-		static async update(id: string, data: any) { return { id, ...data }; }
-		static async delete(id: string) { return true; }
+		static async create(data: any) {
+			return { id: '1', ...data };
+		}
+		static async update(id: string, data: any) {
+			return { id, ...data };
+		}
+		static async delete(id: string) {
+			return true;
+		}
 	}
 
 	it('generates all five standard exports by default', () => {

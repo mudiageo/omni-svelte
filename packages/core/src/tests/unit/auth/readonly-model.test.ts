@@ -1,5 +1,5 @@
 /// <reference path="../../../../.omni/auth-registry.d.ts" />
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vite-plus/test';
 import * as pgFixture from '../../fixtures/auth/auth-schema.pg';
 import {
 	introspectAuthModule,

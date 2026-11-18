@@ -8,9 +8,9 @@ export interface FormSchemaOptions {
 }
 
 /**
- * A helper to quickly derive subset schemas (pick/omit/partial) for remote forms 
+ * A helper to quickly derive subset schemas (pick/omit/partial) for remote forms
  * directly from your model's base Zod validation schemas.
- * 
+ *
  * @param baseSchema The base ZodObject schema (e.g. Model.validation.create)
  * @param options Form configuration options (pick, omit, partial, overrides)
  * @returns A manipulated ZodObject ready for SvelteKit's form() API
@@ -35,7 +35,7 @@ export function formSchema<T extends z.ZodRawShape>(
 		if (options?.omit && options.omit.includes(key)) {
 			continue;
 		}
-		
+
 		if (options?.overrides && options.overrides[key]) {
 			zodField = options.overrides[key];
 		}
@@ -52,7 +52,7 @@ export function formSchema<T extends z.ZodRawShape>(
 			if (!baseShape[key]) {
 				if (options?.pick && !options.pick.includes(key)) continue;
 				if (options?.omit && options.omit.includes(key)) continue;
-				
+
 				let zodField = overrideField;
 				if (options?.partial) zodField = zodField.optional();
 				shape[key] = zodField;
@@ -63,7 +63,9 @@ export function formSchema<T extends z.ZodRawShape>(
 	if (options?.pick) {
 		for (const key of options.pick) {
 			if (!baseShape[key] && (!options.overrides || !options.overrides[key])) {
-				throw new Error(`Field '${key}' specified in pick does not exist on the base schema and no override was provided.`);
+				throw new Error(
+					`Field '${key}' specified in pick does not exist on the base schema and no override was provided.`
+				);
 			}
 		}
 	}

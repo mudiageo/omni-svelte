@@ -19,17 +19,21 @@ import { defineSchema, field, relation } from 'omni-svelte/schema';
 import { userSchema } from './users.schema';
 import { commentSchema } from './comments.schema';
 
-export const postSchema = defineSchema('posts', {
-  id: field.serial().primaryKey(),
-  title: field.string(255).required(),
-  authorId: field.integer().required(),
-  
-  // Inline relations
-  author: relation.belongsTo(() => userSchema, { via: 'authorId' }),
-  comments: relation.hasMany(() => commentSchema),
-}, {
-  timestamps: true
-});
+export const postSchema = defineSchema(
+	'posts',
+	{
+		id: field.serial().primaryKey(),
+		title: field.string(255).required(),
+		authorId: field.integer().required(),
+
+		// Inline relations
+		author: relation.belongsTo(() => userSchema, { via: 'authorId' }),
+		comments: relation.hasMany(() => commentSchema)
+	},
+	{
+		timestamps: true
+	}
+);
 ```
 
 ## Relationship helpers
@@ -39,15 +43,16 @@ export const postSchema = defineSchema('posts', {
 A record belongs to a parent record (foreign key on this table):
 
 ```ts
-author: relation.belongsTo(() => userSchema, { via: 'authorId' })
+author: relation.belongsTo(() => userSchema, { via: 'authorId' });
 ```
 
-*Generated Drizzle:*
+_Generated Drizzle:_
+
 ```ts
 author: r.one.users({
-  from: r.posts.authorId,
-  to: r.users.id
-})
+	from: r.posts.authorId,
+	to: r.users.id
+});
 ```
 
 ### `relation.hasMany`
@@ -55,12 +60,13 @@ author: r.one.users({
 A record owns many child records (foreign key on target table):
 
 ```ts
-comments: relation.hasMany(() => commentSchema, { via: 'postId' })
+comments: relation.hasMany(() => commentSchema, { via: 'postId' });
 ```
 
-*Generated Drizzle:*
+_Generated Drizzle:_
+
 ```ts
-comments: r.many.comments()
+comments: r.many.comments();
 ```
 
 ### `relation.hasOne`
@@ -68,15 +74,16 @@ comments: r.many.comments()
 A record has exactly one child record (foreign key on target table):
 
 ```ts
-profile: relation.hasOne(() => profileSchema, { via: 'userId' })
+profile: relation.hasOne(() => profileSchema, { via: 'userId' });
 ```
 
-*Generated Drizzle:*
+_Generated Drizzle:_
+
 ```ts
 profile: r.one.profiles({
-  from: r.profiles.userId,
-  to: r.posts.id
-})
+	from: r.profiles.userId,
+	to: r.posts.id
+});
 ```
 
 ### `relation.manyToMany`
@@ -84,7 +91,7 @@ profile: r.one.profiles({
 Records related through a pivot table:
 
 ```ts
-tags: relation.manyToMany(() => tagSchema, { through: 'postTags' })
+tags: relation.manyToMany(() => tagSchema, { through: 'postTags' });
 ```
 
 ## Eager loading
@@ -99,17 +106,10 @@ const post = await Posts.with(['author']).find(1);
 const post = await Posts.with(['author', 'comments', 'tags']).find(1);
 
 // Nested (author with their profile)
-const post = await Posts
-  .with(['author.profile', 'comments.author'])
-  .find(1);
+const post = await Posts.with(['author.profile', 'comments.author']).find(1);
 
 // On query builder
-const posts = await Posts
-  .query()
-  .where('published', true)
-  .with(['author', 'tags'])
-  .limit(10)
-  .get();
+const posts = await Posts.query().where('published', true).with(['author', 'tags']).limit(10).get();
 ```
 
 ## Accessing related data
@@ -119,23 +119,19 @@ const post = await Posts.with(['author', 'comments', 'tags']).find(1);
 
 console.log(post.author.name);
 console.log(post.comments.length);
-console.log(post.tags.map(t => t.name));
+console.log(post.tags.map((t) => t.name));
 ```
 
 ## Querying through relationships
 
 ```ts
 // Posts where author is verified
-const posts = await Posts
-  .query()
-  .whereHas('author', q => q.where('verified', true))
-  .get();
+const posts = await Posts.query()
+	.whereHas('author', (q) => q.where('verified', true))
+	.get();
 
 // Count related
-const postsWithComments = await Posts
-  .query()
-  .withCount('comments')
-  .get();
+const postsWithComments = await Posts.query().withCount('comments').get();
 
 console.log(posts[0].commentsCount);
 ```

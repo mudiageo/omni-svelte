@@ -84,7 +84,17 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 		!(await runStep('Creating SvelteKit project', () =>
 			runPackageExec(
 				'sv',
-				['create', projectName!, '--template', 'minimal', '--types', 'ts', '--add', 'tailwindcss=plugins:none', '--no-install'],
+				[
+					'create',
+					projectName!,
+					'--template',
+					'minimal',
+					'--types',
+					'ts',
+					'--add',
+					'tailwindcss=plugins:none',
+					'--no-install'
+				],
 				root,
 				packageManager
 			)
@@ -94,13 +104,12 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 		return;
 	}
 
-
 	if (options.skipInstall) {
 		const success = await runInProcessStep('Adding omni-svelte to package.json', () => {
 			const pkgPath = join(projectPath, 'package.json');
 			const pkgContent = readFileSync(pkgPath, 'utf-8');
 			const pkgJson = JSON.parse(pkgContent);
-			
+
 			// Resolve the current version of omni-svelte
 			let cliVersion = 'latest';
 			for (const searchPath of [
@@ -120,7 +129,7 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 
 			pkgJson.dependencies = pkgJson.dependencies || {};
 			pkgJson.dependencies[options.omniPkg ?? 'omni-svelte'] = cliVersion;
-			
+
 			writeFileSync(pkgPath, JSON.stringify(pkgJson, null, '\t') + '\n');
 		});
 
@@ -131,7 +140,6 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 	} else {
 		if (
 			!(await runStep('Installing omni-svelte', () => {
-
 				addAllowBuildsIfPnpm({
 					cwd: projectPath,
 					packageManager,
@@ -141,10 +149,8 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 				return installDependencies([options.omniPkg ?? 'omni-svelte'], {
 					cwd: projectPath,
 					packageManager
-				})
-			}
-
-			))
+				});
+			}))
 		) {
 			cleanupOnFailure();
 			return;
@@ -152,7 +158,9 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 	}
 
 	// addOmniToViteConfig is synchronous in-process — use runInProcessStep
-	if (!(await runInProcessStep('Configuring vite plugin', () => addOmniToViteConfig(projectPath)))) {
+	if (
+		!(await runInProcessStep('Configuring vite plugin', () => addOmniToViteConfig(projectPath)))
+	) {
 		cleanupOnFailure();
 		return;
 	}
@@ -160,7 +168,11 @@ export async function handleInitCommand(options: InitCommandOptions): Promise<vo
 	if (!options.skipInstall) {
 		// Bug 3 fix: pass the user-selected packageManager so we don't fall back to
 		// auto-detection (which may pick the wrong PM if no lockfile exists yet).
-		if (!(await runStep('Installing project dependencies', () => runPackageInstall(projectPath, packageManager)))) {
+		if (
+			!(await runStep('Installing project dependencies', () =>
+				runPackageInstall(projectPath, packageManager)
+			))
+		) {
 			cleanupOnFailure();
 			return;
 		}

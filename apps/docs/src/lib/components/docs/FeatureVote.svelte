@@ -21,11 +21,11 @@
 </script>
 
 <div
-	class="my-4 flex items-start justify-between gap-4 rounded-lg border bg-card p-4 shadow-sm transition-colors hover:bg-accent/5"
+	class="bg-card hover:bg-accent/5 my-4 flex items-start justify-between gap-4 rounded-lg border p-4 shadow-sm transition-colors"
 >
 	<div class="flex flex-col gap-1">
 		<h4 class="m-0 leading-none font-semibold tracking-tight">{title}</h4>
-		<p class="m-0 text-sm text-muted-foreground">{description}</p>
+		<p class="text-muted-foreground m-0 text-sm">{description}</p>
 	</div>
 	<button
 		class="flex shrink-0 flex-col items-center justify-center rounded-md border px-3 py-2 transition-all {voted

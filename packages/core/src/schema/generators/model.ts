@@ -401,7 +401,7 @@ import type { ${capitalizedName} as ${capitalizedName}Type, New${capitalizedName
 		}
 
 		// Fallback to default paths if no path resolver
-		const modelImport = `import { Model } from 'omni-svelte/model';`;
+		const modelImport = `import { Model } from '${'omni-svelte'}/model';`;
 		const tableImport = `import { ${schemaName} } from './db/server/schema';`;
 		const validationImport = `import { ${schemaName}CreateSchema, ${schemaName}UpdateSchema } from './validation/${schemaName}.validation';`;
 		const typeImport = `import type { ${capitalizedName} as ${capitalizedName}Type, New${capitalizedName} as New${capitalizedName}Type } from './db/server/schema';`;
@@ -656,7 +656,7 @@ ${className}.register('${this.schema.name}');`;
 			this.outputConfig?.model?.path || this.outputConfig?.path || './src/lib/models';
 		const filePath = this.outputConfig?.filePath || this.getAuthModelPath(baseModelPath, key);
 
-		let modelBaseImport = 'omni-svelte/model';
+		let modelBaseImport = `${'omni-svelte'}/model`;
 		let drizzleImport = './db/server/schema';
 
 		if (this.pathResolver) {
@@ -694,6 +694,8 @@ import { ${exportName} } from '${drizzleImport}';
 
 export type ${className}Row = typeof ${exportName}.$inferSelect;
 
+export interface ${className} extends ${className}Row {}
+
 export class ${className} extends ReadonlyModel {
   static override readonly = true as const;
   static override tableName = '${tableName}';
@@ -702,20 +704,8 @@ export class ${className} extends ReadonlyModel {
   static override systemKey = '${key}' as const;
   static override relationships: Record<string, any> = ${relationshipsStr};
 
-  static override query() {
-    return super.query();
-  }
-
-  static override with(relations: (keyof import('omni-svelte/schema').AuthRelations['${key}'] | (string & {}))[]) {
+  static override with(relations: (keyof import('${'omni-svelte'}/schema').AuthRelations['${key}'] | (string & {}))[]) {
     return super.with(relations as string[]);
-  }
-
-  static override find(id: any) {
-    return super.find(id);
-  }
-
-  static override findMany(ids?: any[]) {
-    return super.findMany(ids);
   }
 }
 

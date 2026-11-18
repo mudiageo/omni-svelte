@@ -55,7 +55,7 @@
 	];
 </script>
 
-<footer class="border-t border-border/40 bg-background/50">
+<footer class="border-border/40 bg-background/50 border-t">
 	<div class="container mx-auto max-w-screen-xl px-4 pt-12 pb-8 sm:px-6">
 		<div class="grid grid-cols-2 gap-8 md:grid-cols-5 lg:grid-cols-6">
 			<!-- Brand col -->
@@ -66,11 +66,11 @@
 					</div>
 					<span class="text-sm font-bold">Omni<span class="text-primary">Svelte</span></span>
 				</a>
-				<p class="max-w-[220px] text-sm leading-relaxed text-muted-foreground">
+				<p class="text-muted-foreground max-w-[220px] text-sm leading-relaxed">
 					SvelteKit, but with superpowers. A batteries-included meta-framework for production-grade
 					Svelte apps.
 				</p>
-				<div class="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
+				<div class="text-muted-foreground mt-4 flex items-center gap-1.5 text-xs">
 					<StatusDot status="success" pulse size="sm" />
 					<span>All systems operational</span>
 				</div>
@@ -83,7 +83,7 @@
 						href="https://github.com/mudiageo/omnisvelte"
 						target="_blank"
 						rel="noopener"
-						class="text-muted-foreground transition-colors hover:text-foreground"
+						class="text-muted-foreground hover:text-foreground transition-colors"
 					>
 						<Github class="h-4 w-4" />
 					</a>
@@ -93,7 +93,7 @@
 			<!-- Link columns -->
 			{#each cols as col}
 				<div>
-					<h3 class="mb-3 text-xs font-semibold tracking-wider text-muted-foreground/70 uppercase">
+					<h3 class="text-muted-foreground/70 mb-3 text-xs font-semibold tracking-wider uppercase">
 						{col.title}
 					</h3>
 					<ul class="space-y-2">
@@ -103,7 +103,7 @@
 									href={link.href}
 									target={link.external ? '_blank' : undefined}
 									rel={link.external ? 'noopener noreferrer' : undefined}
-									class="text-sm text-muted-foreground transition-colors hover:text-foreground"
+									class="text-muted-foreground hover:text-foreground text-sm transition-colors"
 								>
 									{link.label}
 								</a>
@@ -117,25 +117,25 @@
 		<Separator class="my-8" />
 
 		<div
-			class="flex flex-col items-center justify-between gap-2 text-xs text-muted-foreground sm:flex-row"
+			class="text-muted-foreground flex flex-col items-center justify-between gap-2 text-xs sm:flex-row"
 		>
 			<p>© {new Date().getFullYear()} OmniSvelte. Released under the MIT License.</p>
 			<p>
 				Built with
 				<a
 					href="https://svelte.dev"
-					class="underline underline-offset-2 transition-colors hover:text-foreground"
+					class="hover:text-foreground underline underline-offset-2 transition-colors"
 					target="_blank">SvelteKit</a
 				>,
 				<a
 					href="https://shadcn-svelte.com"
-					class="underline underline-offset-2 transition-colors hover:text-foreground"
+					class="hover:text-foreground underline underline-offset-2 transition-colors"
 					target="_blank">shadcn-svelte</a
 				>
 				&amp;
 				<a
 					href="https://velite.js.org"
-					class="underline underline-offset-2 transition-colors hover:text-foreground"
+					class="hover:text-foreground underline underline-offset-2 transition-colors"
 					target="_blank">Velite</a
 				>
 			</p>

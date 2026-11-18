@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vite-plus/test';
 import { PathResolver } from '../../schema/utils/path-resolver.js';
 import path from 'path';
 
@@ -190,7 +190,7 @@ describe('PathResolver', () => {
 
 			const result = resolver.getOutputPath('zod', 'users');
 			// Should normalize to forward slashes
-			expect(result).toMatch(/validation[\/\\]users\.validation\.ts$/);
+			expect(result).toMatch(/validation[/\\]users\.validation\.ts$/);
 		});
 
 		it('should handle complex nested paths', () => {

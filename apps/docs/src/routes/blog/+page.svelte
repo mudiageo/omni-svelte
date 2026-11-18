@@ -36,12 +36,12 @@
 			<div>
 				<Badge
 					variant="outline"
-					class="mb-3 border-primary/30 text-primary dark:border-primary/50 dark:text-primary"
+					class="border-primary/30 text-primary dark:border-primary/50 dark:text-primary mb-3"
 				>
 					Blog
 				</Badge>
 				<h1 class="text-4xl font-bold tracking-tight">Latest from OmniSvelte</h1>
-				<p class="mt-2 text-lg text-muted-foreground">
+				<p class="text-muted-foreground mt-2 text-lg">
 					Updates, announcements, and deep dives from the team.
 				</p>
 			</div>
@@ -58,7 +58,7 @@
 		<SpotlightCard color="rgba(139, 92, 246, 0.08)" size={400} class="mb-10">
 			<a href="/{featured.slug}" class="block p-8">
 				<div class="mb-4 flex flex-wrap gap-2">
-					<Badge variant="default" class="border-0 bg-primary text-primary-foreground"
+					<Badge variant="default" class="bg-primary text-primary-foreground border-0"
 						>Featured</Badge
 					>
 					{#each featured.tags as tag}
@@ -66,13 +66,13 @@
 					{/each}
 				</div>
 				<h2
-					class="mb-3 text-2xl font-bold tracking-tight transition-colors group-hover:text-primary sm:text-3xl"
+					class="group-hover:text-primary mb-3 text-2xl font-bold tracking-tight transition-colors sm:text-3xl"
 				>
 					{featured.title}
 				</h2>
-				<p class="mb-6 leading-relaxed text-muted-foreground">{featured.description}</p>
+				<p class="text-muted-foreground mb-6 leading-relaxed">{featured.description}</p>
 				<div class="flex flex-wrap items-center justify-between gap-3">
-					<div class="flex items-center gap-4 text-sm text-muted-foreground">
+					<div class="text-muted-foreground flex items-center gap-4 text-sm">
 						<span class="flex items-center gap-1.5">
 							<User class="h-3.5 w-3.5" />
 							{featured.author}
@@ -89,7 +89,7 @@
 					<Button
 						variant="ghost"
 						size="sm"
-						class="gap-1.5 px-0 text-primary hover:text-primary/80 dark:text-primary"
+						class="text-primary hover:text-primary/80 dark:text-primary gap-1.5 px-0"
 					>
 						Read post <ArrowRight class="h-3.5 w-3.5" />
 					</Button>
@@ -103,7 +103,7 @@
 		{#each rest as post}
 			<a href="/{post.slug}" class="group">
 				<Card
-					class="h-full transition-all duration-200 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 dark:hover:border-primary/50"
+					class="hover:border-primary/30 hover:shadow-primary/5 dark:hover:border-primary/50 h-full transition-all duration-200 hover:shadow-md"
 				>
 					<CardHeader class="pb-3">
 						<div class="mb-3 flex flex-wrap gap-1.5">
@@ -111,7 +111,7 @@
 								<Badge variant="outline" class="h-5 px-1.5 text-[11px] capitalize">{tag}</Badge>
 							{/each}
 						</div>
-						<CardTitle class="text-base leading-snug transition-colors group-hover:text-primary">
+						<CardTitle class="group-hover:text-primary text-base leading-snug transition-colors">
 							{post.title}
 						</CardTitle>
 						<CardDescription class="mt-1.5 text-[13px] leading-relaxed"
@@ -120,7 +120,7 @@
 					</CardHeader>
 					<CardContent class="pt-0">
 						<Separator class="mb-3" />
-						<div class="flex items-center justify-between text-xs text-muted-foreground">
+						<div class="text-muted-foreground flex items-center justify-between text-xs">
 							<span class="flex items-center gap-1"
 								><Calendar class="h-3 w-3" /> {formatDate(post.date)}</span
 							>

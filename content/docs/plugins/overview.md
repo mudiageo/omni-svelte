@@ -13,34 +13,34 @@ The OmniSvelte plugin API lets you extend the framework in virtually any directi
 
 ```ts
 interface OmniPlugin {
-  name:    string;
-  version: string;
+	name: string;
+	version: string;
 
-  // Schema extensions — plugin can contribute additional .schema.ts-style tables
-  schema?: Record<string, SchemaDefinition>;
+	// Schema extensions — plugin can contribute additional .schema.ts-style tables
+	schema?: Record<string, SchemaDefinition>;
 
-  // SvelteKit hooks to compose via sequence()
-  hooks?: {
-    handle?:      Handle;
-    handleError?: HandleServerError;
-  };
+	// SvelteKit hooks to compose via sequence()
+	hooks?: {
+		handle?: Handle;
+		handleError?: HandleServerError;
+	};
 
-  // Vite plugins contributed by this plugin
-  vitePlugins?: Plugin[];
+	// Vite plugins contributed by this plugin
+	vitePlugins?: Plugin[];
 
-  // Lifecycle
-  onSetup?:   (ctx: PluginContext) => Promise<void> | void;
-  onBuild?:   (ctx: PluginContext) => Promise<void> | void;
-  onDestroy?: (ctx: PluginContext) => void;
+	// Lifecycle
+	onSetup?: (ctx: PluginContext) => Promise<void> | void;
+	onBuild?: (ctx: PluginContext) => Promise<void> | void;
+	onDestroy?: (ctx: PluginContext) => void;
 
-  // Auth extensions — add providers, plugins to Better-Auth config
-  auth?: {
-    providers?: BetterAuthProvider[];
-    plugins?:   BetterAuthPlugin[];
-  };
+	// Auth extensions — add providers, plugins to Better-Auth config
+	auth?: {
+		providers?: BetterAuthProvider[];
+		plugins?: BetterAuthPlugin[];
+	};
 
-  // CLI commands contributed by this plugin
-  cli?: CLICommand[];
+	// CLI commands contributed by this plugin
+	cli?: CLICommand[];
 }
 ```
 
@@ -48,10 +48,10 @@ interface OmniPlugin {
 
 ```ts
 interface PluginContext {
-  config:    OmniConfig;     // resolved omni config
-  db:        DrizzleDB;      // database instance (if enabled)
-  auth:      Auth;           // Better-Auth instance (if enabled)
-  logger:    Logger;
+	config: OmniConfig; // resolved omni config
+	db: DrizzleDB; // database instance (if enabled)
+	auth: Auth; // Better-Auth instance (if enabled)
+	logger: Logger;
 }
 ```
 
@@ -79,36 +79,36 @@ const config = {
 import type { OmniPlugin } from 'omni-svelte';
 
 export function myPlugin(options: { option: string }): OmniPlugin {
-  return {
-    name:    'my-plugin',
-    version: '1.0.0',
+	return {
+		name: 'my-plugin',
+		version: '1.0.0',
 
-    async onSetup(ctx) {
-      ctx.logger.info(`my-plugin: setup with option=${options.option}`);
-    },
+		async onSetup(ctx) {
+			ctx.logger.info(`my-plugin: setup with option=${options.option}`);
+		},
 
-    hooks: {
-      handle: async ({ event, resolve }) => {
-        // Custom server middleware
-        event.locals.myThing = 'hello';
-        return resolve(event);
-      }
-    },
+		hooks: {
+			handle: async ({ event, resolve }) => {
+				// Custom server middleware
+				event.locals.myThing = 'hello';
+				return resolve(event);
+			}
+		},
 
-    vitePlugins: [
-      {
-        name: 'my-plugin-vite',
-        resolveId(id) {
-          if (id === '$my-plugin') return '\0$my-plugin';
-        },
-        load(id) {
-          if (id === '\0$my-plugin') {
-            return `export const myOption = ${JSON.stringify(options.option)};`;
-          }
-        }
-      }
-    ]
-  };
+		vitePlugins: [
+			{
+				name: 'my-plugin-vite',
+				resolveId(id) {
+					if (id === '$my-plugin') return '\0$my-plugin';
+				},
+				load(id) {
+					if (id === '\0$my-plugin') {
+						return `export const myOption = ${JSON.stringify(options.option)};`;
+					}
+				}
+			}
+		]
+	};
 }
 ```
 

@@ -28,7 +28,7 @@
 	onmouseenter={() => (opacity = 1)}
 	onmouseleave={() => (opacity = 0)}
 	class={cn(
-		'relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm',
+		'bg-card text-card-foreground relative overflow-hidden rounded-xl border shadow-sm',
 		className
 	)}
 	{...rest}

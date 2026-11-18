@@ -13,9 +13,11 @@ Enable 2FA in config:
 
 ```js
 omni: {
-  auth: {
-    plugins: { twoFactor: true }
-  }
+	auth: {
+		plugins: {
+			twoFactor: true;
+		}
+	}
 }
 ```
 
@@ -26,7 +28,7 @@ import { authClient } from '$auth/client';
 
 // 1. Enable 2FA for the current user — returns TOTP secret and QR code URI
 const { totpURI, backupCodes } = await authClient.twoFactor.enable({
-  password: 'current-password'
+	password: 'current-password'
 });
 
 // 2. Display QR code (use a library like qrcode)
@@ -44,9 +46,9 @@ When 2FA is enabled, sign-in returns a `twoFactorRedirect` status:
 const { data, error } = await authClient.signIn.email({ email, password });
 
 if (data?.twoFactorRedirect) {
-  // Prompt for TOTP code
-  await authClient.twoFactor.verifyTotp({ code: userEnteredCode });
-  // Now fully signed in
+	// Prompt for TOTP code
+	await authClient.twoFactor.verifyTotp({ code: userEnteredCode });
+	// Now fully signed in
 }
 ```
 
@@ -55,7 +57,7 @@ if (data?.twoFactorRedirect) {
 ```ts
 // Generate new backup codes
 const { backupCodes } = await authClient.twoFactor.generateBackupCodes({
-  password: 'current-password'
+	password: 'current-password'
 });
 
 // Sign in with backup code
@@ -68,9 +70,11 @@ Enable passkeys in config:
 
 ```js
 omni: {
-  auth: {
-    plugins: { passkey: true }
-  }
+	auth: {
+		plugins: {
+			passkey: true;
+		}
+	}
 }
 ```
 
@@ -78,7 +82,7 @@ omni: {
 
 ```ts
 await authClient.passkey.addPasskey({
-  name: 'My MacBook'   // optional label
+	name: 'My MacBook' // optional label
 });
 ```
 

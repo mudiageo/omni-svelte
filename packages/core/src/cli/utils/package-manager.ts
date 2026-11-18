@@ -2,14 +2,9 @@ import { execa } from 'execa';
 import { detect, getUserAgent } from 'package-manager-detector/detect';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-	color,
-	pnpm,
-	type TransformFn
-} from '@sveltejs/sv-utils';
-import * as find from 'empathic/find'
+import { color, pnpm, type TransformFn } from '@sveltejs/sv-utils';
+import * as find from 'empathic/find';
 import * as p from '@clack/prompts';
-
 
 export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun' | 'deno' | 'vp';
 
@@ -105,7 +100,7 @@ export async function installDependencies(
 	const result = await execa(args.command, args.args, {
 		cwd,
 		stdout: 'inherit',
-		stderr:  'inherit',
+		stderr: 'inherit',
 		all: true, // Merges stdout and stderr into result.all chronologically
 
 		// Kill child process when the parent exits (e.g. Ctrl+C)
@@ -114,9 +109,13 @@ export async function installDependencies(
 	});
 
 	// Detect the pnpm blocked builds error from the output
-	if ((pm.name === 'pnpm' || pm.name === 'vp') && result.all && result.all?.includes('ERR_PNPM_IGNORED_BUILDS')) {
+	if (
+		(pm.name === 'pnpm' || pm.name === 'vp') &&
+		result.all &&
+		result.all?.includes('ERR_PNPM_IGNORED_BUILDS')
+	) {
 		p.log.warn(
-			`Some build scripts were skipped. Run ${color.command(`${pm.name === 'vp' ? 'vp pm' : pm.name } approve-builds`)} to approve them.`
+			`Some build scripts were skipped. Run ${color.command(`${pm.name === 'vp' ? 'vp pm' : pm.name} approve-builds`)} to approve them.`
 		);
 	}
 
@@ -129,12 +128,15 @@ export async function installDependencies(
 
 	return pm;
 }
-export function addAllowBuildsIfPnpm(options: { cwd: string, packageManager: string, packages: string[] }): void {
+export function addAllowBuildsIfPnpm(options: {
+	cwd: string;
+	packageManager: string;
+	packages: string[];
+}): void {
 	const { cwd, packageManager, packages } = options;
 	if (packageManager !== 'pnpm' && packageManager !== 'vp') return;
 	const filePath = find.up('pnpm-workspace.yaml', { cwd }) ?? join(cwd, 'pnpm-workspace.yaml');
 	transformFile(filePath, pnpm.allowBuilds({ cwd, packages }));
-
 }
 
 export async function runPackageScript(
@@ -155,14 +157,16 @@ export async function runPackageScript(
 		reject: false
 	});
 
-
 	// Detect the pnpm blocked builds error from the output
-	if ((pm.name === 'pnpm' || pm.name === 'vp') && result.all && result.all?.includes('ERR_PNPM_IGNORED_BUILDS')) {
+	if (
+		(pm.name === 'pnpm' || pm.name === 'vp') &&
+		result.all &&
+		result.all?.includes('ERR_PNPM_IGNORED_BUILDS')
+	) {
 		p.log.warn(
-			`Some build scripts were skipped. Run ${color.command(`${pm.name === 'vp' ? 'vp pm' : pm.name } approve-builds`)} to approve them.`
+			`Some build scripts were skipped. Run ${color.command(`${pm.name === 'vp' ? 'vp pm' : pm.name} approve-builds`)} to approve them.`
 		);
 	}
-
 
 	if (result.exitCode !== 0) {
 		throw new Error(
@@ -197,9 +201,13 @@ export async function runPackageInstall(
 	});
 
 	// Detect the pnpm blocked builds error from the output
-	if ((pm.name === 'pnpm' || pm.name === 'vp') && result.all && result.all?.includes('ERR_PNPM_IGNORED_BUILDS')) {
+	if (
+		(pm.name === 'pnpm' || pm.name === 'vp') &&
+		result.all &&
+		result.all?.includes('ERR_PNPM_IGNORED_BUILDS')
+	) {
 		p.log.warn(
-			`Some build scripts were skipped. Run ${color.command(`${pm.name === 'vp' ? 'vp pm' : pm.name } approve-builds`)} to approve them.`
+			`Some build scripts were skipped. Run ${color.command(`${pm.name === 'vp' ? 'vp pm' : pm.name} approve-builds`)} to approve them.`
 		);
 	}
 
@@ -311,12 +319,10 @@ function getExecArgs(name: PackageManager, packageName: string, args: string[]) 
 	}
 }
 
-
 /** Missing file is treated as empty, so the transform can create it. */
 function transformFile(filePath: string, transform: TransformFn): void {
 	const content = existsSync(filePath) ? readFileSync(filePath, 'utf-8') : '';
 	const newContent = transform(content);
 
 	if (newContent && newContent !== content) writeFileSync(filePath, newContent, 'utf-8');
-
 }

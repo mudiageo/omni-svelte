@@ -5,7 +5,7 @@
 	import { fromURL } from 'omni-svelte/remote';
 
 	// Parse URL params for SSR and client reactivity
-	let queryInput = $derived(fromURL(page.url));
+	let queryInput = $derived(fromURL(new URL(page.url.href)));
 
 	// Fetch data
 	let postsQuery = $derived(posts(queryInput));
@@ -23,7 +23,7 @@
 
 	function handleSearch(e: SubmitEvent) {
 		e.preventDefault();
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 		if (searchValue) {
 			url.searchParams.set('search', searchValue);
 		} else {
@@ -39,13 +39,13 @@
 	}
 
 	function goToPage(pageNum: number) {
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 		url.searchParams.set('page', pageNum.toString());
 		goto(url.search);
 	}
 </script>
 
-<div class="p-6 container mx-auto">
+<div class="container mx-auto p-6">
 	<div class="mb-6 flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Posts</h1>
 		<a href="/posts/create" class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
@@ -55,17 +55,17 @@
 
 	<!-- Search and Filters -->
 	<div class="mb-6 rounded-lg bg-white p-4 shadow">
-		<form onsubmit={handleSearch} class="gap-4 flex">
+		<form onsubmit={handleSearch} class="flex gap-4">
 			<div class="flex-1">
 				<input
 					type="text"
 					bind:value={searchValue}
 					placeholder="Search posts by title or content..."
-					class="rounded px-3 py-2 w-full border"
+					class="w-full rounded border px-3 py-2"
 				/>
 			</div>
 			<div>
-				<select bind:value={statusValue} class="rounded px-3 py-2 border">
+				<select bind:value={statusValue} class="rounded border px-3 py-2">
 					<option value="">All Posts</option>
 					<option value="true">Published</option>
 					<option value="false">Draft</option>
@@ -79,9 +79,9 @@
 
 	<!-- Posts Grid -->
 	{#await postsQuery}
-		<div class="py-12 text-gray-500 text-center">Loading posts...</div>
+		<div class="py-12 text-center text-gray-500">Loading posts...</div>
 	{:then data}
-		<div class="gap-6 grid">
+		<div class="grid gap-6">
 			{#each data.data as post}
 				<div class="rounded-lg bg-white p-6 shadow">
 					<div class="mb-4 flex items-start justify-between">
@@ -96,13 +96,13 @@
 									{post.content.substring(0, 200)}...
 								</p>
 							{/if}
-							<div class="space-x-4 text-sm text-gray-500 flex items-center">
+							<div class="flex items-center space-x-4 text-sm text-gray-500">
 								{#if post.author}
 									<span>By {post.author.name}</span>
 								{/if}
 								<span>{new Date(post.created_at).toLocaleDateString()}</span>
 								<span
-									class="px-2 py-1 text-xs rounded-full {post.published
+									class="rounded-full px-2 py-1 text-xs {post.published
 										? 'bg-green-100 text-green-800'
 										: 'bg-yellow-100 text-yellow-800'}"
 								>
@@ -111,29 +111,38 @@
 							</div>
 						</div>
 
-						<div class="ml-4 space-x-2 flex">
+						<div class="ml-4 flex space-x-2">
 							<a href="/posts/{post.id}/edit" class="text-sm text-blue-600 hover:text-blue-800">
 								Edit
 							</a>
 
-							<form {...updatePost.for(`${post.id}-${Date.now()}`)} class="inline">
-								<input {...updatePost.fields.id.as('hidden', post.id || '')} />
-								<input {...updatePost.fields.published.as('hidden', !post.published ? 'true' : 'false')} />
-								<button type="submit" class="text-sm text-yellow-600 hover:text-yellow-800">
-									{post.published ? 'Unpublish' : 'Publish'}
-								</button>
-							</form>
+							{#if updatePost}
+								<form {...updatePost.for(`${post.id}-${Date.now()}`)} class="inline">
+									<input {...updatePost.fields.id.as('hidden', post.id || '')} />
+									<input
+										{...updatePost.fields.published.as(
+											'hidden',
+											!post.published ? 'true' : 'false'
+										)}
+									/>
+									<button type="submit" class="text-sm text-yellow-600 hover:text-yellow-800">
+										{post.published ? 'Unpublish' : 'Publish'}
+									</button>
+								</form>
+							{/if}
 
-							<button
-								class="text-sm text-red-600 hover:text-red-800"
-								onclick={async () => {
-									if (confirm('Are you sure you want to delete this post?')) {
-										await deletePost(post.id);
-									}
-								}}
-							>
-								Delete
-							</button>
+							{#if deletePost}
+								<button
+									class="text-sm text-red-600 hover:text-red-800"
+									onclick={async () => {
+										if (confirm('Are you sure you want to delete this post?')) {
+											await deletePost?.(post.id);
+										}
+									}}
+								>
+									Delete
+								</button>
+							{/if}
 						</div>
 					</div>
 				</div>
@@ -141,7 +150,7 @@
 		</div>
 
 		{#if data.data.length === 0}
-			<div class="py-12 text-gray-500 text-center">No posts found.</div>
+			<div class="py-12 text-center text-gray-500">No posts found.</div>
 		{/if}
 
 		<!-- Pagination -->
@@ -151,7 +160,7 @@
 					Showing {data.meta.from} to {data.meta.to} of {data.meta.total} posts
 				</div>
 
-				<div class="space-x-2 flex">
+				<div class="flex space-x-2">
 					{#if data.meta.links.prev}
 						<button
 							onclick={() => goToPage(data.meta.links.prev!)}
@@ -177,6 +186,6 @@
 			</div>
 		{/if}
 	{:catch err}
-		<div class="py-12 text-red-500 text-center">Error loading posts: {err.message}</div>
+		<div class="py-12 text-center text-red-500">Error loading posts: {err.message}</div>
 	{/await}
 </div>

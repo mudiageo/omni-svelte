@@ -1,1 +1,1 @@
-export { defineConfig } from 'drizzle-kit'
+export { defineConfig } from 'drizzle-kit';

@@ -25,7 +25,7 @@
 {#if collapsible === 'none'}
 	<div
 		class={cn(
-			'flex h-full w-(--sidebar-width) flex-col bg-sidebar text-sidebar-foreground',
+			'bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col',
 			className
 		)}
 		bind:this={ref}
@@ -41,7 +41,7 @@
 			data-slot="sidebar"
 			data-mobile="true"
 			class={cn(
-				'w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden',
+				'bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden',
 				className
 			)}
 			style="--sidebar-width: {SIDEBAR_WIDTH_MOBILE};"
@@ -59,7 +59,7 @@
 {:else}
 	<div
 		bind:this={ref}
-		class="group peer hidden text-sidebar-foreground md:block"
+		class="group peer text-sidebar-foreground hidden md:block"
 		data-state={sidebar.state}
 		data-collapsible={sidebar.state === 'collapsed' ? collapsible : ''}
 		data-variant={variant}
@@ -96,7 +96,7 @@
 			<div
 				data-sidebar="sidebar"
 				data-slot="sidebar-inner"
-				class="flex size-full flex-col bg-sidebar group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 group-data-[variant=floating]:ring-sidebar-border"
+				class="bg-sidebar group-data-[variant=floating]:ring-sidebar-border flex size-full flex-col group-data-[variant=floating]:rounded-2xl group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1"
 			>
 				{@render children?.()}
 			</div>

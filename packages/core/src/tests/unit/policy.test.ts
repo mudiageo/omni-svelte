@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vite-plus/test';
 import { definePolicy, can, authorize } from '../../runtime/auth/policy.js';
 import { ForbiddenError } from '../../errors.js';
 import type { User } from 'better-auth';

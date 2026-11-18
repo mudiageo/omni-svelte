@@ -143,7 +143,9 @@ export class QueryBuilder<T extends typeof ReadonlyModel = typeof Model> {
 	 */
 	whereAny(
 		conditions:
-			Record<string, any> | Array<[string, any] | [string, string, any]> | ((builder: this) => void)
+			| Record<string, any>
+			| Array<[string, any] | [string, string, any]>
+			| ((builder: this) => void)
 	): this {
 		let orConditions: any[] = [];
 

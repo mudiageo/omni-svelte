@@ -18,10 +18,15 @@ declare module '$db' {
 
 // SERVER-ONLY: Configured Cache Manager
 declare module '$omni/cache' {
-  import { cache } from 'omni-svelte/cache';
+  import { cache } from '../cache';
   export { cache };
 }
 
 // UNIVERSAL: Zod validation schemas (safe for client and server)
 declare module '$validation' { export * from '#lib/db/validation/index'; }
 declare module '$validation/*' { export * from '#lib/db/validation/index'; }
+
+// AUTH: Virtual modules provided by omni-svelte
+declare module '$auth/server' { export const auth: any; }
+declare module '$auth/client' { export const authClient: any; }
+declare module '$auth' { export const auth: any; export const authClient: any; }

@@ -33,19 +33,19 @@ Create any file ending in `.schema.ts` inside your `src/` directory:
 import { defineSchema, field } from 'omni-svelte/schema';
 
 export default defineSchema(
-  'posts',
-  {
-    id:        field.serial().primaryKey(),
-    title:     field.string(255).required(),
-    slug:      field.string().required().unique(),
-    content:   field.string().required(),
-    published: field.boolean().default(false),
-    userId:    field.integer().required()
-  },
-  {
-    timestamps: true,
-    indexes: ['slug', 'published']
-  }
+	'posts',
+	{
+		id: field.serial().primaryKey(),
+		title: field.string(255).required(),
+		slug: field.string().required().unique(),
+		content: field.string().required(),
+		published: field.boolean().default(false),
+		userId: field.integer().required()
+	},
+	{
+		timestamps: true,
+		indexes: ['slug', 'published']
+	}
 );
 ```
 
@@ -56,30 +56,31 @@ From the schema above, OmniSvelte writes:
 ### Drizzle table (`src/lib/db/server/schema.ts`)
 
 ```ts
-export const posts = pgTable('posts', {
-  id:        serial('id').primaryKey(),
-  title:     varchar('title', { length: 255 }).notNull(),
-  slug:      text('slug').notNull().unique(),
-  content:   text('content').notNull(),
-  published: boolean('published').default(false),
-  userId:    integer('user_id').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
-}, (t) => [
-  index('posts_slug_idx').on(t.slug),
-  index('posts_published_idx').on(t.published)
-]);
+export const posts = pgTable(
+	'posts',
+	{
+		id: serial('id').primaryKey(),
+		title: varchar('title', { length: 255 }).notNull(),
+		slug: text('slug').notNull().unique(),
+		content: text('content').notNull(),
+		published: boolean('published').default(false),
+		userId: integer('user_id').notNull(),
+		createdAt: timestamp('created_at').defaultNow(),
+		updatedAt: timestamp('updated_at').defaultNow()
+	},
+	(t) => [index('posts_slug_idx').on(t.slug), index('posts_published_idx').on(t.published)]
+);
 ```
 
 ### Zod validators (`src/lib/db/validation/posts.ts`)
 
 ```ts
 export const createPostSchema = z.object({
-  title:     z.string().max(255),
-  slug:      z.string(),
-  content:   z.string(),
-  published: z.boolean().optional().default(false),
-  userId:    z.number().int()
+	title: z.string().max(255),
+	slug: z.string(),
+	content: z.string(),
+	published: z.boolean().optional().default(false),
+	userId: z.number().int()
 });
 
 export const updatePostSchema = createPostSchema.partial();

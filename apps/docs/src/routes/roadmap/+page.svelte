@@ -225,14 +225,14 @@
 	<div class="mb-10">
 		<Badge
 			variant="outline"
-			class="mb-4 border-primary/30 text-primary dark:border-primary/50 dark:text-primary"
+			class="border-primary/30 text-primary dark:border-primary/50 dark:text-primary mb-4"
 		>
 			Public Roadmap
 		</Badge>
 		<div class="mb-4 flex flex-wrap items-end justify-between gap-4">
 			<div>
 				<h1 class="mb-2 text-4xl font-bold tracking-tight">OmniSvelte Roadmap</h1>
-				<p class="text-lg text-muted-foreground">
+				<p class="text-muted-foreground text-lg">
 					What's shipped, what's building, and what's on the horizon.
 				</p>
 			</div>
@@ -250,7 +250,7 @@
 		</div>
 
 		<!-- Legend -->
-		<div class="mt-6 flex flex-wrap gap-4 rounded-lg border border-border bg-muted/30 p-4">
+		<div class="border-border bg-muted/30 mt-6 flex flex-wrap gap-4 rounded-lg border p-4">
 			{#each legend as l}
 				<div class="flex items-center gap-2 text-sm">
 					<StatusDot status={statusConfig[l.status].dot} size="md" />
@@ -275,7 +275,7 @@
 										status={statusConfig[phase.status].dot}
 										pulse={phase.status === 'progress'}
 									/>
-									<span class="text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+									<span class="text-muted-foreground text-xs font-semibold tracking-wider uppercase"
 										>{phase.phase}</span
 									>
 									<Badge variant="outline" class="h-5 px-1.5 font-mono text-xs"
@@ -306,7 +306,7 @@
 											: ''}">{item.title}</span
 									>
 									{#if item.note}
-										<span class="ml-2 text-xs text-muted-foreground">— {item.note}</span>
+										<span class="text-muted-foreground ml-2 text-xs">— {item.note}</span>
 									{/if}
 								</div>
 							</div>
@@ -318,9 +318,9 @@
 	</div>
 
 	<!-- Community CTA -->
-	<div class="mt-14 rounded-xl border border-border bg-muted/30 p-8 text-center">
+	<div class="border-border bg-muted/30 mt-14 rounded-xl border p-8 text-center">
 		<h2 class="mb-2 text-xl font-bold">Want to shape the roadmap?</h2>
-		<p class="mx-auto mb-5 max-w-lg text-sm text-muted-foreground">
+		<p class="text-muted-foreground mx-auto mb-5 max-w-lg text-sm">
 			Items marked 💡 Exploring are especially open to community proposals. Open a GitHub Discussion
 			to share your ideas.
 		</p>

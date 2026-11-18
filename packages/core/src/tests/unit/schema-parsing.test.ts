@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vite-plus/test';
 import { RegexSchemaParser, ASTSchemaParser, ParserFactory } from '../../schema/parser.js';
 import type { SchemaConfig } from '../../schema/types.js';
 import { writeFileSync, mkdirSync, rmSync } from 'fs';
@@ -187,15 +187,15 @@ export const postSchema = defineSchema('posts', {
 `;
 			const filePath = join(TEST_DIR, 'fluent-relations.schema.ts');
 			writeFileSync(filePath, schemaContent);
-			
+
 			const schemas = await parser.parseSchemas(filePath);
 			expect(schemas).toHaveLength(1);
 			expect(schemas[0].name).toBe('posts');
-			
+
 			expect(schemas[0].relations.author.kind).toBe('belongsTo');
 			expect(schemas[0].relations.author.options.via).toBe('authorId');
 			expect(schemas[0].relations.author.target().name).toBe('users');
-			
+
 			expect(schemas[0].relations.comments.kind).toBe('hasMany');
 			expect(schemas[0].relations.comments.target().name).toBe('comments');
 		});
@@ -285,15 +285,15 @@ export const postSchema = defineSchema('posts', {
 `;
 			const filePath = join(TEST_DIR, 'ast-fluent-relations.schema.ts');
 			writeFileSync(filePath, schemaContent);
-			
+
 			const schemas = await parser.parseSchemas(filePath);
 			expect(schemas).toHaveLength(1);
 			expect(schemas[0].name).toBe('posts');
-			
+
 			expect(schemas[0].relations.author.kind).toBe('belongsTo');
 			expect(schemas[0].relations.author.options.via).toBe('authorId');
 			expect(schemas[0].relations.author.target().name).toBe('users');
-			
+
 			expect(schemas[0].relations.comments.kind).toBe('hasMany');
 			expect(schemas[0].relations.comments.target().name).toBe('comments');
 		});
@@ -367,5 +367,4 @@ export const userSchema = defineSchema('users', {
 			expect(regexSchema.fields.email.unique).toBe(astSchema.fields.email.unique);
 		});
 	});
-
 });

@@ -2,7 +2,12 @@ import * as pg from 'drizzle-orm/pg-core';
 import { relative, resolve, dirname } from 'node:path';
 import type { Schema, FieldDefinition, GeneratedOutput } from '../types.js';
 import { PathResolver } from '../utils/path-resolver.js';
-import { resolveReference, buildUserSchemaMap, isSystemRef, type ResolvedReference } from '../auth-reference.js';
+import {
+	resolveReference,
+	buildUserSchemaMap,
+	isSystemRef,
+	type ResolvedReference
+} from '../auth-reference.js';
 import { getAuthRegistry } from '../../runtime/auth/registry.js';
 import { AuthDiagnostic } from '../../runtime/auth/diagnostics.js';
 
@@ -319,7 +324,7 @@ export class DrizzleGenerator {
 		const lines: string[] = [];
 
 		for (const [key, rel] of Object.entries(this.schema.relations)) {
-			let targetTable = this.resolveTargetName(rel.target);
+			const targetTable = this.resolveTargetName(rel.target);
 
 			if (rel.kind === 'belongsTo') {
 				// FK sits on this table; convention: `${key}Id` unless overridden via `via`
@@ -342,9 +347,11 @@ export class DrizzleGenerator {
 				lines.push(`    }),`);
 			} else if (rel.kind === 'manyToMany') {
 				const pivotTable = this.resolveTargetName(rel.options?.through);
+				const fromFk = rel.options?.sourceKey ?? rel.options?.fromKey ?? `${tableName}Id`;
+				const toFk = rel.options?.targetKey ?? rel.options?.toKey ?? `${targetTable}Id`;
 				lines.push(`    ${key}: r.many.${targetTable}({`);
-				lines.push(`      from: r.${tableName}.id.through(r.${pivotTable}.${tableName}Id),`);
-				lines.push(`      to: r.${targetTable}.id.through(r.${pivotTable}.${targetTable}Id),`);
+				lines.push(`      from: r.${tableName}.id.through(r.${pivotTable}.${fromFk}),`);
+				lines.push(`      to: r.${targetTable}.id.through(r.${pivotTable}.${toFk}),`);
 				lines.push(`    }),`);
 			} else if (rel.kind === 'morphTo' || rel.kind === 'morphMany') {
 				// Polymorphic relations are not yet supported in Drizzle 1.0 generation.
