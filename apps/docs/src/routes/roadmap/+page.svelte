@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { siteConfig } from '#lib/config.js';
+	import SEO from '#lib/components/seo.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import {
@@ -212,13 +214,11 @@
 	];
 </script>
 
-<svelte:head>
-	<title>Roadmap — OmniSvelte</title>
-	<meta
-		name="description"
-		content="The public OmniSvelte roadmap — what's shipped, in progress, and coming next."
-	/>
-</svelte:head>
+<SEO
+	title="Roadmap — OmniSvelte"
+	description="The public OmniSvelte roadmap — what's shipped, in progress, and coming next."
+	canonical={`${siteConfig.url}/roadmap`}
+/>
 
 <div class="container mx-auto max-w-5xl px-4 py-14 sm:px-6">
 	<!-- Header -->

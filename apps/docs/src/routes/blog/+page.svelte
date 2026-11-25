@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { siteConfig } from '#lib/config.js';
+	import SEO from '#lib/components/seo.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import {
@@ -18,16 +20,17 @@
 	import { formatDate } from '#lib/utils.js';
 
 	let { data } = $props();
-	const { posts } = data;
+	const posts = $derived(data.posts);
 
-	const featured = posts.find((p) => p.featured) ?? posts[0];
-	const rest = posts.filter((p) => p.slug !== featured?.slug);
+	const featured = $derived(posts.find((p) => p.featured) ?? posts[0]);
+	const rest = $derived(posts.filter((p) => p.slug !== featured?.slug));
 </script>
 
-<svelte:head>
-	<title>Blog — OmniSvelte</title>
-	<meta name="description" content="News, deep dives, and updates from the OmniSvelte team." />
-</svelte:head>
+<SEO
+	title="Blog — OmniSvelte"
+	description="News, deep dives, and announcements from the OmniSvelte team."
+	canonical={`${siteConfig.url}/blog`}
+/>
 
 <div class="container mx-auto max-w-5xl px-4 py-14 sm:px-6">
 	<!-- Header -->

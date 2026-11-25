@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types.js';
 	import { docsNav } from '#lib/docs-nav.js';
+	import { siteConfig } from '#lib/config.js';
+	import SEO from '#lib/components/seo.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
@@ -19,14 +21,30 @@
 	const section = $derived(
 		docsNav.find((s) => s.items.some((i) => i.href?.endsWith(doc.slugAsParams)))
 	);
+
+	const docJsonLd = $derived({
+		'@context': 'https://schema.org',
+		'@type': 'TechArticle',
+		headline: doc.title,
+		description: doc.description || `${doc.title} documentation for OmniSvelte`,
+		url: `${siteConfig.url}/docs/${doc.slugAsParams}`
+	});
+
+	const breadcrumbs = $derived([
+		{ name: 'Docs', item: '/docs' },
+		...(section ? [{ name: section.title, item: section.items[0]?.href || '/docs' }] : []),
+		{ name: doc.title, item: `/docs/${doc.slugAsParams}` }
+	]);
 </script>
 
-<svelte:head>
-	<title>{doc.title} — OmniSvelte Docs</title>
-	{#if doc.description}
-		<meta name="description" content={doc.description} />
-	{/if}
-</svelte:head>
+<SEO
+	title={doc.title}
+	description={doc.description}
+	canonical={`${siteConfig.url}/docs/${doc.slugAsParams}`}
+	ogType="article"
+	{breadcrumbs}
+	jsonLd={docJsonLd}
+/>
 
 <div class="xl:grid xl:grid-cols-[1fr_220px] xl:gap-10">
 	<article class="prose-docs min-w-0">

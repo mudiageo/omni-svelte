@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { siteConfig } from '#lib/config.js';
+	import SEO from '#lib/components/seo.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
@@ -156,15 +157,36 @@ await post.delete();
 
 // Relationships (eager loading)
 const full = await Posts.with(['author', 'comments']).find(1);`;
+	const websiteJsonLd = {
+		'@context': 'https://schema.org',
+		'@type': 'WebSite',
+		name: 'OmniSvelte',
+		url: siteConfig.url,
+		description: siteConfig.description
+	};
+
+	const softwareJsonLd = {
+		'@context': 'https://schema.org',
+		'@type': 'SoftwareApplication',
+		name: 'OmniSvelte',
+		applicationCategory: 'DeveloperApplication',
+		operatingSystem: 'Cross-platform',
+		offers: {
+			'@type': 'Offer',
+			price: '0',
+			priceCurrency: 'USD'
+		},
+		description: siteConfig.description,
+		softwareVersion: siteConfig.version
+	};
 </script>
 
-<svelte:head>
-	<title>OmniSvelte — SvelteKit, but with superpowers</title>
-	<meta
-		name="description"
-		content="A batteries-included framework that transforms SvelteKit with database ORM, auth, schema codegen, typed models, and a plugin system — all wired in."
-	/>
-</svelte:head>
+<SEO
+	title="OmniSvelte — SvelteKit, but with superpowers"
+	description="A batteries-included framework that transforms SvelteKit with database ORM, auth, schema codegen, typed models, and a plugin system — all wired in."
+	canonical={siteConfig.url}
+	jsonLd={[websiteJsonLd, softwareJsonLd]}
+/>
 
 <!-- ─── HERO ──────────────────────────────────────────────── -->
 <section class="border-border/40 relative overflow-hidden border-b">

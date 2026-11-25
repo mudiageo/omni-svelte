@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { siteConfig } from '#lib/config.js';
+	import SEO from '#lib/components/seo.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
@@ -10,13 +12,39 @@
 	import { formatDate } from '#lib/utils.js';
 
 	let { data } = $props();
-	const { post, component: MarkdownComponent } = data;
+	const post = $derived(data.post);
+	const MarkdownComponent = $derived(data.component);
+
+	const blogJsonLd = $derived({
+		'@context': 'https://schema.org',
+		'@type': 'BlogPosting',
+		headline: post.title,
+		description: post.description,
+		author: {
+			'@type': 'Person',
+			name: post.author
+		},
+		datePublished: post.date,
+		url: `${siteConfig.url}/blog/${post.slugAsParams}`
+	});
 </script>
 
-<svelte:head>
-	<title>{post.title} — OmniSvelte Blog</title>
-	<meta name="description" content={post.description} />
-</svelte:head>
+<SEO
+	title={post.title}
+	description={post.description}
+	canonical={`${siteConfig.url}/blog/${post.slugAsParams}`}
+	ogType="article"
+	article={{
+		publishedTime: post.date,
+		author: post.author,
+		tags: post.tags
+	}}
+	breadcrumbs={[
+		{ name: 'Blog', item: '/blog' },
+		{ name: post.title, item: `/blog/${post.slugAsParams}` }
+	]}
+	jsonLd={blogJsonLd}
+/>
 
 <div class="container mx-auto max-w-3xl px-4 py-14 sm:px-6">
 	<Button
