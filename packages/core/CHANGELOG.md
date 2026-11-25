@@ -1,5 +1,23 @@
 # omni-svelte
 
+## 0.3.0-next.8
+
+### Minor Changes
+
+- feat: add additionalFields mapping and file watcher triggers for auth schemas ([#83](https://github.com/mudiageo/omni-svelte/pull/83))
+
+- feat: add inverse relations support for auth tables in belongsTo and manyToMany ([#81](https://github.com/mudiageo/omni-svelte/pull/81))
+
+### Patch Changes
+
+- fix: provide default table types for auth references ([#86](https://github.com/mudiageo/omni-svelte/pull/86))
+
+- fix(drizzle): avoid duplicate timestamp columns when explicitly defined in schema fields ([#86](https://github.com/mudiageo/omni-svelte/pull/86))
+
+- fix(schema): import isSystemRef and propagate non-AUTH002 diagnostics in reference fallback ([#84](https://github.com/mudiageo/omni-svelte/pull/84))
+
+- feat: support reusable field helper functions in schema parsers ([#86](https://github.com/mudiageo/omni-svelte/pull/86))
+
 ## 0.3.0-next.7
 
 ### Minor Changes
