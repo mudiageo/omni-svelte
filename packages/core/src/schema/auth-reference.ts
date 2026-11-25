@@ -2,11 +2,27 @@ import type { AuthRegistry, PkType } from '../runtime/auth/registry.js';
 import { AuthDiagnostic } from '../runtime/auth/diagnostics.js';
 import type { defineSchema } from './index.js';
 
-/** Augmented by .omni/schema.d.ts */
-export interface AuthTables {}
+export interface DefaultAuthTables {
+	user: true;
+	session: true;
+	account: true;
+	verification: true;
+	twoFactor?: true;
+}
 
 /** Augmented by .omni/schema.d.ts */
-export interface AuthRelations {}
+export interface AuthTables extends DefaultAuthTables {}
+
+export interface DefaultAuthRelations {
+	user: Record<string, any>;
+	session: Record<string, any>;
+	account: Record<string, any>;
+	verification: Record<string, any>;
+	twoFactor?: Record<string, any>;
+}
+
+/** Augmented by .omni/schema.d.ts */
+export interface AuthRelations extends DefaultAuthRelations {}
 
 export interface SystemSchemaRef<K extends string = string> {
 	readonly __omniSystem: true;

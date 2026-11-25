@@ -234,6 +234,66 @@ export function someFunction() {}
 
 			expect(schemas).toHaveLength(0);
 		});
+
+		it('should resolve local helper functions for field definitions in regex mode', async () => {
+			const schemaContent = `
+export const pk = () => field.string().primaryKey();
+export const orgId = () => field.reference(() => orgSchema).required();
+
+export const orgSchema = defineSchema('organizations', {
+  id: pk(),
+  name: field.string().required(),
+});
+
+export const memberSchema = defineSchema('members', {
+  id: pk(),
+  orgId: orgId(),
+});
+`;
+			const filePath = join(TEST_DIR, 'regex-helpers.schema.ts');
+			writeFileSync(filePath, schemaContent);
+
+			const schemas = await parser.parseSchemas(filePath);
+			expect(schemas).toHaveLength(2);
+			const member = schemas.find((s) => s.name === 'members')!;
+			expect(member).toBeDefined();
+			expect(member.fields.id.type).toBe('string');
+			expect(member.fields.id.primary).toBe(true);
+			expect(member.fields.orgId.type).toBe('reference');
+			expect(member.fields.orgId.required).toBe(true);
+		});
+
+		it('should resolve chained local helper functions in regex mode', async () => {
+			const schemaContent = `
+export const pk = () => field.string().primaryKey();
+
+export const itemSchema = defineSchema('items', {
+  id: pk().required(),
+});
+`;
+			const filePath = join(TEST_DIR, 'regex-chained-helpers.schema.ts');
+			writeFileSync(filePath, schemaContent);
+
+			const schemas = await parser.parseSchemas(filePath);
+			expect(schemas).toHaveLength(1);
+			expect(schemas[0].fields.id.type).toBe('string');
+			expect(schemas[0].fields.id.primary).toBe(true);
+			expect(schemas[0].fields.id.required).toBe(true);
+		});
+
+		it('should parse quoted defaults with escaped quotes', async () => {
+			const schemaContent = `
+export const postSchema = defineSchema('posts', {
+  title: { type: 'string', default: 'can\\'t wait' }
+});
+`;
+			const filePath = join(TEST_DIR, 'escaped-default.schema.ts');
+			writeFileSync(filePath, schemaContent);
+
+			const schemas = await parser.parseSchemas(filePath);
+			expect(schemas).toHaveLength(1);
+			expect(schemas[0].fields.title.default).toBe("can\\'t wait");
+		});
 	});
 
 	describe('AST Parser', () => {
@@ -296,6 +356,56 @@ export const postSchema = defineSchema('posts', {
 
 			expect(schemas[0].relations.comments.kind).toBe('hasMany');
 			expect(schemas[0].relations.comments.target().name).toBe('comments');
+		});
+
+		it('should resolve local helper functions for field definitions in AST mode', async () => {
+			const schemaContent = `
+import { defineSchema, field } from 'omni-svelte';
+
+export const pk = () => field.string().primaryKey();
+export const orgId = () => field.reference(() => orgSchema).required();
+
+export const orgSchema = defineSchema('organizations', {
+  id: pk(),
+  name: field.string().required(),
+});
+
+export const memberSchema = defineSchema('members', {
+  id: pk(),
+  orgId: orgId(),
+});
+`;
+			const filePath = join(TEST_DIR, 'ast-helpers.schema.ts');
+			writeFileSync(filePath, schemaContent);
+
+			const schemas = await parser.parseSchemas(filePath);
+			expect(schemas).toHaveLength(2);
+			const member = schemas.find((s) => s.name === 'members')!;
+			expect(member).toBeDefined();
+			expect(member.fields.id.type).toBe('string');
+			expect(member.fields.id.primary).toBe(true);
+			expect(member.fields.orgId.type).toBe('reference');
+			expect(member.fields.orgId.required).toBe(true);
+		});
+
+		it('should resolve chained local helper functions in AST mode', async () => {
+			const schemaContent = `
+import { defineSchema, field } from 'omni-svelte';
+
+export const pk = () => field.string().primaryKey();
+
+export const itemSchema = defineSchema('items', {
+  id: pk().required(),
+});
+`;
+			const filePath = join(TEST_DIR, 'ast-chained-helpers.schema.ts');
+			writeFileSync(filePath, schemaContent);
+
+			const schemas = await parser.parseSchemas(filePath);
+			expect(schemas).toHaveLength(1);
+			expect(schemas[0].fields.id.type).toBe('string');
+			expect(schemas[0].fields.id.primary).toBe(true);
+			expect(schemas[0].fields.id.required).toBe(true);
 		});
 
 		it('should fallback to regex when AST parsing fails', async () => {
