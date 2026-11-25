@@ -2,6 +2,9 @@
 	"mode": "pre",
 	"tag": "next",
 	"changesets": [
+		"auth-additional-fields",
+		"auth-default-tables",
+		"auth-inverse-relations",
 		"auth-policies",
 		"auth-readonly-models",
 		"auth-reference-api",
@@ -9,12 +12,14 @@
 		"default-ast-parser",
 		"drizzle-1.0-connection-init",
 		"drizzle-barrel-exports",
+		"drizzle-duplicate-timestamps",
 		"drizzle-upgrade",
 		"dry-ads-doubt",
 		"feat-cli-pnpm-ignored-builds-detect",
 		"feat-drizzle-kit-export",
 		"feat-relations-api",
 		"feat-resource-authorize-record",
+		"fix-auth-reference-fallback",
 		"fix-cli-pnpm-allow-builds",
 		"fix-drizzle-config-auth-schema",
 		"fix-model-updated-at-timestamp",
@@ -31,6 +36,7 @@
 		"reference-infers-pk-type",
 		"relation-unknown-fix",
 		"relations-parser-fix",
+		"schema-field-helpers",
 		"slick-dragons-hope"
 	]
 }
