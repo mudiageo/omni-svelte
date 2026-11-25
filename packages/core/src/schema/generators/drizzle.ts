@@ -616,8 +616,15 @@ ${allTypes.join('\n\n')}`;
 
 		let timestampColumns = '';
 		if (this.schema.config?.timestamps !== false) {
-			const hasCreatedAt = 'createdAt' in this.schema.fields || 'created_at' in this.schema.fields;
-			const hasUpdatedAt = 'updatedAt' in this.schema.fields || 'updated_at' in this.schema.fields;
+			const physicalFields = Object.entries(this.schema.fields).filter(
+				([_, f]) => !f.get && !f.computed
+			);
+			const hasCreatedAt = physicalFields.some(
+				([name]) => name === 'createdAt' || name === 'created_at'
+			);
+			const hasUpdatedAt = physicalFields.some(
+				([name]) => name === 'updatedAt' || name === 'updated_at'
+			);
 			if (!hasCreatedAt) {
 				timestampColumns += `,
   createdAt: timestamp('created_at').defaultNow().notNull()`;
@@ -753,9 +760,9 @@ ${allTypes.join('\n\n')}`;
 					(trimmed.startsWith('{') && trimmed.endsWith('}')) ||
 					(trimmed.startsWith('[') && trimmed.endsWith(']'));
 				if (isJsonLiteral) {
-					columnDef += `.default('${trimmed}')`;
+					columnDef += `.default(${JSON.stringify(trimmed)})`;
 				} else {
-					columnDef += `.default('${d}')`;
+					columnDef += `.default(${JSON.stringify(d)})`;
 				}
 			} else {
 				// boolean / number — emit the raw value

@@ -204,6 +204,37 @@ describe('Schema System', () => {
 			expect(output).toContain(`updatedAt: timestamp('updated_at').defaultNow().notNull()`);
 		});
 
+		it('should still generate createdAt when createdAt field is a computed or getter field', () => {
+			const schemaWithComputedCreatedAt: Schema = {
+				name: 'items',
+				fields: {
+					id: { type: 'string', primary: true },
+					createdAt: { type: 'string', computed: true, get: () => 'now' }
+				},
+				relations: {},
+				config: { timestamps: true }
+			};
+			const generator = new DrizzleGenerator(schemaWithComputedCreatedAt);
+			const output = generator.generate();
+
+			expect(output).toContain(`createdAt: timestamp('created_at').defaultNow().notNull()`);
+		});
+
+		it('should properly escape quotes in string default values', () => {
+			const schemaWithQuotes: Schema = {
+				name: 'messages',
+				fields: {
+					id: { type: 'string', primary: true },
+					body: { type: 'text', default: "can't stop" }
+				},
+				relations: {}
+			};
+			const generator = new DrizzleGenerator(schemaWithQuotes);
+			const output = generator.generate();
+
+			expect(output).toContain(`.default("can't stop")`);
+		});
+
 		it('should generate indexes correctly', () => {
 			const generator = new DrizzleGenerator(mockUserSchema);
 			const output = generator.generate();

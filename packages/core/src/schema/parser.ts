@@ -298,17 +298,18 @@ export class RegexSchemaParser implements ISchemaParser {
 				.replace(/^\s*\{\s*/, '')
 				.replace(/\s*\}\s*$/, '');
 
-			// Resolve local helper functions (e.g. `id: pk()`, `orgId: orgId()`)
+			// Resolve local helper functions (e.g. `id: pk()`, `orgId: orgId().required()`)
 			if (!fieldDef.includes('field.') && !fieldDef.includes('relation.') && fullContent) {
-				const callMatch = fieldDef.match(/^([a-zA-Z0-9_$]+)\s*\(/);
+				const callMatch = fieldDef.match(/^([a-zA-Z0-9_$]+)\s*\(\s*\)/);
 				if (callMatch) {
 					const helperName = callMatch[1];
+					const escapedHelperName = helperName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 					const helperRegex = new RegExp(
-						`(?:export\\s+)?(?:const|let|var)\\s+${helperName}\\s*=\\s*(?:\\([^)]*\\)|[a-zA-Z0-9_$]+)\\s*=>\\s*([\\s\\S]*?)(?:;|(?:\\n\\s*(?:export|const|let|var|function|\\/\\*|\\/\\/|$)))`
+						`(?:export\\s+)?(?:const|let|var)\\s+${escapedHelperName}\\s*=\\s*(?:\\([^)]*\\)|[a-zA-Z0-9_$]+)\\s*=>\\s*([\\s\\S]*?)(?:;|(?:\\n\\s*(?:export|const|let|var|function|\\/\\*|\\/\\/|$)))`
 					);
 					const helperMatch = fullContent.match(helperRegex);
 					if (helperMatch) {
-						fieldDef = helperMatch[1].trim();
+						fieldDef = fieldDef.replace(callMatch[0], helperMatch[1].trim());
 					}
 				}
 			}
@@ -441,7 +442,9 @@ export class RegexSchemaParser implements ISchemaParser {
 			if (lengthMatch) field.length = parseInt(lengthMatch[1]);
 
 			// Extract default values
-			const defaultMatch = fieldDef.match(/default:\s*(?:(['"`])([\s\S]*?)\1|([^,}\n]+))/);
+			const defaultMatch = fieldDef.match(
+				/default:\s*(?:(['"`])((?:\\.|(?!\1)[\s\S])*?)\1|([^,}\n]+))/
+			);
 			if (defaultMatch) {
 				if (defaultMatch[2] !== undefined) {
 					field.default = defaultMatch[2];
@@ -732,12 +735,28 @@ export class ASTSchemaParser implements ISchemaParser {
 		const fieldDef: any = {};
 
 		if (ts.isCallExpression(node) || ts.isPropertyAccessExpression(node)) {
-			let targetNode: ts.Node = node;
+			let text = node.getText(this.sourceFile);
 
-			// Resolve local helper functions (e.g. `id: pk()`, `orgId: orgId()`)
-			if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
-				const helperName = node.expression.text;
-				if (helperName !== 'field' && helperName !== 'relation' && this.sourceFile) {
+			// Resolve local helper functions (e.g. `id: pk()`, `orgId: orgId().required()`)
+			let baseCall: ts.CallExpression | null = null;
+			let curr: ts.Node = node;
+			while (ts.isCallExpression(curr) || ts.isPropertyAccessExpression(curr)) {
+				if (ts.isCallExpression(curr)) {
+					if (ts.isIdentifier(curr.expression)) {
+						baseCall = curr;
+						break;
+					}
+					curr = curr.expression;
+				} else if (ts.isPropertyAccessExpression(curr)) {
+					curr = curr.expression;
+				} else {
+					break;
+				}
+			}
+
+			if (baseCall && ts.isIdentifier(baseCall.expression) && this.sourceFile) {
+				const helperName = baseCall.expression.text;
+				if (helperName !== 'field' && helperName !== 'relation') {
 					for (const stmt of this.sourceFile.statements) {
 						if (ts.isVariableStatement(stmt)) {
 							for (const decl of stmt.declarationList.declarations) {
@@ -747,7 +766,9 @@ export class ASTSchemaParser implements ISchemaParser {
 									decl.initializer
 								) {
 									if (ts.isArrowFunction(decl.initializer) && decl.initializer.body) {
-										targetNode = decl.initializer.body;
+										const helperText = decl.initializer.body.getText(this.sourceFile);
+										const baseCallText = baseCall.getText(this.sourceFile);
+										text = text.replace(baseCallText, helperText);
 										break;
 									}
 								}
@@ -756,8 +777,6 @@ export class ASTSchemaParser implements ISchemaParser {
 					}
 				}
 			}
-
-			const text = targetNode.getText(this.sourceFile);
 
 			// Extract type from fluent field API
 			const fluentTypeMatch = text.match(/field\s*\.\s*(\w+)\s*\(/);
