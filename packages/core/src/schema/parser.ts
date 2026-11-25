@@ -298,6 +298,21 @@ export class RegexSchemaParser implements ISchemaParser {
 				.replace(/^\s*\{\s*/, '')
 				.replace(/\s*\}\s*$/, '');
 
+			// Resolve local helper functions (e.g. `id: pk()`, `orgId: orgId()`)
+			if (!fieldDef.includes('field.') && !fieldDef.includes('relation.') && fullContent) {
+				const callMatch = fieldDef.match(/^([a-zA-Z0-9_$]+)\s*\(/);
+				if (callMatch) {
+					const helperName = callMatch[1];
+					const helperRegex = new RegExp(
+						`(?:export\\s+)?(?:const|let|var)\\s+${helperName}\\s*=\\s*(?:\\([^)]*\\)|[a-zA-Z0-9_$]+)\\s*=>\\s*([\\s\\S]*?)(?:;|(?:\\n\\s*(?:export|const|let|var|function|\\/\\*|\\/\\/|$)))`
+					);
+					const helperMatch = fullContent.match(helperRegex);
+					if (helperMatch) {
+						fieldDef = helperMatch[1].trim();
+					}
+				}
+			}
+
 			// Extract type (standard object literal)
 			const typeMatch = fieldDef.match(/type:\s*['"`](\w+)['"`]/);
 			if (typeMatch) field.type = typeMatch[1];
@@ -426,16 +441,16 @@ export class RegexSchemaParser implements ISchemaParser {
 			if (lengthMatch) field.length = parseInt(lengthMatch[1]);
 
 			// Extract default values
-			const defaultMatch = fieldDef.match(/default:\s*([^,}]+)/);
+			const defaultMatch = fieldDef.match(/default:\s*(?:(['"`])([\s\S]*?)\1|([^,}\n]+))/);
 			if (defaultMatch) {
-				const defaultValue = defaultMatch[1].trim();
-				if (defaultValue === 'true') field.default = true;
-				else if (defaultValue === 'false') field.default = false;
-				else if (/^\d+$/.test(defaultValue)) field.default = parseInt(defaultValue);
-				else if (/^['"`](.*)['"`]$/.test(defaultValue)) {
-					field.default = defaultValue.slice(1, -1);
+				if (defaultMatch[2] !== undefined) {
+					field.default = defaultMatch[2];
 				} else {
-					field.default = defaultValue;
+					const defaultValue = defaultMatch[3].trim();
+					if (defaultValue === 'true') field.default = true;
+					else if (defaultValue === 'false') field.default = false;
+					else if (/^\d+$/.test(defaultValue)) field.default = parseInt(defaultValue);
+					else field.default = defaultValue;
 				}
 			}
 
@@ -717,7 +732,32 @@ export class ASTSchemaParser implements ISchemaParser {
 		const fieldDef: any = {};
 
 		if (ts.isCallExpression(node) || ts.isPropertyAccessExpression(node)) {
-			const text = node.getText(this.sourceFile);
+			let targetNode: ts.Node = node;
+
+			// Resolve local helper functions (e.g. `id: pk()`, `orgId: orgId()`)
+			if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
+				const helperName = node.expression.text;
+				if (helperName !== 'field' && helperName !== 'relation' && this.sourceFile) {
+					for (const stmt of this.sourceFile.statements) {
+						if (ts.isVariableStatement(stmt)) {
+							for (const decl of stmt.declarationList.declarations) {
+								if (
+									ts.isIdentifier(decl.name) &&
+									decl.name.text === helperName &&
+									decl.initializer
+								) {
+									if (ts.isArrowFunction(decl.initializer) && decl.initializer.body) {
+										targetNode = decl.initializer.body;
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			const text = targetNode.getText(this.sourceFile);
 
 			// Extract type from fluent field API
 			const fluentTypeMatch = text.match(/field\s*\.\s*(\w+)\s*\(/);

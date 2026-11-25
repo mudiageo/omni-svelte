@@ -85,6 +85,31 @@ defineSchema('users', {
 
 ---
 
+## Reusable Field Helpers
+
+To reduce boilerplate across multiple schemas (such as shared primary keys, tenant IDs, or audit columns), define helper arrow functions returning fluent `field.*` chains. OmniSvelte resolves helper functions automatically during schema parsing in both AST and regex modes:
+
+```ts
+// src/lib/schema/helpers.ts
+import { field } from 'omni-svelte/schema';
+import { organizationsSchema } from './organizations.schema';
+
+export const pk = () => field.string().primaryKey();
+export const orgId = () => field.reference(() => organizationsSchema).required();
+```
+
+Use them directly in your schema definitions:
+
+```ts
+export const membersSchema = defineSchema('members', {
+	id: pk(),
+	orgId: orgId(),
+	role: field.enum('admin', 'member').required()
+});
+```
+
+---
+
 ## Full example
 
 ```ts

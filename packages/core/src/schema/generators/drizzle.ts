@@ -616,9 +616,16 @@ ${allTypes.join('\n\n')}`;
 
 		let timestampColumns = '';
 		if (this.schema.config?.timestamps !== false) {
-			timestampColumns = `,
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+			const hasCreatedAt = 'createdAt' in this.schema.fields || 'created_at' in this.schema.fields;
+			const hasUpdatedAt = 'updatedAt' in this.schema.fields || 'updated_at' in this.schema.fields;
+			if (!hasCreatedAt) {
+				timestampColumns += `,
+  createdAt: timestamp('created_at').defaultNow().notNull()`;
+			}
+			if (!hasUpdatedAt) {
+				timestampColumns += `,
   updatedAt: timestamp('updated_at').defaultNow().notNull()`;
+			}
 		}
 
 		if (this.schema.config?.softDeletes) {

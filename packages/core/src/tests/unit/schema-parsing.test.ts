@@ -234,6 +234,34 @@ export function someFunction() {}
 
 			expect(schemas).toHaveLength(0);
 		});
+
+		it('should resolve local helper functions for field definitions in regex mode', async () => {
+			const schemaContent = `
+export const pk = () => field.string().primaryKey();
+export const orgId = () => field.reference(() => orgSchema).required();
+
+export const orgSchema = defineSchema('organizations', {
+  id: pk(),
+  name: field.string().required(),
+});
+
+export const memberSchema = defineSchema('members', {
+  id: pk(),
+  orgId: orgId(),
+});
+`;
+			const filePath = join(TEST_DIR, 'regex-helpers.schema.ts');
+			writeFileSync(filePath, schemaContent);
+
+			const schemas = await parser.parseSchemas(filePath);
+			expect(schemas).toHaveLength(2);
+			const member = schemas.find((s) => s.name === 'members')!;
+			expect(member).toBeDefined();
+			expect(member.fields.id.type).toBe('string');
+			expect(member.fields.id.primary).toBe(true);
+			expect(member.fields.orgId.type).toBe('reference');
+			expect(member.fields.orgId.required).toBe(true);
+		});
 	});
 
 	describe('AST Parser', () => {
@@ -296,6 +324,36 @@ export const postSchema = defineSchema('posts', {
 
 			expect(schemas[0].relations.comments.kind).toBe('hasMany');
 			expect(schemas[0].relations.comments.target().name).toBe('comments');
+		});
+
+		it('should resolve local helper functions for field definitions in AST mode', async () => {
+			const schemaContent = `
+import { defineSchema, field } from 'omni-svelte';
+
+export const pk = () => field.string().primaryKey();
+export const orgId = () => field.reference(() => orgSchema).required();
+
+export const orgSchema = defineSchema('organizations', {
+  id: pk(),
+  name: field.string().required(),
+});
+
+export const memberSchema = defineSchema('members', {
+  id: pk(),
+  orgId: orgId(),
+});
+`;
+			const filePath = join(TEST_DIR, 'ast-helpers.schema.ts');
+			writeFileSync(filePath, schemaContent);
+
+			const schemas = await parser.parseSchemas(filePath);
+			expect(schemas).toHaveLength(2);
+			const member = schemas.find((s) => s.name === 'members')!;
+			expect(member).toBeDefined();
+			expect(member.fields.id.type).toBe('string');
+			expect(member.fields.id.primary).toBe(true);
+			expect(member.fields.orgId.type).toBe('reference');
+			expect(member.fields.orgId.required).toBe(true);
 		});
 
 		it('should fallback to regex when AST parsing fails', async () => {

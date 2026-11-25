@@ -185,6 +185,25 @@ describe('Schema System', () => {
 			expect(output).toContain(`updatedAt: timestamp('updated_at').defaultNow().notNull()`);
 		});
 
+		it('should not duplicate createdAt or updatedAt when explicitly defined in schema fields', () => {
+			const schemaWithExplicitTimestamps: Schema = {
+				name: 'audit_logs',
+				fields: {
+					id: { type: 'string', primary: true },
+					action: { type: 'string', required: true },
+					createdAt: { type: 'timestamp', required: true }
+				},
+				relations: {},
+				config: { timestamps: true }
+			};
+			const generator = new DrizzleGenerator(schemaWithExplicitTimestamps);
+			const output = generator.generate();
+
+			const createdAtMatches = output.match(/createdAt:\s*timestamp/g);
+			expect(createdAtMatches).toHaveLength(1);
+			expect(output).toContain(`updatedAt: timestamp('updated_at').defaultNow().notNull()`);
+		});
+
 		it('should generate indexes correctly', () => {
 			const generator = new DrizzleGenerator(mockUserSchema);
 			const output = generator.generate();
