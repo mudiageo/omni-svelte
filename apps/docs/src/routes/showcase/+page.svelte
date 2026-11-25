@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { siteConfig } from '#lib/config.js';
+	import SEO from '#lib/components/seo.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import {
@@ -73,13 +75,11 @@
 	const statusDot = { live: 'success', beta: 'warning', wip: 'default' } as const;
 </script>
 
-<svelte:head>
-	<title>Showcase — OmniSvelte</title>
-	<meta
-		name="description"
-		content="Projects built with OmniSvelte — from SaaS platforms to AI tools and mobile apps."
-	/>
-</svelte:head>
+<SEO
+	title="Showcase — OmniSvelte"
+	description="Projects built with OmniSvelte — from SaaS platforms to AI tools and mobile apps."
+	canonical={`${siteConfig.url}/showcase`}
+/>
 
 <div class="container mx-auto max-w-6xl px-4 py-14 sm:px-6">
 	<!-- Header -->
